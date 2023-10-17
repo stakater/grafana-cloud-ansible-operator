@@ -1,0 +1,50 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+  name: grafana-cloud-ansible-operator.v0.0.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions: {}
+  description: Grafana Cloud Operator that configures on call and sre features of
+    Grafana Cloud
+  displayName: grafana-cloud-operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - grafana-cloud
+  - oncall
+  - sre
+  - dashboard
+  - grafana-sre
+  - grafana-oncall
+  - slo
+  - grafana-slo
+  links:
+  - name: Grafana Cloud Ansible Operator
+    url: https://grafana-cloud-ansible-operator.domain
+  maintainers:
+  - email: hello@stakater.com
+    name: stakater
+  maturity: alpha
+  provider:
+    name: Stakater
+    url: www.stakater.com
+  version: 0.0.0

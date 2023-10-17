@@ -1,0 +1,20 @@
+FROM quay.io/operator-framework/ansible-operator:v1.31.0
+
+COPY requirements.yml ${HOME}/requirements.yml
+RUN ansible-galaxy collection install -r ${HOME}/requirements.yml \
+ && chmod -R ug+rwx ${HOME}/.ansible
+
+### Required OpenShift Labels
+LABEL name="Grafana Cloud Operator" \
+      maintainer="hello@stakater.com" \
+      vendor="StakaterAB" \
+      version="${VERSION}" \
+      release="${RELEASE}"  \
+      summary="Grafana Cloud Operator for integration between Grafana Cloud and OpenShift clusters" \
+      description="It sets up integration between Grafana OnCall and OpenShift clusters"
+
+COPY LICENSE ${HOME}/licenses/
+
+COPY watches.yaml ${HOME}/watches.yaml
+COPY roles/ ${HOME}/roles/
+COPY playbooks/ ${HOME}/playbooks/

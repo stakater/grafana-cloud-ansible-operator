@@ -1,0 +1,31 @@
+# permissions for end users to edit grafanacloudoperators.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: grafanacloudoperator-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: grafana-cloud-ansible-operator
+    app.kubernetes.io/part-of: grafana-cloud-ansible-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: grafanacloudoperator-editor-role
+rules:
+- apiGroups:
+  - grafanacloud.stakater.com
+  resources:
+  - grafanacloudoperators
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - grafanacloud.stakater.com
+  resources:
+  - grafanacloudoperators/status
+  verbs:
+  - get

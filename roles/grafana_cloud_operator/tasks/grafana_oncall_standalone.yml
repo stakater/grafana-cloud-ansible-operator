@@ -1,0 +1,115 @@
+- name: Debug at the start of standalone
+  debug:
+    msg: "Started processing standalone tasks"
+
+- name: Update CR status to Initiated
+  k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: GrafanaCloudOperator
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "Initiated"
+        reason: "OperationStarted"
+        message: "Operation to integrate Grafana OnCall started"
+
+- name: Get the Cluster's name
+  k8s_info:
+    api_version: v1
+    kind: Node
+  register: node_info
+
+- set_fact:
+    cluster_name: "{{ node_info.resources[0].metadata.labels['kubernetes.io/hostname'] | regex_replace('-master.*', '') | regex_replace('-worker.*', '') }}"
+
+- name: Determine if integration exists for the cluster
+  set_fact:
+    integration_exists_for_cluster: "{{ cluster_name in existing_integration_names }}"
+
+- name: Create a new integration in Grafana OnCall for the cluster only if it does not have one
+  uri:
+    url: "{{ grafana_cloud_integrations_api_url }}"
+    method: POST
+    body_format: json
+    return_content: yes
+    headers:
+      Authorization: "{{ grafana_cloud_api_token }}"
+      Content-Type: "application/json"
+    body:
+      type: "alertmanager"
+      name: "{{ cluster_name }}"
+    status_code: [200, 201]
+  when: not integration_exists_for_cluster
+  register: grafana_integration_response
+  failed_when: false
+
+- name: Inform user if Grafana integration creation was skipped or failed
+  block:
+    - name: Display message to the user
+      debug:
+        msg: "Grafana integration for {{ cluster_name }} either already exists or failed to be created. Halting further operations."
+
+    - name: End play gracefully
+      meta: end_play
+  when: 
+    - grafana_integration_response.skipped is true
+      or
+      (grafana_integration_response.status is defined and grafana_integration_response.status not in [200, 201])
+
+- name: Update CR status after Grafana integration creation
+  k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: GrafanaCloudOperator
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "IntegrationCreated"
+        reason: "GrafanaIntegrationSuccess"
+        message: "Grafana integration created successfully"
+
+- include_tasks: modify_alertmanager_secret.yml
+  vars:
+    receiver_name: "{{ cluster_name }}"
+    receiver_url: "{{ grafana_integration_response.json.link }}"
+
+- name: Re-encode modified alertmanager content for cluster
+  set_fact:
+    encoded_alertmanager_secret_content: "{{ modified_alertmanager_secret_content | to_nice_yaml | b64encode }}"
+
+- name: Patch alertmanager-main secret for cluster
+  k8s:
+    state: present
+    namespace: "{{ alertmanager_namespace }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ alertmanager_secret_name }}"
+        namespace: "{{ alertmanager_namespace }}"
+      data:
+        alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
+  when: not integration_exists_for_cluster
+
+- name: Update CR status to ConfigUpdated
+  k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: GrafanaCloudOperator
+      metadata:
+        name: "{{ gco_cr.metadata.name }}"
+        namespace: "{{ gco_cr.metadata.namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "Successful"
+        reason: "ConfigUpdated"
+        message: "Alertmanager configuration updated successfully for the cluster {{ cluster_name }}"
+  when: not integration_exists_for_cluster

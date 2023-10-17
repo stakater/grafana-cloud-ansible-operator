@@ -1,0 +1,172 @@
+- name: Set current date and time
+  command: date --iso-8601=seconds
+  register: current_datetime
+  changed_when: false
+
+- set_fact:
+    ansible_date_time:
+      iso8601: "{{ current_datetime.stdout }}"
+
+- name: Get all GrafanaCloudOperator CRs in the operator namespace
+  k8s_info:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: GrafanaCloudOperator
+    namespace: "{{ operator_namespace }}"
+  register: all_gco_crs
+
+- name: Fail if there's more than one CR
+  fail:
+    msg: "There are multiple GrafanaCloudOperator CRs in the {{ operator_namespace }} namespace. Only one is expected"
+  when: all_gco_crs.resources | length > 1
+
+- name: Set the CR name from the fetched list
+  set_fact:
+    gco_cr_name: "{{ all_gco_crs.resources[0].metadata.name }}"
+
+- set_fact:
+    cr_name: "{{ gco_cr_name }}"
+    cr_namespace: "{{ operator_namespace }}"
+    gco_cr: "{{ all_gco_crs.resources[0] }}"
+
+# # Fetch the single GrafanaCloudOperator CR
+# - name: Get the specific GrafanaCloudOperator CR
+#   k8s_info:
+#     api_version: grafanacloud.stakater.com/v1alpha1
+#     kind: GrafanaCloudOperator
+#     namespace: "{{ cr_namespace }}"
+#     name: "{{ cr_name }}"
+#   register: gco_cr
+
+- name: Update CR status to CRRetrieved
+  k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: GrafanaCloudOperator
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "Processing"
+        reason: "CRRetrieved"
+        message: "GrafanaCloudOperator CR retrieved"
+
+- name: Ensure required CR fields are set
+  fail:
+    msg: "Required field '{{ item.field }}' is missing in the GrafanaCloudOperator CR"
+  loop:
+    - { field: "grafanaAPIToken.secretName", value: gco_cr.spec.grafanaAPIToken.secretName }
+    - { field: "grafanaAPIToken.key", value: gco_cr.spec.grafanaAPIToken.key }
+  loop_control:
+    label: "{{ item.field }}"
+  when: (item.value is none or item.value == '')
+
+- name: Get Grafana API token from the secret
+  k8s_info:
+    api_version: v1
+    kind: Secret
+    name: "{{ gco_cr.spec.grafanaAPIToken.secretName }}"
+    namespace: "{{ cr_namespace }}"
+  register: grafana_api_secret
+
+- set_fact:
+    grafana_cloud_api_token: "{{ grafana_api_secret.resources[0].data[gco_cr.spec.grafanaAPIToken.key] | b64decode }}"
+
+- name: Update CR status to TokenFetched
+  k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: GrafanaCloudOperator
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "Processing"
+        reason: "TokenFetched"
+        message: "Grafana API token fetched from the secret"
+
+- name: Ensure Grafana API Token is available
+  fail:
+    msg: "Failed to retrieve Grafana API token from the secret."
+  when: grafana_cloud_api_token is not defined or grafana_cloud_api_token == ''
+
+- name: Fetch list of all existing integrations in Grafana OnCall
+  uri:
+    url: "{{ grafana_cloud_integrations_api_url }}"
+    method: GET
+    headers:
+      Authorization: "{{ grafana_cloud_api_token }}"
+      Content-Type: "application/json"
+    return_content: yes
+  register: existing_integrations_response
+
+- name: Extract integration names from the response
+  set_fact:
+    existing_integration_names: "{{ existing_integrations_response.json.results | map(attribute='name') | list }}"
+
+- name: Ensure retrieved Grafana integrations list is valid
+  fail:
+    msg: "Failed to retrieve valid Grafana integrations"
+  when: existing_integration_names is none or existing_integration_names | type_debug != 'list'
+
+- name: Update CR status to IntegrationsListFetched
+  k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: GrafanaCloudOperator
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "Processing"
+        reason: "IntegrationsListFetched"
+        message: "List of existing Grafana integrations fetched"
+
+- name: Fetch alertmanager-main secret for cluster
+  k8s_info:
+    namespace: "{{ alertmanager_namespace }}"
+    kind: Secret
+    name: "{{ alertmanager_secret_name }}"
+  register: fetched_alertmanager_secret
+
+- name: Update CR status to AlertmanagerSecretFetched
+  k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: GrafanaCloudOperator
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "Processing"
+        reason: "AlertmanagerSecretFetched"
+        message: "Fetched alertmanager-main secret for cluster"
+  when: (fetched_alertmanager_secret.resources | default([]) | length) > 0
+
+- name: Update CR status to AlertmanagerSecretInvalid
+  k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: GrafanaCloudOperator
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "Failed"
+        reason: "AlertmanagerSecretInvalid"
+        message: "Alertmanager secret data is invalid or empty"
+  when: (fetched_alertmanager_secret.resources[0].data | default({}) | length) == 0
+
+- name: Ensure alertmanager secret data is valid
+  fail:
+    msg: "Alertmanager secret data is invalid or empty."
+  when: (fetched_alertmanager_secret.resources[0].data | default({}) | length) == 0

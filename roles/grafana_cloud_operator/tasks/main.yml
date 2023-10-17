@@ -1,0 +1,11 @@
+# main.yml
+- name: Include common tasks
+  include_tasks: common_tasks.yml
+
+- name: Execute tasks for hub and spoke topology
+  include_tasks: grafana_oncall_hub_spoke.yml
+  when: gco_cr.spec.provisionMode == 'hubAndSpoke'
+
+- name: Execute tasks for standalone topology
+  include_tasks: grafana_oncall_standalone.yml
+  when: gco_cr.spec.provisionMode == 'standalone'

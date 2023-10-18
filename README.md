@@ -13,43 +13,95 @@ Grafana Cloud is a fully managed observability platform from Grafana Labs, provi
 #### Operator SDK Framework - Ansible
 This operator is built using the Ansible Operator Framework built on Operator SDK, combining the ease of use of Operators with the power of Ansible automation. It reacts to custom resources created within the OpenShift cluster to manage the creation and integration of Grafana OnCall resources with the OpenShift Cluster.
 
-#### Grafana On Call Integration Process
+#### Grafana OnCall Integration Process
 The Grafana Cloud Operator leverages the flexibility of Ansible in responding to custom resource changes on the cluster, ensuring Grafana OnCall is properly configured and maintained. 
 
 #### Workflow 
 The operator's workflow can be described in two different architectural models:
 
-**A. Hub and Spoke Model**
+**A. Hub and Spoke Model**  
+
 In the Hub-Spoke model, the operator is installed on a central Hub cluster and manages Grafana OnCall configurations for multiple Spoke clusters. This model is ideal for organizations with multiple clusters and aims to centralize monitoring and management.
 
-Operator Workflow in Hub and Spoke:
 
-Centralized ClusterDeployments Monitoring:
+```mermaid
+graph TD
+
+    subgraph "OpenShift Hub Cluster"
+        GCO[Grafana Cloud Operator]
+        S[Syncset]
+        AMS[AlertManager Secret]
+        S -->|Patching with Grafana OnCall URL| AMS
+    end
+
+    GCO -->|API Call: Create Integration| GO
+    GO -->|Return: Endpoint| GCO
+
+    subgraph "Grafana Cloud"
+        GO[Grafana OnCall]
+    end
+
+    subgraph "Spoke Clusters"
+        SC1[Spoke Cluster 1]
+        SC2[Spoke Cluster 2]
+        SC3[Spoke Cluster 3]
+    end
+
+    GCO --> S
+    S -->|Hive Operator|SC1
+    S -->|Hive Operator|SC2
+    S -->|Hive Operator|SC3
+```
+  
+*Centralized ClusterDeployments Monitoring:*
 The operator, installed on the Hub cluster, continually monitors for the presence of ClusterDeployment resources from Hive that are registered from Spoke clusters.
-These resources are significant markers, indicating the clusters that require Grafana On Call integration.
-Cross-Cluster Grafana On Call Setup:
+These resources are significant markers, indicating the clusters that require Grafana On Call integration.  
+
+*Cross-Cluster Grafana On Call Setup:*
 For each ClusterDeployment identified, the operator communicates with the Grafana Cloud's API, initiating the integration process.
-This setup involves creating necessary configurations on Grafana Cloud and retrieving vital details such as the AlertManager HTTP URL for each respective Spoke cluster.
-Syncset Synchronization:
+This setup involves creating necessary configurations on Grafana Cloud and retrieving vital details such as the AlertManager HTTP URL for each respective Spoke cluster.  
+
+*Syncset Synchronization:*
 Utilizing Syncset resources from Hive, the operator ensures that alerting configurations are consistent across all Spoke clusters.
-This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in AlertManager.
-Centralized Secret Management:
+This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in AlertManager.  
+
+*Centralized Secret Management:*
 The operator centrally manages the alertmanager-main-generated secret for each Spoke cluster.
 Through the Syncset, it disseminates the updated secret configurations, ensuring each Spoke cluster's AlertManager can successfully forward alerts to Grafana On Call.
 
-**B. Standalone Cluster Model**
+**B. Standalone Cluster Model**  
+
 In a standalone cluster model, the operator is installed directly on a single cluster and manages the Grafana OnCall configuration solely for that cluster. This setup is suitable for individual clusters or standalone environments.
 
-Operator Workflow in Standalone Cluster:
+```mermaid
+graph TD
 
-The operator functions within the single OpenShift cluster, monitoring  resources that indicate the local cluster's need for Grafana On Call integration.
-Direct Grafana On Call Setup:
+    subgraph "OpenShift Standalone Cluster"
+        GCO[Grafana Cloud Operator]
+        AMS[AlertManager Secret]
+        GCO -->|Patching with Grafana OnCall URL| AMS
+    end
+
+    subgraph "Grafana Cloud"
+        GO[Grafana OnCall]
+    end
+
+    GCO -->|API Call: Create Integration| GO
+    GO -->|Return: Endpoint| GCO
+```
+
+*Operator Workflow in Standalone Cluster:*
+The operator functions within the single OpenShift cluster, monitoring  resources that indicate the local cluster's need for Grafana On Call integration.  
+
+*Direct Grafana On Call Setup:*
 Upon identifying the GCO CR, described in the next section, the operator proceeds with the Grafana OnCall setup by interacting with Grafana Cloud's API.
-It establishes the necessary integrations and secures essential details, including the AlertManager HTTP URL.
-In-Cluster Configuration Management:
+It establishes the necessary integrations and secures essential details, including the AlertManager HTTP URL.  
+
+*In-Cluster Configuration Management:*
 The operator directly applies configuration changes within the cluster, bypassing the need for Syncsets.
-It ensures the AlertManager's alert forwarding settings are correctly configured for seamless communication with Grafana On Call.
-Local Secret Management:
+It ensures the AlertManager's alert forwarding settings are correctly configured for seamless communication with Grafana On Call.  
+
+*Local Secret Management:*
 Managing the alertmanager-main-generated secret locally, the operator updates its configurations.
 This update enables the AlertManager within the standalone cluster to route alerts effectively to Grafana On Call, completing the integration process.
 
@@ -92,11 +144,11 @@ spec:
   provisionMode: hubAndSpoke  # Determines the mode of operation - 'hubAndSpoke' or 'standaloneCluster'
 ```
 
-metadata: Contains general information about the custom resource that you are creating, such as its name and the namespace it resides in.
-spec: This is where the bulk of the configuration goes. It's broken down further below:
-enabled: Currently does nothing. But the idea is to use the flag to support removal of Grafana Integration in the future.
-grafanaAPIToken: Since the operator needs to interact with Grafana OnCall's API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.
-provisionMode: Indicates how the operator should function. It could be in a 'hubAndSpoke' mode where it manages multiple clusters or 'standaloneCluster' for managing a single cluster.
+metadata: Contains general information about the custom resource that you are creating, such as its name and the namespace it resides in.  
+spec: This is where the bulk of the configuration goes. It's broken down further below:  
+enabled: Currently does nothing. But the idea is to use the flag to support removal of Grafana Integration in the future.  
+grafanaAPIToken: Since the operator needs to interact with Grafana OnCall's API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.  
+provisionMode: Indicates how the operator should function. It could be in a 'hubAndSpoke' mode where it manages multiple clusters or 'standaloneCluster' for managing a single cluster.  
 
 2. Applying the Custom Resource:
 
@@ -110,7 +162,7 @@ oc apply -f your-config-file.yaml
 
 The provisionMode in the spec can be one of the following two values:
 
-hubAndSpoke: Use this when you have the operator installed on a central Hub cluster, and you intend for it to manage Grafana OnCall integrations on multiple Spoke clusters.
+hubAndSpoke: Use this when you have the operator installed on a central Hub cluster, and you intend for it to manage Grafana OnCall integrations on multiple Spoke clusters.  
 standaloneCluster: This is used when the operator is handling Grafana OnCall integration for a single cluster, where it's installed and operated.
 
 Here's how you would set the provisionMode for a standalone cluster:

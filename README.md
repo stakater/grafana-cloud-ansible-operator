@@ -27,30 +27,43 @@ In the Hub-Spoke model, the operator is installed on a central Hub cluster and m
 ```mermaid
 graph TD
 
-    subgraph "OpenShift Hub Cluster"
-        GCO[Grafana Cloud Operator]
-        S[Syncset]
-        AMS[AlertManager Secret]
-        S -->|Patching with Grafana OnCall URL| AMS
+    subgraph "Hub and Spoke Integration with Grafana OnCall"
+        subgraph "OpenShift Hub Cluster"
+            InitHub[Start: Operation Initiated in Hub]
+            GetGCOHub[Get All GrafanaCloudOperator CRs]
+            CheckMultipleCRs[Ensure Only One GCO CR Exists]
+            GetToken[Retrieve Grafana API Token from Secret]
+            ListIntegrations[Fetch List of Existing Integrations in Grafana OnCall]
+            FetchClusters[Fetch ClusterDeployments from All Namespaces]
+            DetermineMissingIntegrations[Determine Clusters Missing Integrations]
+            CreateIntegration[Create Integration in Grafana OnCall for Missing Clusters]
+            
+            InitHub --> GetGCOHub
+            GetGCOHub --> CheckMultipleCRs
+            CheckMultipleCRs --> GetToken
+            GetToken --> ListIntegrations
+            ListIntegrations --> FetchClusters
+            FetchClusters --> DetermineMissingIntegrations
+            DetermineMissingIntegrations --> CreateIntegration
+        end
+
+        subgraph "Grafana Cloud"
+            GOHub[Grafana OnCall]
+        end
+
+        subgraph "Spoke Clusters"
+            SC1[Spoke Cluster 1]
+            SC2[Spoke Cluster 2]
+            SC3[Spoke Cluster 3]
+        end
+
+        CreateIntegration -->|Request: Create Integration| GOHub
+        GOHub -->|Return: Endpoint| CreateIntegration
+        CreateIntegration --> |Hive Operator| SC1
+        CreateIntegration --> |Hive Operator| SC2
+        CreateIntegration --> |Hive Operator| SC3
     end
 
-    GCO -->|API Call: Create Integration| GO
-    GO -->|Return: Endpoint| GCO
-
-    subgraph "Grafana Cloud"
-        GO[Grafana OnCall]
-    end
-
-    subgraph "Spoke Clusters"
-        SC1[Spoke Cluster 1]
-        SC2[Spoke Cluster 2]
-        SC3[Spoke Cluster 3]
-    end
-
-    GCO --> S
-    S -->|Hive Operator|SC1
-    S -->|Hive Operator|SC2
-    S -->|Hive Operator|SC3
 ```
   
 *Centralized ClusterDeployments Monitoring:*
@@ -76,18 +89,33 @@ In a standalone cluster model, the operator is installed directly on a single cl
 ```mermaid
 graph TD
 
-    subgraph "OpenShift Standalone Cluster"
-        GCO[Grafana Cloud Operator]
-        AMS[AlertManager Secret]
-        GCO -->|Patching with Grafana OnCall URL| AMS
+    subgraph "<u><b>OpenShift Standalone Cluster</b></u>"
+        Init[Start: Operation Initiated]
+        GetClusterName[Retrieve Cluster Name]
+        CheckIntegration[Check Grafana Integration Existence]
+        CreateIntegration[Create Grafana OnCall Integration]
+        ModSecret[Include: modify_alertmanager_secret]
+        Reencode[Re-encode Alertmanager Content]
+        PatchSecret[Patch alertmanager-main Secret]
+        UpdateCR[Update CR Status to ConfigUpdated]
+        
+        Init --> GetClusterName
+        GetClusterName --> CheckIntegration
+        CheckIntegration -- Integration doesn't exist --> CreateIntegration
+        CreateIntegration --> ModSecret
+        ModSecret --> Reencode
+        Reencode --> PatchSecret
+        PatchSecret --> UpdateCR
     end
 
     subgraph "Grafana Cloud"
         GO[Grafana OnCall]
     end
 
-    GCO -->|API Call: Create Integration| GO
-    GO -->|Return: Endpoint| GCO
+    CheckIntegration -- Integration exists --> UpdateCR
+    CreateIntegration -->|API Call: Create Integration| GO
+    GO -->|Return: Endpoint| CreateIntegration
+
 ```
 
 *Operator Workflow in Standalone Cluster:*

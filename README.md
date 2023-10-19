@@ -45,6 +45,7 @@ graph TD
             ListIntegrations --> FetchClusters
             FetchClusters --> DetermineMissingIntegrations
             DetermineMissingIntegrations --> CreateIntegration
+            CreateIntegration --> Syncset
         end
 
         subgraph "Grafana Cloud"
@@ -59,9 +60,9 @@ graph TD
 
         CreateIntegration -->|Request: Create Integration| GOHub
         GOHub -->|Return: Endpoint| CreateIntegration
-        CreateIntegration --> |Hive Operator| SC1
-        CreateIntegration --> |Hive Operator| SC2
-        CreateIntegration --> |Hive Operator| SC3
+        Syncset --> |Hive Operator| SC1
+        Syncset --> |Hive Operator| SC2
+        Syncset --> |Hive Operator| SC3
     end
 
 ```
@@ -146,6 +147,9 @@ kubectl -n grafana-cloud-operator create secret generic grafana-api-token-secret
 
 ### Installation
 
+#### Install using custom catalog
+
+#### Install using helm charts
 
 ### Quick Start
 After installation, you can create a GrafanaCloudOperator resource by applying the below CRD that the operator recognizes.

@@ -47,10 +47,11 @@ IMAGE_TAG_BASE ?= ghcr.io/stakater/grafana-cloud-ansible-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
-BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
+BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)$(PR_TAG)
+CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:v$(VERSION)$(PR_TAG)
 
 # BUNDLE_GEN_FLAGS are the flags passed to the operator-sdk generate bundle command
-BUNDLE_GEN_FLAGS ?= -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+BUNDLE_GEN_FLAGS ?= -q --overwrite --version $(VERSION)$(PR_TAG) $(BUNDLE_METADATA_OPTS)
 
 # USE_IMAGE_DIGESTS defines if images are resolved via tags or digests
 # You can enable this value if you would like to use SHA Based Digests
@@ -66,6 +67,7 @@ OPERATOR_SDK_VERSION ?= v1.31.0
 
 # Image URL to use all building/pushing image targets
 IMG ?= $(IMAGE_TAG_BASE):v$(VERSION)
+CUSTOM_CATALOG_IMG ?= $(IMAGE_TAG_BASE)@$(IMAGE_DIGEST)
 
 .PHONY: all
 all: docker-build
@@ -196,6 +198,14 @@ bundle: kustomize operator-sdk ## Generate bundle manifests and metadata, then v
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle $(BUNDLE_GEN_FLAGS)
 	$(OPERATOR_SDK) bundle validate ./bundle
 
+.PHONY: custom-bundle
+custom-bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files
+	rm -rf bundle
+	$(OPERATOR_SDK) generate kustomize manifests -q
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(CUSTOM_CATALOG_IMG)
+	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle $(BUNDLE_GEN_FLAGS)
+	$(OPERATOR_SDK) bundle validate ./bundle
+
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
@@ -243,3 +253,29 @@ catalog-build: opm ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+
+
+##@ Helm
+
+.PHONY: helm-lint
+helm-lint: ## Lint Helm charts, if they exist
+	if [ -d charts ]; then helm lint charts/grafana-oncall; fi
+
+.PHONY: bump-chart-operator
+bump-chart-operator:
+	$(SED) -i "s/^VERSION ?=.*/VERSION ?= $(VERSION)/" Makefile
+	$(SED) -i "s/newTag:.*/newTag: v$(VERSION)/" config/manager/kustomization.yaml
+	$(SED) -i "s/^version:.*/version: $(VERSION)/" charts/grafana-oncall/Chart.yaml
+	$(SED) -i "s/^appVersion:.*/appVersion: $(VERSION)/" charts/grafana-oncall/Chart.yaml
+	$(SED) -i "s/tag:.*/tag:  v$(VERSION)/" charts/grafana-oncall/values.yaml
+
+.PHONY: bump-chart
+bump-chart: bump-chart-operator ## Bump version accross the project
+
+crds=`ls charts/tenant-operator/crds/`
+.PHONY: generate-crds
+generate-crds: generate manifests kustomize-and-generate-crds list ## Update auto-generated files and charts/tenant-operator/crds
+
+kustomize-and-generate-crds: kustomize
+	mkdir -p charts/tenant-operator/crds
+	./bin/kustomize build config/crd -o charts/tenant-operator/crds/

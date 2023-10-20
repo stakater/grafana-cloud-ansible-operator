@@ -137,39 +137,6 @@ jobs:
       - push-operator
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Update Chart CRDs
-        run: make generate-crds
-
-      # Commit back changes
-      - name: Commit files
-        run: |
-          git config --local user.email "github-root@stakater.com"
-          git config --local user.name "stakater-github-root"
-          git status
-          git add .
-          git reset bundle/
-          git commit -m "[skip-ci] Update artifacts" -a
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
-          branch: main
-
-      - name: Push Latest Tag
-        uses: anothrNick/github-tag-action@1.61.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
-          WITH_V: true
-          RELEASE_BRANCHES: main
-          DEFAULT_BUMP: patch
-
       - name: Comment on PR
         uses: mshick/add-pr-comment@v2
         if: always()

@@ -1,0 +1,12 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: grafana-cloud-catalog
+  namespace: grafana-cloud-operator
+spec:
+  sourceType: grpc
+  image: ghcr.io/stakater/grafana-cloud-ansible-operator-catalog:v0.0.1
+  displayName: Grafana Cloud Operator Catalog
+  publisher: Stakater AB
+  secrets:
+    - saap-dockerconfigjson

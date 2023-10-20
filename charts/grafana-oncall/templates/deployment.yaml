@@ -1,0 +1,70 @@
+# templates/deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "grafana-cloud-ansible-operator.fullname" . }}-controller-manager
+  namespace: {{ .Release.Namespace | default "default" }}
+  labels:
+    {{- include "grafana-cloud-ansible-operator.labels" . | nindent 4 }}
+    control-plane: controller-manager
+    app.kubernetes.io/component: manager
+spec:
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+      {{- include "grafana-cloud-ansible-operator.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        {{- include "grafana-cloud-ansible-operator.selectorLabels" . | nindent 8 }}
+        control-plane: controller-manager
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - args:
+            - --leader-elect
+            - --leader-election-id={{ include "grafana-cloud-ansible-operator.fullname" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: manager
+          env:
+            - name: ANSIBLE_GATHERING
+              value: explicit
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 6789
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 6789
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      serviceAccountName: {{ include "grafana-cloud-ansible-operator.serviceAccountName" . }}
+      terminationGracePeriodSeconds: 10
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -65,7 +65,7 @@ endif
 OPERATOR_SDK_VERSION ?= v1.31.0
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= $(IMAGE_TAG_BASE):v$(VERSION)
 
 .PHONY: all
 all: docker-build

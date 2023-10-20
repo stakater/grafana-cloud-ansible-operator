@@ -1,0 +1,25 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "grafana-cloud-ansible-operator.fullname" . }}-grafanacloudoperator-editor-role
+  labels:
+    {{- include "grafana-cloud-ansible-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - grafanacloud.stakater.com
+  resources:
+  - grafanacloudoperators
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - grafanacloud.stakater.com
+  resources:
+  - grafanacloudoperators/status
+  verbs:
+  - get

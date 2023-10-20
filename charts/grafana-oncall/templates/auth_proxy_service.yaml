@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grafana-cloud-ansible-operator.fullname" . }}-controller-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana-cloud-ansible-operator.labels" . | nindent 4 }}
+    control-plane: controller-manager
+    app.kubernetes.io/component: kube-rbac-proxy
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
+  selector:
+    control-plane: controller-manager

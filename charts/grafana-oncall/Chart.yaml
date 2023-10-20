@@ -1,0 +1,28 @@
+apiVersion: v2
+name: grafana-cloud-ansible-operator
+
+description: A Helm chart for deploying Grafana Cloud Ansible Operator
+type: application
+
+sources:
+  - https://github.com/stakater/grafana-cloud-ansible-operator
+
+# Helm chart Version
+version:  0.0.1
+
+# Application version to be deployed
+appVersion:  0.0.1
+
+# Maintainers
+maintainers:
+  - name: stakater
+    email: hello@stakater.com
+
+keywords:
+  - stakater
+  - oncall
+  - sre
+  - ansible-operator
+  - grafana-cloud-operator
+
+icon: https://avatars1.githubusercontent.com/u/15930712?s=280&v=4

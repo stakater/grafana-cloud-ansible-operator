@@ -17,7 +17,7 @@ endif
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 0.0.1
+VERSION ?= v0.0.2
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -243,3 +243,29 @@ catalog-build: opm ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+
+
+##@ Helm
+
+.PHONY: helm-lint
+helm-lint: ## Lint Helm charts, if they exist
+	if [ -d charts ]; then helm lint charts/grafana-oncall; fi
+
+.PHONY: bump-chart-operator
+bump-chart-operator:
+	$(SED) -i "s/^VERSION ?=.*/VERSION ?= $(VERSION)/" Makefile
+	$(SED) -i "s/newTag:.*/newTag: v$(VERSION)/" config/manager/kustomization.yaml
+	$(SED) -i "s/^version:.*/version: $(VERSION)/" charts/grafana-oncall/Chart.yaml
+	$(SED) -i "s/^appVersion:.*/appVersion: $(VERSION)/" charts/grafana-oncall/Chart.yaml
+	$(SED) -i "s/tag:.*/tag:  v$(VERSION)/" charts/grafana-oncall/values.yaml
+
+.PHONY: bump-chart
+bump-chart: bump-chart-operator ## Bump version accross the project
+
+crds=`ls charts/tenant-operator/crds/`
+.PHONY: generate-crds
+generate-crds: generate manifests kustomize-and-generate-crds list ## Update auto-generated files and charts/tenant-operator/crds
+
+kustomize-and-generate-crds: kustomize
+	mkdir -p charts/tenant-operator/crds
+	./bin/kustomize build config/crd -o charts/tenant-operator/crds/

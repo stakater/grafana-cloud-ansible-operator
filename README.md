@@ -7,6 +7,10 @@ The Grafana Cloud Operator is an Ansible-based OpenShift Operator that automates
 ### What is Grafana Cloud?
 Grafana Cloud is a fully managed observability platform from Grafana Labs, providing a seamless experience across metrics, logs, and traces. Within Grafana Cloud, Grafana OnCall is a dedicated incident response coordination system, directly integrating with Grafana's alerting mechanism to manage on-call schedules, escalations, and incident tracking.
 
+### Problem
+
+Manually configuring Grafana OnCall on a cluster involves several complex steps, including creating accounts, configuring integrations, and editing configurations. This process is time-consuming, error-prone, and can lead to inconsistencies and misconfigurations if not done accurately. Automating these tasks with the Grafana Cloud Operator simplifies the setup, reduces errors, and ensures consistency across clusters.
+
 
 ### How the Operator Works
 
@@ -137,19 +141,129 @@ This update enables the AlertManager within the standalone cluster to route aler
 
 ### Prerequisites
 - An OpenShift cluster up and running.
+- `oc` CLI tool.
 - Access to Grafana OnCall's API key with relevant permissions.
-- A secret in the grafana-cloud-operator namespace with the Grafana OnCall API Token. Here's an example:
-
-```bash
-kubectl -n grafana-cloud-operator create secret generic grafana-api-token-secret --from-literal=api-token=342fgcb835a62959234534asdhtwsdfwdf0d2b9e83cf8a2fa8987ae7c0336bb46
-```
-*Note: You can use the same command to create your secret. Make sure you replace the above API Token from your Grafana OnCall settings page.*
 
 ### Installation
+This section outlines the process of installing the Grafana Cloud Operator through a custom catalog as well as helm charts. By following these steps, you will be able to deploy the operator on a cluster.
 
 #### Install using custom catalog
 
+1. **Create a namespace**.  
+
+Start by creating a specific namespace for the Grafana Cloud Operator.
+
+```bash
+oc create namespace grafana-cloud-operator
+```
+
+2. **Create a secret called saap-dockerconfigjson.**  
+
+Since the catalog image is private, you need to create a secret that contains your Docker credentials. This secret is necessary to pull the catalog image from the GitHub Container Registry.
+
+```bash
+oc -n grafana-cloud-operator create secret docker-registry saap-dockerconfigjson \
+--docker-server=ghcr.io \
+--docker-username=<username> \
+--docker-password=<your-access-token> \
+--docker-email=<email>
+```
+
+*Note: Replace `username`, `your-access-token`, and `email` with your GitHub username, a personal access token (with read:packages scope enabled), and your email, respectively.*
+
+3. **Create Grafana API Token Secret**
+
+The operator needs to interact with the Grafana Cloud's APIs, and for this, it requires an API token. Create a secret to store this token securely.
+
+```bash
+oc -n grafana-cloud-operator create secret generic grafana-api-token-secret \
+--from-literal=api-token=<your-grafana-api-token>
+```
+
+*Note: Obtain the API token from your Grafana OnCall settings page and replace <your-grafana-api-token> with your actual API token.*
+
+
+4. **Apply the Custom Catalog Source**
+Now, apply the [custom catalog](./custom-catalog.yaml) source configuration to your cluster. This catalog source contains the operator that you wish to install.
+
+```bash
+oc -n grafana-cloud-operator create -f custom-catalog.yaml
+```
+
+*Note: Ensure that custom-catalog.yaml is properly configured with the right details of your custom catalog.*
+
+
+5. **Install the Operator via OperatorHub**
+
+Navigate to the OperatorHub in your OpenShift console. Search for "Grafana Cloud Operator" and proceed with the installation by following the on-screen instructions. Select the grafana-cloud-operator namespace for deploying the operator.
+
+6. **Verify the installation**
+
+After the installation, ensure that the operator's components are running properly. Check the status of the pods with the following command:
+
+```bash
+oc -n grafana-cloud-operator get pods
+```
+You should see the operator pod in a Running state.
+
+
 #### Install using helm charts
+
+1. **Create a Namespace**
+
+We need a separate namespace for Grafana Cloud Operator to keep things organized and isolated.
+
+```bash
+oc create namespace grafana-cloud-operator
+```
+
+2. **Create a Docker Registry Secret**
+This secret is required to pull the operator image from a private registry. Without it, the cluster won't be able to access the images, and the deployment will fail.
+
+```bash
+oc -n grafana-cloud-operator create secret docker-registry saap-dockerconfigjson \
+--docker-server=ghcr.io \
+--docker-username=<username> \
+--docker-password=<your-access-token> \
+--docker-email=<email>
+```
+
+*Note: Make sure to replace `username`, `your-access-token`, and `email` with your actual information. The access token should have the appropriate permissions to read from the container registry.*
+
+3. **Create Grafana API Token Secret**
+
+The Grafana Cloud Operator interacts with Grafana Cloud's APIs. As such, it requires an API token, which should be stored as a Kubernetes secret.
+
+```bash
+oc -n grafana-cloud-operator create secret generic grafana-api-token-secret \
+--from-literal=api-token=<your-grafana-api-token>
+```
+
+*Note: Replace <your-grafana-api-token> with your actual Grafana API token. You can generate/find this token in your Grafana OnCall settings page.*
+
+4. **Install the Grafana Cloud Operator using Helm**
+
+Now you're set to install the Grafana Cloud Operator using Helm. Run the following command, making sure to replace <chart-path> with the path to your Helm chart. This command installs the Helm chart with the release name grafana-cloud-operator in the grafana-cloud-operator namespace.
+
+```bash
+helm install grafana-cloud-operator <chart-path> --namespace grafana-cloud-operator
+```
+
+*Note: The default <chart-path> is charts/grafana-oncall from the root of the repo.*
+
+5. **Verify the Installation**
+
+Check if all the pods related to the Grafana Cloud Operator are up and running.
+
+```bash
+oc -n grafana-cloud-operator get pods
+```
+
+This command will list the pods in the grafana-cloud-operator namespace, allowing you to verify their status. Ensure that all pods are either in the Running or Completed state, indicating that they are operational.
+
+
+This Helm-based approach simplifies the deployment of the Grafana Cloud Operator by encapsulating the configuration details. Users can easily upgrade or rollback the operator, leveraging Helm's package management capabilities.
+
 
 ### Quick Start
 After installation, you can create a GrafanaCloudOperator resource by applying the below CRD that the operator recognizes.
@@ -204,3 +318,45 @@ spec:
 ```
 
 The operator adapts its behavior based on this directive, ensuring that your Grafana On Call integrations are set up and managed in a way that's optimal for your organizational architecture and needs.
+
+
+### Monitoring and Troubleshooting
+
+After you've applied the CR, the operator starts performing its duties based on the instructions given. You can monitor the operator's activities and troubleshoot potential issues by examining the logs of the operator pod:
+
+```bash
+oc -n grafana-cloud-operator logs -f <operator-pod-name>
+```
+
+This command will stream the logs from the operator to your console, providing real-time updates on what the operator is doing. It's crucial for identifying any problems the operator encounters while trying to set up Grafana OnCall.
+
+### Have a question?
+
+File a GitHub [issue](https://github.com/stakater/grafana-cloud-ansible-operator/issues).
+
+
+### Talk to us on Slack
+
+Join and talk to us on Slack for discussing Reloader
+
+[![Join Slack](https://stakater.github.io/README/stakater-join-slack-btn.png)](https://slack.stakater.com/)
+[![Chat](https://stakater.github.io/README/stakater-chat-btn.png)](https://stakater-community.slack.com/messages/CC5S05S12)
+
+### Contributing
+
+### Bug Reports & Feature Requests
+
+Please use the [issue tracker](https://github.com/stakater/grafana-cloud-ansible-operator/issues) to report any bugs or file feature requests.
+
+## License
+
+Apache2 © [Stakater][website]
+
+## About
+
+`Grafana Cloud Ansible Operator` is maintained by [Stakater][website]. Like it? Please let us know at <hello@stakater.com>
+
+See [our other projects](https://github.com/stakater)
+or contact us in case of professional services and queries on <hello@stakater.com>
+
+[website]: https://stakater.com

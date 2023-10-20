@@ -132,7 +132,7 @@ jobs:
   notify-success:
     name: Notify Success
     runs-on: ubuntu-latest
-    if: always() && (needs.push-operator.result == 'success' && needs.operator-e2e-test.result == 'success')
+    if: always() && (needs.push-operator.result == 'success')
     needs:
       - push-operator
 
@@ -192,7 +192,7 @@ jobs:
   notify-failure:
     name: Notify Failure
     runs-on: ubuntu-latest
-    if: always() && (needs.push-operator.result != 'success' || needs.operator-e2e-test.result != 'success')
+    if: always() && (needs.push-operator.result != 'success')
     needs:
       - push-operator
 

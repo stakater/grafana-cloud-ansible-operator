@@ -8,15 +8,16 @@ spec:
     kind: GrafanaCloudOperator
     listKind: GrafanaCloudOperatorList
     plural: grafanacloudoperators
-    singular: grafanacloudoperator
     shortNames:
-      - gco
+    - gco
+    singular: grafanacloudoperator
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: GrafanaCloudOperator is the Schema for the grafanacloudoperators API
+        description: GrafanaCloudOperator is the Schema for the grafanacloudoperators
+          API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -32,64 +33,67 @@ spec:
             type: object
           spec:
             description: Spec defines the desired state of GrafanaCloudOperator
-            type: object
             properties:
-              enabled:
-                description: Flag to enable or disable grafana integration creation
-                type: boolean
-              provisionMode:
-                description: Determines the provision type of the cluster on which the operator is running
-                type: string
-                enum:
-                - hubAndSpoke
-                - standalone
               clusterDeploymentLabelSelector:
-                description: Optional label selector to select specific ClusterDeployments for Grafana On Call integration.
-                type: object
+                description: Optional label selector to select specific ClusterDeployments
+                  for Grafana On Call integration.
                 properties:
-                  matchLabels:
-                    type: object
-                    additionalProperties:
-                      type: string
                   matchExpressions:
-                    type: array
                     items:
-                      type: object
                       properties:
                         key:
                           type: string
                         operator:
                           type: string
                         values:
-                          type: array
                           items:
                             type: string
-              grafanaAPIToken:
-                description: Secret reference to the Grafana API token. Avoid putting the token directly.
+                          type: array
+                      type: object
+                    type: array
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    type: object
                 type: object
+              enabled:
+                description: Flag to enable or disable grafana integration creation
+                type: boolean
+              grafanaAPIToken:
+                description: Secret reference to the Grafana API token. Avoid putting
+                  the token directly.
                 properties:
-                  secretName:
-                    type: string
                   key:
                     type: string
+                  secretName:
+                    type: string
+                type: object
+              provisionMode:
+                description: Determines the provision type of the cluster on which
+                  the operator is running
+                enum:
+                - hubAndSpoke
+                - standalone
+                type: string
+            type: object
             x-kubernetes-preserve-unknown-fields: true
           status:
             description: Status defines the observed state of GrafanaCloudOperator
-            type: object
             properties:
               lastUpdated:
+                description: Timestamp for when the status was last updated
                 format: date-time
                 type: string
-                description: Timestamp for when the status was last updated
-              phase:
-                type: string
-                description: High-level phase of the operator processing
-              reason:
-                type: string
-                description: More detailed reason for the current phase
               message:
-                type: string
                 description: Detailed message about the current state
+                type: string
+              phase:
+                description: High-level phase of the operator processing
+                type: string
+              reason:
+                description: More detailed reason for the current phase
+                type: string
+            type: object
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true

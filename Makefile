@@ -123,6 +123,16 @@ docker-buildx: ## Build and push docker image for the manager for cross-platform
 
 ##@ Deployment
 
+## Location to install dependencies to
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
+.PHONY: controller-gen
+controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary
+$(CONTROLLER_GEN): $(LOCALBIN)
+	test -s $(CONTROLLER_GEN) || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
+
 .PHONY: install
 install: kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/crd | kubectl apply -f -
@@ -272,10 +282,11 @@ bump-chart-operator:
 .PHONY: bump-chart
 bump-chart: bump-chart-operator ## Bump version accross the project
 
-crds=`ls charts/tenant-operator/crds/`
-.PHONY: generate-crds
-generate-crds: generate manifests kustomize-and-generate-crds list ## Update auto-generated files and charts/tenant-operator/crds
 
 kustomize-and-generate-crds: kustomize
-	mkdir -p charts/tenant-operator/crds
-	./bin/kustomize build config/crd -o charts/tenant-operator/crds/
+	mkdir -p charts/grafana-oncall/crds
+	$(KUSTOMIZE) build config/crd -o charts/grafana-oncall/crds/
+
+crds=`ls charts/grafana-oncall/crds/`
+.PHONY: generate-crds
+generate-crds: kustomize-and-generate-crds

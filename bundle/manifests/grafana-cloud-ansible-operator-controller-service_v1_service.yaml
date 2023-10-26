@@ -13,10 +13,10 @@ metadata:
   name: grafana-cloud-ansible-operator-controller-service
 spec:
   ports:
-    - name: https
-      port: 8443
-      protocol: TCP
-      targetPort: https
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
   selector:
     control-plane: controller-manager
 status:

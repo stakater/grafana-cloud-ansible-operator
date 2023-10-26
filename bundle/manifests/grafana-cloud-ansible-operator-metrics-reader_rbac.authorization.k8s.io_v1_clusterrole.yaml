@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/part-of: grafana-cloud-ansible-operator
   name: grafana-cloud-ansible-operator-metrics-reader
 rules:
-  - nonResourceURLs:
-      - /metrics
-    verbs:
-      - get
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get

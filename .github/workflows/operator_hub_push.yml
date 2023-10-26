@@ -8,7 +8,7 @@ on:
 jobs:
   publish-mto-to-operator-hub:
     name: publish-gco-to-operator-hub
-    uses: stakater/.github/.github/workflows/publish_operator_image_and_bundle.yaml@v0.0.43
+    uses: stakater/.github/.github/workflows/publish_operator_image_and_bundle.yaml@v0.0.52
     secrets:
       REGISTRY_REDHAT_IO_PULL_SECRET: ${{ secrets.REGISTRY_REDHAT_IO_PULL_SECRET }}
       STAKATER_NEXUS_REGISTRY: ghcr.io/stakater

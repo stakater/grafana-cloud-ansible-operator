@@ -1,7 +1,7 @@
 # Grafana Cloud Operator
 
 ## Project Overview
-The Grafana Cloud Operator is an Ansible-based OpenShift Operator that automates the configuration and management of Grafana OnCall within an OpenShift cluster. This operator simplifies the process of setting up Grafana OnCall, ensuring seamless integration with AlertManager and consistent alert forwarding.
+The Grafana Cloud Operator is an Ansible-based OpenShift Operator that automates the configuration and management of Grafana OnCall within an OpenShift cluster. This operator simplifies the process of setting up Grafana OnCall, ensuring seamless integration with Alertmanager and consistent alert forwarding.
 
 
 ### What is Grafana Cloud?
@@ -77,15 +77,15 @@ These resources are significant markers, indicating the clusters that require Gr
 
 *Cross-Cluster Grafana On Call Setup:*
 For each ClusterDeployment identified, the operator communicates with the Grafana Cloud's API, initiating the integration process.
-This setup involves creating necessary configurations on Grafana Cloud and retrieving vital details such as the AlertManager HTTP URL for each respective Spoke cluster.  
+This setup involves creating necessary configurations on Grafana Cloud and retrieving vital details such as the Alertmanager HTTP URL for each respective Spoke cluster.  
 
-*Syncset Synchronization:*
-Utilizing Syncset resources from Hive, the operator ensures that alerting configurations are consistent across all Spoke clusters.
-This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in AlertManager.  
+*`Syncset` Synchronization:*
+Utilizing `Syncset` resources from Hive, the operator ensures that alerting configurations are consistent across all Spoke clusters.
+This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager.  
 
 *Centralized Secret Management:*
-The operator centrally manages the alertmanager-main-generated secret for each Spoke cluster.
-Through the Syncset, it disseminates the updated secret configurations, ensuring each Spoke cluster's AlertManager can successfully forward alerts to Grafana On Call.
+The operator centrally manages the `alertmanager-main-generated` secret for each Spoke cluster.
+Through the `Syncset`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana On Call.
 
 **B. Standalone Cluster Model**  
 
@@ -128,15 +128,15 @@ The operator functions within the single OpenShift cluster, monitoring  resource
 
 *Direct Grafana On Call Setup:*
 Upon identifying the GCO CR, described in the next section, the operator proceeds with the Grafana OnCall setup by interacting with Grafana Cloud's API.
-It establishes the necessary integrations and secures essential details, including the AlertManager HTTP URL.  
+It establishes the necessary integrations and secures essential details, including the Alertmanager HTTP URL.  
 
 *In-Cluster Configuration Management:*
-The operator directly applies configuration changes within the cluster, bypassing the need for Syncsets.
-It ensures the AlertManager's alert forwarding settings are correctly configured for seamless communication with Grafana On Call.  
+The operator directly applies configuration changes within the cluster, bypassing the need for `Syncsets`.
+It ensures the Alertmanager's alert forwarding settings are correctly configured for seamless communication with Grafana On Call.  
 
 *Local Secret Management:*
-Managing the alertmanager-main-generated secret locally, the operator updates its configurations.
-This update enables the AlertManager within the standalone cluster to route alerts effectively to Grafana On Call, completing the integration process.
+Managing the `alertmanager-main-generated` secret locally, the operator updates its configurations.
+This update enables the Alertmanager within the standalone cluster to route alerts effectively to Grafana On Call, completing the integration process.
 
 
 ### Prerequisites
@@ -149,7 +149,7 @@ This section outlines the process of installing the Grafana Cloud Operator throu
 
 #### Install using custom catalog
 
-1. **Create a namespace**.  
+1. **Create a namespace**
 
 Start by creating a specific namespace for the Grafana Cloud Operator.
 
@@ -157,7 +157,7 @@ Start by creating a specific namespace for the Grafana Cloud Operator.
 oc create namespace grafana-cloud-operator
 ```
 
-2. **Create a secret called saap-dockerconfigjson.**  
+1. **Create a secret called `saap-dockerconfigjson`**  
 
 Since the catalog image is private, you need to create a secret that contains your Docker credentials. This secret is necessary to pull the catalog image from the GitHub Container Registry.
 
@@ -171,7 +171,7 @@ oc -n grafana-cloud-operator create secret docker-registry saap-dockerconfigjson
 
 *Note: Replace `username`, `your-access-token`, and `email` with your GitHub username, a personal access token (with read:packages scope enabled), and your email, respectively.*
 
-3. **Create Grafana API Token Secret**
+1. **Create Grafana API Token Secret**
 
 The operator needs to interact with the Grafana Cloud's APIs, and for this, it requires an API token. Create a secret to store this token securely.
 
@@ -183,7 +183,7 @@ oc -n grafana-cloud-operator create secret generic grafana-api-token-secret \
 *Note: Obtain the API token from your Grafana OnCall settings page and replace <your-grafana-api-token> with your actual API token.*
 
 
-4. **Apply the Custom Catalog Source**
+1. **Apply the Custom Catalog Source**
 Now, apply the [custom catalog](./custom-catalog.yaml) source configuration to your cluster. This catalog source contains the operator that you wish to install.
 
 ```bash
@@ -193,11 +193,11 @@ oc -n grafana-cloud-operator create -f custom-catalog.yaml
 *Note: Ensure that custom-catalog.yaml is properly configured with the right details of your custom catalog.*
 
 
-5. **Install the Operator via OperatorHub**
+1. **Install the Operator via OperatorHub**
 
-Navigate to the OperatorHub in your OpenShift console. Search for "Grafana Cloud Operator" and proceed with the installation by following the on-screen instructions. Select the grafana-cloud-operator namespace for deploying the operator.
+Navigate to the OperatorHub in your OpenShift console. Search for "Grafana Cloud Operator" and proceed with the installation by following the on-screen instructions. Select the `grafana-cloud-operator` namespace for deploying the operator.
 
-6. **Verify the installation**
+1. **Verify the installation**
 
 After the installation, ensure that the operator's components are running properly. Check the status of the pods with the following command:
 
@@ -217,7 +217,7 @@ We need a separate namespace for Grafana Cloud Operator to keep things organized
 oc create namespace grafana-cloud-operator
 ```
 
-2. **Create a Docker Registry Secret**
+1. **Create a Docker Registry Secret**
 This secret is required to pull the operator image from a private registry. Without it, the cluster won't be able to access the images, and the deployment will fail.
 
 ```bash
@@ -230,7 +230,7 @@ oc -n grafana-cloud-operator create secret docker-registry saap-dockerconfigjson
 
 *Note: Make sure to replace `username`, `your-access-token`, and `email` with your actual information. The access token should have the appropriate permissions to read from the container registry.*
 
-3. **Create Grafana API Token Secret**
+1. **Create Grafana API Token Secret**
 
 The Grafana Cloud Operator interacts with Grafana Cloud's APIs. As such, it requires an API token, which should be stored as a Kubernetes secret.
 
@@ -241,17 +241,17 @@ oc -n grafana-cloud-operator create secret generic grafana-api-token-secret \
 
 *Note: Replace <your-grafana-api-token> with your actual Grafana API token. You can generate/find this token in your Grafana OnCall settings page.*
 
-4. **Install the Grafana Cloud Operator using Helm**
+1. **Install the Grafana Cloud Operator using Helm**
 
-Now you're set to install the Grafana Cloud Operator using Helm. Run the following command, making sure to replace <chart-path> with the path to your Helm chart. This command installs the Helm chart with the release name grafana-cloud-operator in the grafana-cloud-operator namespace.
+Now you're set to install the Grafana Cloud Operator using Helm. Run the following command, making sure to replace <chart-path> with the path to your Helm chart. This command installs the Helm chart with the release name `grafana-cloud-operator` in the `grafana-cloud-operator` namespace.
 
 ```bash
 helm install grafana-cloud-operator <chart-path> --namespace grafana-cloud-operator
 ```
 
-*Note: The default <chart-path> is charts/grafana-oncall from the root of the repo.*
+*Note: The default <chart-path> is `charts/grafana-oncall` from the root of the repo.*
 
-5. **Verify the Installation**
+1. **Verify the Installation**
 
 Check if all the pods related to the Grafana Cloud Operator are up and running.
 
@@ -259,44 +259,44 @@ Check if all the pods related to the Grafana Cloud Operator are up and running.
 oc -n grafana-cloud-operator get pods
 ```
 
-This command will list the pods in the grafana-cloud-operator namespace, allowing you to verify their status. Ensure that all pods are either in the Running or Completed state, indicating that they are operational.
+This command will list the pods in the `grafana-cloud-operator` namespace, allowing you to verify their status. Ensure that all pods are either in the Running or Completed state, indicating that they are operational.
 
 
 This Helm-based approach simplifies the deployment of the Grafana Cloud Operator by encapsulating the configuration details. Users can easily upgrade or rollback the operator, leveraging Helm's package management capabilities.
 
 
 ### Quick Start
-After installation, you can create a GrafanaCloudOperator resource by applying the below CRD that the operator recognizes.
+After installation, you can create a `GrafanaCloudOperator` resource by applying the below CRD that the operator recognizes.
 
-The operator gets its instructions from a custom resource (CR) that follows the GrafanaCloudOperator Custom Resource Definition (CRD). This CR contains all the necessary information, from the API token required to interact with Grafana Cloud to the mode of operation the operator should adopt.
+The operator gets its instructions from a custom resource (CR) that follows the `GrafanaCloudOperator` Custom Resource Definition (CRD). This CR contains all the necessary information, from the API token required to interact with Grafana Cloud to the mode of operation the operator should adopt.
 
 Here's a step-by-step guide on understanding and applying this configuration:
 
 1. Preparing Your Custom Resource:
 
-First, let's break down the essential parts of the CR:
+    First, let's break down the essential parts of the CR:
 
-```
-apiVersion: grafanacloud.stakater.com/v1alpha1
-kind: GrafanaCloudOperator
-metadata:
-  name: grafanacloudoperator-sample  # This is a user-defined name for your custom resource
-  namespace: grafana-cloud-operator  # Namespace where the operator is installed
-spec:
-  enabled: true
-  grafanaAPIToken:
-    key: api-token  # The key field within the secret holding the Grafana OnCall API token
-    secretName: grafana-api-token-secret  # The name of the Kubernetes secret storing the Grafana OnCall API token
-  provisionMode: hubAndSpoke  # Determines the mode of operation - 'hubAndSpoke' or 'standaloneCluster'
-```
+    ```
+    apiVersion: grafanacloud.stakater.com/v1alpha1
+    kind: GrafanaCloudOperator
+    metadata:
+      name: grafanacloudoperator-sample  # This is a user-defined name for your custom resource
+      namespace: grafana-cloud-operator  # Namespace where the operator is installed
+    spec:
+      enabled: true
+      grafanaAPIToken:
+        key: api-token  # The key field within the secret holding the Grafana OnCall API token
+        secretName: grafana-api-token-secret  # The name of the Kubernetes secret storing the Grafana OnCall API token
+      provisionMode: hubAndSpoke  # Determines the mode of operation - 'hubAndSpoke' or 'standaloneCluster'
+    ```
 
-metadata: Contains general information about the custom resource that you are creating, such as its name and the namespace it resides in.  
-spec: This is where the bulk of the configuration goes. It's broken down further below:  
-enabled: Currently does nothing. But the idea is to use the flag to support removal of Grafana Integration in the future.  
-grafanaAPIToken: Since the operator needs to interact with Grafana OnCall's API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.  
-provisionMode: Indicates how the operator should function. It could be in a 'hubAndSpoke' mode where it manages multiple clusters or 'standaloneCluster' for managing a single cluster.  
+    * `metadata`: Contains general information about the custom resource that you are creating, such as its name and the namespace it resides in.
+    * `spec`: This is where the bulk of the configuration goes. It's broken down further below:
+      * `enabled`: Currently does nothing. But the idea is to use the flag to support removal of Grafana Integration in the future.
+      * `grafanaAPIToken`: Since the operator needs to interact with Grafana OnCall's API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.
+      * `provisionMode`: Indicates how the operator should function. It could be in a 'hubAndSpoke' mode where it manages multiple clusters or 'standaloneCluster' for managing a single cluster.
 
-2. Applying the Custom Resource:
+1. Applying the Custom Resource:
 
 Once your custom resource is ready and tailored for your specific use case, you need to apply it within your OpenShift environment. This action tells the operator what it should do.
 
@@ -304,21 +304,21 @@ Once your custom resource is ready and tailored for your specific use case, you 
 oc apply -f your-config-file.yaml
 ```
 
-3. Modes of Operation:
+1. Modes of Operation:
 
-The provisionMode in the spec can be one of the following two values:
+The `provisionMode` in the spec can be one of the following two values:
 
-hubAndSpoke: Use this when you have the operator installed on a central Hub cluster, and you intend for it to manage Grafana OnCall integrations on multiple Spoke clusters.  
-standaloneCluster: This is used when the operator is handling Grafana OnCall integration for a single cluster, where it's installed and operated.
+* `hubAndSpoke`: Use this when you have the operator installed on a central Hub cluster, and you intend for it to manage Grafana OnCall integrations on multiple Spoke clusters.
+* `standaloneCluster`: This is used when the operator is handling Grafana OnCall integration for a single cluster, where it's installed and operated.
 
-Here's how you would set the provisionMode for a standalone cluster:
+Here's how you would set the `provisionMode` for a standalone cluster:
+
 ```
 spec:
   provisionMode: standaloneCluster
 ```
 
 The operator adapts its behavior based on this directive, ensuring that your Grafana On Call integrations are set up and managed in a way that's optimal for your organizational architecture and needs.
-
 
 ### Monitoring and Troubleshooting
 

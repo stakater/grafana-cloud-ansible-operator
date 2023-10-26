@@ -47,7 +47,7 @@ jobs:
           echo IMAGE_REPOSITORY=$(echo ghcr.io/stakater/${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
       - name: Build and Push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         id: build_and_push
         with:
           context: .

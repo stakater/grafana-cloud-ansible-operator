@@ -4,5 +4,7 @@
 # option are parsed relative to the CWD of execution.
 exclude_paths:
   - .github/
+  - bundle
+  - charts
 skip_list:
   - skip_ansible_lint

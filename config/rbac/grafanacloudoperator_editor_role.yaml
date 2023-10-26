@@ -11,21 +11,21 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: grafanacloudoperator-editor-role
 rules:
-- apiGroups:
-  - grafanacloud.stakater.com
-  resources:
-  - grafanacloudoperators
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - grafanacloud.stakater.com
-  resources:
-  - grafanacloudoperators/status
-  verbs:
-  - get
+  - apiGroups:
+      - grafanacloud.stakater.com
+    resources:
+      - grafanacloudoperators
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - grafanacloud.stakater.com
+    resources:
+      - grafanacloudoperators/status
+    verbs:
+      - get

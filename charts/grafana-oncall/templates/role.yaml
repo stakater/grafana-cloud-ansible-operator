@@ -78,5 +78,5 @@ rules:
     verbs: ["*"]
   - apiGroups: [""]
     resources: ["secrets"]
-    verbs: ["*"]    
+    verbs: ["*"]
 #+kubebuilder:scaffold:rules

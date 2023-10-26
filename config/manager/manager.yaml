@@ -66,39 +66,39 @@ spec:
         # seccompProfile:
         #   type: RuntimeDefault
       containers:
-      - args:
-        - --leader-elect
-        - --leader-election-id=grafana-cloud-ansible-operator
-        image: controller:latest
-        name: manager
-        env:
-        - name: ANSIBLE_GATHERING
-          value: explicit
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - "ALL"
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 6789
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 6789
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        # TODO(user): Configure the resources accordingly based on the project requirements.
-        # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-        resources:
-          limits:
-            cpu: 500m
-            memory: 768Mi
-          requests:
-            cpu: 10m
-            memory: 256Mi
+        - args:
+            - --leader-elect
+            - --leader-election-id=grafana-cloud-ansible-operator
+          image: controller:latest
+          name: manager
+          env:
+            - name: ANSIBLE_GATHERING
+              value: explicit
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - "ALL"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 6789
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 6789
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # TODO(user): Configure the resources accordingly based on the project requirements.
+          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          resources:
+            limits:
+              cpu: 500m
+              memory: 768Mi
+            requests:
+              cpu: 10m
+              memory: 256Mi
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10

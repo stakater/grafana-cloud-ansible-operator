@@ -28,10 +28,10 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    createdAt: "2023-10-26T13:51:43Z"
+    createdAt: "2023-10-26T20:01:41Z"
     operators.operatorframework.io/builder: operator-sdk-v1.31.0
     operators.operatorframework.io/project_layout: ansible.sdk.operatorframework.io/v1
-  name: grafana-cloud-ansible-operator.v0.0.4
+  name: grafana-cloud-ansible-operator.v0.0.5
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -236,7 +236,7 @@ spec:
                     env:
                       - name: ANSIBLE_GATHERING
                         value: explicit
-                    image: ghcr.io/stakater/grafana-cloud-ansible-operator:v0.0.4
+                    image: ghcr.io/stakater/grafana-cloud-ansible-operator:v0.0.5
                     livenessProbe:
                       httpGet:
                         path: /healthz
@@ -262,43 +262,8 @@ spec:
                       capabilities:
                         drop:
                           - ALL
-                securityContext:
-                  runAsNonRoot: true
-                serviceAccountName: grafana-cloud-ansible-operator-controller-manager
-                terminationGracePeriodSeconds: 10
-          permissions:
-            - rules:
-                - apiGroups:
-                    - ""
-                  resources:
-                    - configmaps
-                  verbs:
-                    - get
-                    - list
-                    - watch
-                    - create
-                    - update
-                    - patch
-                    - delete
-                - apiGroups:
-                    - coordination.k8s.io
-                  resources:
-                    - leases
-                  verbs:
-                    - get
-                    - list
-                    - watch
-                    - create
-                    - update
-                    - patch
-                    - delete
-                - apiGroups:
-                    - ""
-                  resources:
-                    - events
-                  verbs:
-                    - create
-                    - patch
+              securityContext:
+                runAsNonRoot: true
               serviceAccountName: grafana-cloud-ansible-operator-controller-manager
     strategy: deployment
   installModes:
@@ -329,4 +294,4 @@ spec:
   provider:
     name: Stakater
     url: www.stakater.com
-  version: 0.0.4
+  version: 0.0.5

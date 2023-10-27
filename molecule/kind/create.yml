@@ -5,4 +5,5 @@
   gather_facts: false
   tasks:
     - name: Create test kind cluster
-      command: kind create cluster --name osdk-test --kubeconfig {{ kubeconfig }}
+      ansible.builtin.command: kind create cluster --name osdk-test --kubeconfig {{ kubeconfig }}
+      changed_when: false

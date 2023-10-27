@@ -1,9 +1,9 @@
 - name: Debug at the start of hub spoke
-  debug:
+  ansible.builtin.debug:
     msg: "Started processing hub spoke tasks"
 
 - name: Update CR status to Initiated
-  k8s:
+  kubernetes.core.k8s:
     state: present
     definition:
       apiVersion: grafanacloud.stakater.com/v1alpha1
@@ -18,29 +18,30 @@
         message: "Operation to integrate Grafana OnCall started"
 
 - name: Fetch ClusterDeployments from all namespaces
-  k8s_info:
+  kubernetes.core.k8s_info:
     api_version: hive.openshift.io/v1
     kind: ClusterDeployment
   register: cluster_deployments_raw
 
 - name: Extract list of ClusterDeployments with their namespaces
-  set_fact:
+  ansible.builtin.set_fact:
     cluster_deployments: "{{ cluster_deployments | default([]) + [{'name': item.metadata.name, 'namespace': item.metadata.namespace}] }}"
   loop: "{{ cluster_deployments_raw.resources }}"
   loop_control:
     loop_var: item
 
 - name: Determine which ClusterDeployments don't have integrations
-  set_fact:
+  ansible.builtin.set_fact:
     create_integration_for: "{{ cluster_deployments | rejectattr('name', 'in', existing_integration_names) | list }}"
 
-- block:
+- name: Integration creation
+  block:
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one
-      uri:
-        url: "{{ grafana_cloud_integrations_api_url }}"
+      ansible.builtin.uri:
+        url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
         method: POST
         body_format: json
-        return_content: yes
+        return_content: true
         headers:
           Authorization: "{{ grafana_cloud_api_token }}"
           Content-Type: "application/json"
@@ -57,7 +58,7 @@
       until: grafana_integration_response.status in [200, 201]
 
     - name: Update CR status to IntegrationsCreated
-      k8s:
+      kubernetes.core.k8s:
         state: present
         definition:
           apiVersion: grafanacloud.stakater.com/v1alpha1
@@ -73,13 +74,14 @@
       when: create_integration_for | length == grafana_integration_response.results | length
 
     - name: Inform user if Grafana integration creation was skipped or failed
+      when: grafana_integration_response is skipped or (grafana_integration_response.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)
       block:
         - name: Display message about potential Grafana integration issues
-          debug:
+          ansible.builtin.debug:
             msg: "Checking if Grafana integration for the cluster was skipped or failed."
 
         - name: Update CR status to Failure for failed integrations
-          k8s:
+          kubernetes.core.k8s:
             state: present
             definition:
               apiVersion: grafanacloud.stakater.com/v1alpha1
@@ -96,29 +98,28 @@
           when: item.status_code not in [200, 201] or item.status not in [200, 201]
 
         - name: End play if any integrations failed or were skipped
-          meta: end_play
-      when: grafana_integration_response is skipped or (grafana_integration_response.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)
-
+          ansible.builtin.meta: end_play
 
     - name: Associate Grafana integration details with ClusterDeployments
-      set_fact:
+      ansible.builtin.set_fact:
         mapped_integrations: "{{ mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
       loop: "{{ grafana_integration_response.results }}"
 
     # Following tasks will execute only if Grafana integration was created successfully
-    - include_tasks: modify_alertmanager_secret.yml
+    - name: Modify Alertmanager secret
+      ansible.builtin.include_tasks: modify_alertmanager_secret.yml
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
       loop: "{{ mapped_integrations }}"
 
     - name: Re-encode modified alertmanager content for cluster
-      set_fact:
+      ansible.builtin.set_fact:
         encoded_alertmanager_secret_content: "{{ modified_alertmanager_secret_content | to_nice_yaml | b64encode }}"
       loop: "{{ mapped_integrations }}"
 
     - name: Create a new SyncSet for each cluster to patch alertmanager-main secret
-      k8s:
+      kubernetes.core.k8s:
         state: present
         namespace: hive
         definition:
@@ -129,22 +130,22 @@
             namespace: "{{ item.cluster.namespace }}"
           spec:
             clusterDeploymentRefs:
-            - name: "{{ item.cluster.name }}"
+              - name: "{{ item.cluster.name }}"
             patches:
-            - apiVersion: v1
-              kind: Secret
-              name: "{{ alertmanager_secret_name }}"
-              namespace: "{{ alertmanager_namespace }}"
-              patchType: merge
-              patch: |
-                data:
-                  alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
+              - apiVersion: v1
+                kind: Secret
+                name: "{{ grafana_cloud_operator_alertmanager_secret_name }}"
+                namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
+                patchType: merge
+                patch: |
+                  data:
+                    alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
       loop: "{{ mapped_integrations }}"
       when: create_integration_for | length > 0
       register: syncset_creation_results
 
 - name: Update CR status for SyncSet creation
-  k8s:
+  kubernetes.core.k8s:
     state: present
     definition:
       apiVersion: grafanacloud.stakater.com/v1alpha1
@@ -160,7 +161,7 @@
   when: syncset_creation_results.results | rejectattr('failed', 'equalto', true) | list | length == mapped_integrations | length
 
 - name: Update CR status for SyncSet creation failure
-  k8s:
+  kubernetes.core.k8s:
     state: present
     definition:
       apiVersion: grafanacloud.stakater.com/v1alpha1

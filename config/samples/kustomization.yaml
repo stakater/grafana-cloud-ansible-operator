@@ -1,4 +1,4 @@
 ## Append samples of your project ##
 resources:
-- grafanacloud_v1alpha1_grafanacloudoperator.yaml
-#+kubebuilder:scaffold:manifestskustomizesamples
+  - grafanacloud_v1alpha1_grafanacloudoperator.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

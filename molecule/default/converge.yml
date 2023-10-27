@@ -2,17 +2,16 @@
 - name: Converge
   hosts: localhost
   connection: local
-  gather_facts: no
-  collections:
-    - kubernetes.core
+  gather_facts: false
 
   tasks:
     - name: Create Namespace
-      k8s:
+      kubernetes.core.k8s:
         api_version: v1
         kind: Namespace
         name: '{{ namespace }}'
 
-    - import_tasks: kustomize.yml
+    - name: Use kustomizations
+      ansible.builtin.import_tasks: tasks/kustomize.yml
       vars:
         state: present

@@ -9,7 +9,3 @@
 - name: Execute tasks for standalone topology
   ansible.builtin.include_tasks: grafana_oncall_standalone.yml
   when: gco_cr.spec.provisionMode == 'standalone'
-
-- name: Execute tasks for standalone topology
-  ansible.builtin.include_tasks: grafana_oncall_standalone.yml
-  when: gco_cr.spec.provisionMode == 'standalone'

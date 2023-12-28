@@ -13,36 +13,36 @@ spec:
     Grafana Cloud
   displayName: grafana-cloud-operator
   icon:
-  - base64data: ""
-    mediatype: ""
+    - base64data: ""
+      mediatype: ""
   install:
     spec:
       deployments: null
     strategy: ""
   installModes:
-  - supported: true
-    type: OwnNamespace
-  - supported: true
-    type: SingleNamespace
-  - supported: false
-    type: MultiNamespace
-  - supported: false
-    type: AllNamespaces
+    - supported: true
+      type: OwnNamespace
+    - supported: true
+      type: SingleNamespace
+    - supported: false
+      type: MultiNamespace
+    - supported: false
+      type: AllNamespaces
   keywords:
-  - grafana-cloud
-  - oncall
-  - sre
-  - dashboard
-  - grafana-sre
-  - grafana-oncall
-  - slo
-  - grafana-slo
+    - grafana-cloud
+    - oncall
+    - sre
+    - dashboard
+    - grafana-sre
+    - grafana-oncall
+    - slo
+    - grafana-slo
   links:
-  - name: Grafana Cloud Ansible Operator
-    url: https://grafana-cloud-ansible-operator.domain
+    - name: Grafana Cloud Ansible Operator
+      url: https://grafana-cloud-ansible-operator.domain
   maintainers:
-  - email: hello@stakater.com
-    name: stakater
+    - email: hello@stakater.com
+      name: stakater
   maturity: alpha
   provider:
     name: Stakater

@@ -26,7 +26,7 @@
 - name: Update hostname
   ansible.builtin.set_fact:
     cluster_name: >
-      "{{ node_info.resources[0].metadata.labels['kubernetes.io/hostname'] | regex_replace('-master.*', '') 
+      "{{ node_info.resources[0].metadata.labels['kubernetes.io/hostname'] | regex_replace('-master.*', '')
         | regex_replace('-worker.*', '') | regex_replace('-infra.*', '') }}"
 
 - name: Determine if integration exists for the cluster

@@ -7,4 +7,5 @@ exclude_paths:
   - bundle
   - charts
 skip_list:
-  - skip_ansible_lint
+  - path: config/manager/kustomization.yaml
+  - path: config/manifests/bases/grafana-cloud-ansible-operator.clusterserviceversion.yaml

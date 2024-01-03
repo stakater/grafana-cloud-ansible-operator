@@ -113,6 +113,10 @@
         receiver_url: "{{ item.grafana_details.link }}"
       loop: "{{ mapped_integrations }}"
 
+    - name: Check if data is looping correctly
+      ansible.builtin.debug:
+        msg: "{{ modified_alertmanager_secret_content | to_nice_yaml | b64encode }}"
+
     - name: Re-encode modified alertmanager content for cluster
       ansible.builtin.set_fact:
         encoded_alertmanager_secret_content: "{{ modified_alertmanager_secret_content | to_nice_yaml | b64encode }}"

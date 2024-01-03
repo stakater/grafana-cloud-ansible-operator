@@ -6,6 +6,8 @@ exclude_paths:
   - .github/
   - bundle
   - charts
-skip_list:
-#  - path: config/manager/kustomization.yaml
+  - path: config/manager/kustomization.yaml
   - path: config/manifests/bases/grafana-cloud-ansible-operator.clusterserviceversion.yaml
+# skip_list:
+#   - path: config/manager/kustomization.yaml
+#   - path: config/manifests/bases/grafana-cloud-ansible-operator.clusterserviceversion.yaml

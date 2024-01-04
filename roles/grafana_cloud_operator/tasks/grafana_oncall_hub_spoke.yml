@@ -105,6 +105,13 @@
         mapped_integrations: "{{ mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
       loop: "{{ grafana_integration_response.results }}"
 
+    - name: Check if receiver_name and receiver_url are looping correctly
+      ansible.builtin.debug:
+        msg: 
+        - "receiver_name is {{ item.grafana_details.name }}"
+        - "receiver_url is {{ item.grafana_details.link }}"
+      loop: "{{ mapped_integrations }}"
+
     # Following tasks will execute only if Grafana integration was created successfully
     - name: Modify Alertmanager secret
       ansible.builtin.include_tasks: modify_alertmanager_secret.yml

@@ -111,38 +111,9 @@
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
+        namespace: "{{ item.cluster.namespace }}"
+        cluster_name: "{{ item.cluster.name }}"
       loop: "{{ mapped_integrations }}"
-
-    - name: Re-encode modified alertmanager content for cluster
-      ansible.builtin.set_fact:
-        encoded_alertmanager_secret_content: "{{ modified_alertmanager_secret_content | to_nice_yaml | b64encode }}"
-      loop: "{{ mapped_integrations }}"
-
-    - name: Create a new SyncSet for each cluster to patch alertmanager-main secret
-      kubernetes.core.k8s:
-        state: present
-        namespace: hive
-        definition:
-          apiVersion: hive.openshift.io/v1
-          kind: SyncSet
-          metadata:
-            name: "{{ item.cluster.name }}-syncset-secret"
-            namespace: "{{ item.cluster.namespace }}"
-          spec:
-            clusterDeploymentRefs:
-              - name: "{{ item.cluster.name }}"
-            patches:
-              - apiVersion: v1
-                kind: Secret
-                name: "{{ grafana_cloud_operator_alertmanager_secret_name }}"
-                namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
-                patchType: merge
-                patch: |
-                  data:
-                    alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
-      loop: "{{ mapped_integrations }}"
-      when: create_integration_for | length > 0
-      register: syncset_creation_results
 
 - name: Update CR status for SyncSet creation
   kubernetes.core.k8s:

@@ -107,9 +107,9 @@
 
     - name: Check if receiver_name and receiver_url are looping correctly
       ansible.builtin.debug:
-        msg: 
-        - "receiver_name is {{ item.grafana_details.name }}"
-        - "receiver_url is {{ item.grafana_details.link }}"
+        msg:
+          - "receiver_name is {{ item.grafana_details.name }}"
+          - "receiver_url is {{ item.grafana_details.link }}"
       loop: "{{ mapped_integrations }}"
 
     # Following tasks will execute only if Grafana integration was created successfully

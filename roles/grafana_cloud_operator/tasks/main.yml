@@ -6,10 +6,10 @@
   ansible.builtin.include_tasks: grafana_oncall_hub_spoke.yml
   when: gco_cr.spec.provisionMode == 'hubAndSpoke'
   vars:
-    mode: "{{ gco_cr.spec.provisionMode }}"
+    mode: hubAndSpoke
 
 - name: Execute tasks for standalone topology
   ansible.builtin.include_tasks: grafana_oncall_standalone.yml
   when: gco_cr.spec.provisionMode == 'standalone'
   vars:
-    mode: "{{ gco_cr.spec.provisionMode }}"
+    mode: standalone

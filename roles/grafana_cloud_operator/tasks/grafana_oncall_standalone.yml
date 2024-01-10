@@ -78,12 +78,16 @@
         reason: "GrafanaIntegrationSuccess"
         message: "Grafana integration created successfully"
 
+- name: Display mode string coming in the value
+  ansible.builtin.debug:
+    var: mode
+
 - name: Modify Alertmanager secret
   ansible.builtin.include_tasks: modify_alertmanager_secret.yml
   vars:
     receiver_name: "{{ cluster_name }}"
     receiver_url: "{{ grafana_integration_response.json.link }}"
-    mode: "{{ gco_cr.spec.provisionMode }}"
+#    mode: "{{ gco_cr.spec.provisionMode }}"
 
 - name: Re-encode modified alertmanager content for cluster
   ansible.builtin.set_fact:

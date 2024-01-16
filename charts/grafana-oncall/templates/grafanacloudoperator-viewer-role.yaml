@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "grafana-cloud-ansible-operator.fullname" . }}-grafanacloudoperator-viewer-role
+  name: {{ include "grafana-cloud-ansible-operator.resource" . }}-grafanacloudoperator-viewer-role
   labels:
     {{- include "grafana-cloud-ansible-operator.labels" . | nindent 4 }}
 rules:

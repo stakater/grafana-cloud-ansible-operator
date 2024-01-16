@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "grafana-cloud-ansible-operator.fullname" . }}-proxy-role
+  name: {{ include "grafana-cloud-ansible-operator.resource" . }}-proxy-role
   labels:
     {{- include "grafana-cloud-ansible-operator.labels" . | nindent 4 }}
     app.kubernetes.io/component: kube-rbac-proxy

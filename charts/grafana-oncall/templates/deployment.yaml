@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "grafana-cloud-ansible-operator.fullname" . }}-controller-manager
+  name: {{ include "grafana-cloud-ansible-operator.resource" . }}-controller-manager
   namespace: {{ .Release.Namespace | default "default" }}
   labels:
     {{- include "grafana-cloud-ansible-operator.labels" . | nindent 4 }}

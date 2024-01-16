@@ -28,12 +28,19 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "grafana-cloud-ansible-operator.serviceAccountName" -}}
+{{- define "serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
 {{- default (include "grafana-cloud-ansible-operator.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
+{{- end }}
+
+{{/*
+Create the name of the resources to use
+*/}}
+{{- define "gco.resource" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*

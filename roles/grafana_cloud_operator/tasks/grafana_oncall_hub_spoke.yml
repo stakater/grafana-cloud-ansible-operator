@@ -115,6 +115,10 @@
         cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"
+      task_include:
+        file: modify_alertmanager_secret.yml
+        vars:
+          provision_mode: "{{ provision_mode }}"
 
 - name: Update CR status for SyncSet creation
   kubernetes.core.k8s:

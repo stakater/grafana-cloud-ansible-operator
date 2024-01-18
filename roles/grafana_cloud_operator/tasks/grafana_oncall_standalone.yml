@@ -83,6 +83,7 @@
   vars:
     receiver_name: "{{ cluster_name }}"
     receiver_url: "{{ grafana_integration_response.json.link }}"
+    provisionMode: "standalone"
 
 - name: Re-encode modified alertmanager content for cluster
   ansible.builtin.set_fact:

@@ -113,6 +113,7 @@
         receiver_url: "{{ item.grafana_details.link }}"
         namespace: "{{ item.cluster.namespace }}"
         cluster_name: "{{ item.cluster.name }}"
+        provisionMode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"
 
 - name: Update CR status for SyncSet creation

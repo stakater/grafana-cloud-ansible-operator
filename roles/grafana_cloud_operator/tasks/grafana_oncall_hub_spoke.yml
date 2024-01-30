@@ -36,6 +36,23 @@
 
 - name: Integration creation
   block:
+    - name: Fetch Slack Channel from clusterdeployment namespace
+      kubernetes.core.k8s_info:
+        api_version: slack.stakater.com/v1alpha1
+        kind: Channel
+        namespace: "{{ item.namespace }}"
+      register: slack_channel_info
+      loop: "{{ create_integration_for }}"
+      loop_control:
+        label: "{{ item.namespace }}"
+
+    - name: Extract Channel id from slack channel
+      ansible.builtin.set_fact:
+        slack_channel_ids: "{{ slack_channel_ids | default([]) + [{'name': item.metadata.name, 'slack_id': item.status.id}] }}"
+      loop: "{{ slack_channel_info.results | map(attribute='resources') | flatten }}"
+      loop_control:
+        label: "{{ item.metadata.name }}"
+
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one
       ansible.builtin.uri:
         url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
@@ -48,6 +65,7 @@
         body:
           type: "alertmanager"
           name: "{{ item.name }}"
+          slack_id: "{{ item.slack_id }}"
         status_code: [200, 201]
       register: grafana_integration_response
       loop: "{{ create_integration_for }}"

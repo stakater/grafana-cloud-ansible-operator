@@ -54,6 +54,17 @@ rules:
       - patch
       - update
       - watch
+  - apiGroups:
+      - slack.stakater.com/v1alpha1
+    resources:
+      - channel
+    verbs:
+      - create
+      - get
+      - list
+      - patch
+      - update
+      - watch
   - apiGroups: [""]
     resources: ["namespaces"]
     verbs: ["*"]

@@ -77,7 +77,7 @@ rules:
     verbs: ["*"]
   - apiGroups: ["slack.stakater.com"]
     resources: ["channels"]
-    verbs:  ["create", "get", "list", "patch", "update", "watch"]
+    verbs: ["create", "get", "list", "patch", "update", "watch"]
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["*"]

@@ -141,13 +141,13 @@ spec:
           - list
           - watch
         - apiGroups:
-            - slack.stakater.com
+          - slack.stakater.com
           resources:
-            - channels
+          - channels
           verbs:
-            - get
-            - list
-            - watch
+          - get
+          - list
+          - watch
         - apiGroups:
           - hive.openshift.io
           resources:

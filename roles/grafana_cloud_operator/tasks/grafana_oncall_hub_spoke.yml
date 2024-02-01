@@ -41,7 +41,7 @@
         api_version: slack.stakater.com/v1alpha1
         kind: Channel
         namespace: "{{ item.namespace }}"
-      register:
+      register: slack_channel_info
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.namespace }}"

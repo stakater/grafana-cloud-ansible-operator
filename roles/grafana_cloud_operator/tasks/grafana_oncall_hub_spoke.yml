@@ -55,8 +55,8 @@
 
     - name: Print the slack id and name for each channel
       ansible.builtin.debug:
-        msg: Cluster {{ item.name }} has slackID {{ item.slack_id }} and complete resource {{ slack_channel_info.results }}
-      when: item.name is defined
+        msg: Cluster {{ slack_channel_ids.name }} has slackID {{ slack_channel_ids.slack_id }} and complete resource {{ slack_channel_info.results }}
+      when: slack_channel_ids is defined
 
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one
       ansible.builtin.uri:
@@ -69,10 +69,10 @@
           Content-Type: "application/json"
         body:
           type: "alertmanager"
-          name: "{{ item.name }}"
+          name: "{{ slack_channel_ids.name }}"
           default_route:
             slack:
-              channel_id: "{{ item.slack_id }}"
+              channel_id: "{{ slack_channel_ids.slack_id }}"
               enabled: true
         status_code: [200, 201]
       register: grafana_integration_response

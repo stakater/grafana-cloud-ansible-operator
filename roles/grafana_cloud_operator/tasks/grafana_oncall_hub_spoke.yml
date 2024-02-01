@@ -55,7 +55,7 @@
 
     - name: Print the slack id and name for each channel
       ansible.builtin.debug:
-        msg: Cluster {{ slack_channel_ids[0] }} has slackID {{ slack_channel_ids.slack_id }}
+        msg: Cluster Slack ID output looks like this {{ slack_channel_ids[0] }}
 
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one
       ansible.builtin.uri:

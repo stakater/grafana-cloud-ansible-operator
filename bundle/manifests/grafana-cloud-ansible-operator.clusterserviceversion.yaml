@@ -28,10 +28,10 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    createdAt: "2024-01-19T05:27:28Z"
+    createdAt: "2024-02-02T07:37:33Z"
     operators.operatorframework.io/builder: operator-sdk-v1.31.0
     operators.operatorframework.io/project_layout: ansible.sdk.operatorframework.io/v1
-  name: grafana-cloud-ansible-operator.v0.0.32
+  name: grafana-cloud-ansible-operator.v0.0.33
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -141,19 +141,22 @@ spec:
           - list
           - watch
         - apiGroups:
-          - slack.stakater.com
-          resources:
-          - channels
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
           - hive.openshift.io
           resources:
           - syncsets
           verbs:
           - '*'
+        - apiGroups:
+          - slack.stakater.com
+          resources:
+          - channels
+          verbs:
+          - create
+          - get
+          - list
+          - patch
+          - update
+          - watch
         - apiGroups:
           - ""
           resources:
@@ -244,7 +247,7 @@ spec:
                 env:
                 - name: ANSIBLE_GATHERING
                   value: explicit
-                image: ghcr.io/stakater/grafana-cloud-ansible-operator:v0.0.32
+                image: ghcr.io/stakater/grafana-cloud-ansible-operator:v0.0.33
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -337,4 +340,4 @@ spec:
   provider:
     name: Stakater
     url: www.stakater.com
-  version: 0.0.32
+  version: 0.0.33

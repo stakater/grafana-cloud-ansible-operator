@@ -94,7 +94,6 @@ The operator's workflow can be described in two different architectural models:
     Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
     *Note: This feature utilizes [slack-operator](https://github.com/stakater/slack-operator) which is another one of our open source projects. Please head over there to find detailed information on that operator.*
 
-
 - **B. Standalone Cluster Model**
 
     In a standalone cluster model, the operator is installed directly on a single cluster and manages the Grafana OnCall configuration solely for that cluster. This setup is suitable for individual clusters or standalone environments.

@@ -63,8 +63,11 @@ The operator's workflow can be described in two different architectural models:
                 SC3[Spoke Cluster 3]
             end
 
-            CreateIntegration -->|Request: Create Integration| GOHub
-            GOHub -->|Return: Endpoint| CreateIntegration
+            CreateIntegration --> FetchSlackInfo
+            FetchSlackInfo --> ConfigureSlack
+            ConfigureSlack -->|Request: Configure Slack| GOHub
+            GOHub -->|Return: Endpoint| ConfigureSlack
+            ConfigureSlack --> Syncset
             Syncset --> |Hive Operator| SC1
             Syncset --> |Hive Operator| SC2
             Syncset --> |Hive Operator| SC3
@@ -86,6 +89,10 @@ The operator's workflow can be described in two different architectural models:
     *Centralized Secret Management:*
     The operator centrally manages the `alertmanager-main-generated` secret for each Spoke cluster.
     Through the `Syncset`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana On Call.
+
+    *Forwarding alerts to Slack*
+    Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
+    *Note: This feature utilizes [slack-operator](https://github.com/stakater/slack-operator) which is another one of our open source projects. Please head over there to find detailed information on that operator.*
 
 - **B. Standalone Cluster Model**
 
@@ -116,9 +123,14 @@ The operator's workflow can be described in two different architectural models:
             GO[Grafana OnCall]
         end
 
+        CreateIntegration --> FetchSlackInfo
+        FetchSlackInfo --> ConfigureSlack
+        ConfigureSlack -->|API Call: Configure Slack| GO
+        GO -->|Return: Endpoint| ConfigureSlack
+        ConfigureSlack --> ModSecret
+        ModSecret --> PatchSecret
+        PatchSecret --> UpdateCR
         CheckIntegration -- Integration exists --> UpdateCR
-        CreateIntegration -->|API Call: Create Integration| GO
-        GO -->|Return: Endpoint| CreateIntegration
     ```
 
     *Operator Workflow in Standalone Cluster:*
@@ -135,6 +147,10 @@ The operator's workflow can be described in two different architectural models:
     *Local Secret Management:*
     Managing the `alertmanager-main-generated` secret locally, the operator updates its configurations.
     This update enables the Alertmanager within the standalone cluster to route alerts effectively to Grafana On Call, completing the integration process.
+
+    *Forwarding alerts to Slack*
+    Just like the hub-and-spoke model, Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
+    *Note: This feature utilizes [slack-operator](https://github.com/stakater/slack-operator) which is another one of our open source projects. Please head over there to find detailed information on that operator.*
 
 ### Prerequisites
 

@@ -188,7 +188,7 @@ This section outlines the process of installing the Grafana Cloud Operator throu
     oc -n grafana-cloud-operator create -f custom-catalog.yaml
     ```
 
-    *Note: Ensure that custom-catalog.yaml is properly configured with the right details of your custom catalog.*
+    *Note: Ensure that `custom-catalog.yaml` is properly configured with the right details of your custom catalog.*
 
 1. **Install the Operator via OperatorHub**
 

@@ -66,6 +66,9 @@ spec:
                             type: array
                             items:
                               type: string
+                slackId:
+                  description: Slack channel ID for standalone configuration , Grafana on Call app should be invited if the channel is private
+                  type: string
                 grafanaAPIToken:
                   description: Secret reference to the Grafana API token. Avoid putting the token directly.
                   type: object

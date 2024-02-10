@@ -76,6 +76,10 @@
   ansible.builtin.set_fact:
     grafana_cloud_api_token: "{{ grafana_api_secret.resources[0].data[gco_cr.spec.grafanaAPIToken.key] | b64decode }}"
 
+- name: Fetch SlackId
+  ansible.builtin.set_fact:
+    slack_id: "{{ gco_cr.spec.slackId }}"
+
 - name: Update CR status to TokenFetched
   kubernetes.core.k8s:
     state: present

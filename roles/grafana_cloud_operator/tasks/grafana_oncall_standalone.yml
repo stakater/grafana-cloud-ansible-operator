@@ -45,6 +45,10 @@
     body:
       type: "alertmanager"
       name: "{{ cluster_name }}"
+      default_route:
+        slack:
+          channel_id: "{{ slack_id }}"
+          enabled: true
     status_code: [200, 201]
   when: not integration_exists_for_cluster
   register: grafana_integration_response

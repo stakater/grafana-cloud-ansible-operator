@@ -158,6 +158,17 @@ spec:
           - update
           - watch
         - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - prometheusrule
+          verbs:
+          - create
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
           - ""
           resources:
           - secrets

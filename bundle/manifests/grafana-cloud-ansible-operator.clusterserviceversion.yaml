@@ -160,7 +160,7 @@ spec:
         - apiGroups:
           - monitoring.coreos.com
           resources:
-          - prometheusrules
+          - prometheusrule
           verbs:
           - '*'
         - apiGroups:

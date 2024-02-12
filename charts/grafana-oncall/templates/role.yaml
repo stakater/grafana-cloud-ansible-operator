@@ -77,7 +77,7 @@ rules:
     resources: ["channels"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["monitoring.coreos.com"]
-    resources: ["prometheusrule"]
+    resources: ["prometheusrules"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["hive.openshift.io"]
     resources: ["syncsets"]

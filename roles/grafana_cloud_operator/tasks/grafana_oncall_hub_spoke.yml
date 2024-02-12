@@ -67,13 +67,14 @@
           name: "{{ item.name }}"
           default_route:
             slack:
-              channel_id: "{{ slack_channel_ids[0].slack_id }}"
+              channel_id: "{{ slack_channel_ids[loop_index].slack_id }}"
               enabled: true
         status_code: [200, 201]
       register: grafana_integration_response
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.name }}"
+        index_var: loop_index
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]

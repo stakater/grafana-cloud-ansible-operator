@@ -111,7 +111,7 @@
       apiVersion: monitoring.coreos.com/v1
       kind: PrometheusRule
       metadata:
-        name: "{{ cluster_name }}-heartbeat"
+        name: "{{ cluster_name }}"
         namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
       spec:
         groups:

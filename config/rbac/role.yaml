@@ -79,7 +79,7 @@ rules:
     resources: ["channels"]
     verbs: ["create", "get", "list", "patch", "update", "watch"]
   - apiGroups: ["monitoring.coreos.com"]
-    resources: ["prometheusrule"]
+    resources: ["prometheusrules"]
     verbs: ["*"]
   - apiGroups: [""]
     resources: ["secrets"]

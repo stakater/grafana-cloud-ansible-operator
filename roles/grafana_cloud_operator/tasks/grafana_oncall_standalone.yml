@@ -106,13 +106,13 @@
 - name: Adds prometheus rule for cluster
   kubernetes.core.k8s:
     state: present
-    namespace: "{{ cr_namespace }}"
+    namespace: "openshift-monitoring"
     definition:
       apiVersion: monitoring.coreos.com/v1
       kind: PrometheusRule
       metadata:
-        name: "tno-heartbeat"
-        namespace: "{{ cr_namespace }}"
+        name: "heartbeat"
+        namespace: "openshift-monitoring"
       spec:
         groups:
           - name: meta

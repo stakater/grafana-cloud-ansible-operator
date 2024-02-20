@@ -47,7 +47,7 @@
       name: "{{ cluster_name }}"
       default_route:
         slack:
-          channel_id: "{{ slack_id }}"
+          channel_id: "{{ slack_id | default('') }}"
           enabled: true
     status_code: [200, 201]
   when: not integration_exists_for_cluster

@@ -78,7 +78,7 @@ spec:
                 type: string
               slackId:
                 description: Slack channel ID for standalone configuration , Grafana
-                  on Call app must be invited for this to work if the channel is private
+                  OnCall app must be invited for this to work if the channel is private
                 type: string
             type: object
             x-kubernetes-preserve-unknown-fields: true

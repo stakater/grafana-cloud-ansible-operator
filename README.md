@@ -99,7 +99,7 @@ The operator's workflow can be described in two different architectural models:
     ```mermaid
     graph TD
 
-        subgraph "<u><b>OpenShift Standalone Cluster</b></u>"
+        subgraph "OpenShift Standalone Cluster"
             Init[Start: Operation Initiated]
             GetClusterName[Retrieve Cluster Name]
             CheckIntegration[Check Grafana Integration Existence]

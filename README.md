@@ -41,6 +41,7 @@ The operator's workflow can be described in two different architectural models:
                 GetToken[Retrieve Grafana API Token from Secret]
                 ListIntegrations[Fetch List of Existing Integrations in Grafana OnCall]
                 FetchClusters[Fetch ClusterDeployments from All Namespaces]
+                FetchSlackChannels[Fetch Slack Channel CRs from All Namespaces]
                 DetermineMissingIntegrations[Determine Clusters Missing Integrations]
                 CreateIntegration[Create Integration in Grafana OnCall for Missing Clusters]
                 InitHub --> GetGCOHub
@@ -48,9 +49,9 @@ The operator's workflow can be described in two different architectural models:
                 CheckMultipleCRs --> GetToken
                 GetToken --> ListIntegrations
                 ListIntegrations --> FetchClusters
-                FetchClusters --> DetermineMissingIntegrations
+                FetchClusters --> FetchSlackChannels
+                FetchSlackChannels --> DetermineMissingIntegrations
                 DetermineMissingIntegrations --> CreateIntegration
-                CreateIntegration --> Syncset
             end
 
             subgraph "Grafana Cloud"
@@ -63,11 +64,8 @@ The operator's workflow can be described in two different architectural models:
                 SC3[Spoke Cluster 3]
             end
 
-            CreateIntegration --> FetchSlackInfo
-            FetchSlackInfo --> ConfigureSlack
-            ConfigureSlack -->|Request: Configure Slack| GOHub
-            GOHub -->|Return: Endpoint| ConfigureSlack
-            ConfigureSlack --> Syncset
+            CreateIntegration --> |Create Integration| GOHub
+            GOHub -->|Return: Endpoint| Syncset
             Syncset --> |Hive Operator| SC1
             Syncset --> |Hive Operator| SC2
             Syncset --> |Hive Operator| SC3

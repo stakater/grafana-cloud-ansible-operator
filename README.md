@@ -111,21 +111,14 @@ The operator's workflow can be described in two different architectural models:
             Init --> GetClusterName
             GetClusterName --> CheckIntegration
             CheckIntegration -- Integration doesn't exist --> CreateIntegration
-            CreateIntegration --> ModSecret
-            ModSecret --> Reencode
-            Reencode --> PatchSecret
-            PatchSecret --> UpdateCR
         end
 
         subgraph "Grafana Cloud"
             GO[Grafana OnCall]
         end
 
-        CreateIntegration --> FetchSlackInfo
-        FetchSlackInfo --> ConfigureSlack
-        ConfigureSlack -->|API Call: Configure Slack| GO
-        GO -->|Return: Endpoint| ConfigureSlack
-        ConfigureSlack --> ModSecret
+        CreateIntegration --> |API Call: Create Integration| GO
+        GO -->|Return: Endpoint| ModSecret
         ModSecret --> PatchSecret
         PatchSecret --> UpdateCR
         CheckIntegration -- Integration exists --> UpdateCR
@@ -147,7 +140,7 @@ The operator's workflow can be described in two different architectural models:
     This update enables the Alertmanager within the standalone cluster to route alerts effectively to Grafana On Call, completing the integration process.
 
     *Forwarding alerts to Slack*
-    Just like the hub-and-spoke model, Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
+    Just like the hub-and-spoke model, Slack channel can be configured in Standalone mode by populating the `slackId` field , this additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
     *Note: This feature utilizes [slack-operator](https://github.com/stakater/slack-operator) which is another one of our open source projects. Please head over there to find detailed information on that operator.*
 
 ### Prerequisites

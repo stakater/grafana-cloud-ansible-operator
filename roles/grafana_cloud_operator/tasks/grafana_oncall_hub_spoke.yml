@@ -58,6 +58,10 @@
         msg: "{{ slack_channel_ids | flatten }}"
       when: slack_channel_ids is defined
 
+    - name: Retrieve value from JSON array for ID
+      debug:
+        msg: "{{ slack_channel_ids.name | selectattr('name', 'contains', item.name) | map(attribute='slack_id') | join(',') }}"
+
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and Slack Channel exists
       ansible.builtin.uri:
         url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"

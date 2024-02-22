@@ -77,7 +77,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: item.name in slack_channel_ids[0].slack_name
+      when: item.name in slack_channel_ids[0].name
       failed_when: true
 
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and SlackId doesnot exist
@@ -100,7 +100,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: not item.name in slack_channel_ids[0].slack_name
+      when: not item.name in slack_channel_ids[0].name
       failed_when: true
 
     - name: Update CR status to IntegrationsCreated

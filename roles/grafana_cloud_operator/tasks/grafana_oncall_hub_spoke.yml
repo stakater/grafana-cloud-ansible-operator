@@ -53,6 +53,11 @@
       loop_control:
         label: "{{ item.metadata.name }}"
 
+    - name: Display Slack ID to see what populates
+      ansible.builtin.debug:
+        msg: "{{ slack_channel_ids | flatten }}"
+      when: slack_channel_ids is defined
+
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and Slack Channel exists
       ansible.builtin.uri:
         url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"

@@ -59,6 +59,10 @@
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.name }}"
+      retries: 5
+      delay: 6
+      until: grafana_integration_response.status in [200, 201]
+      failed_when: false
 
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and Slack Channel exists
       ansible.builtin.uri:

@@ -53,7 +53,7 @@
       loop_control:
         label: "{{ item.metadata.name }}"
 
-    - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one
+    - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and Slack Channel exists
       ansible.builtin.uri:
         url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
         method: POST
@@ -77,6 +77,33 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
+      when: slack_channel_ids[0].slack_id is defined
+
+    - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and SlackId doesnot exist
+      ansible.builtin.uri:
+        url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
+        method: POST
+        body_format: json
+        return_content: true
+        headers:
+          Authorization: "{{ grafana_cloud_api_token }}"
+          Content-Type: "application/json"
+        body:
+          type: "alertmanager"
+          name: "{{ item.name }}"
+          default_route:
+            slack:
+              channel_id: "{{ slack_channel_ids[0].slack_id }}"
+              enabled: true
+        status_code: [ 200, 201 ]
+      register: grafana_integration_response
+      loop: "{{ create_integration_for }}"
+      loop_control:
+        label: "{{ item.name }}"
+      retries: 5
+      delay: 6
+      until: grafana_integration_response.status in [200, 201]
+      when: slack_channel_ids[0].slack_id is undefined
 
     - name: Update CR status to IntegrationsCreated
       kubernetes.core.k8s:

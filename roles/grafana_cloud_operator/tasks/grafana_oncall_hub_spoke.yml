@@ -53,10 +53,6 @@
       loop_control:
         label: "{{ item.metadata.name }}"
 
-    - name: Display Slack ID to see what populates
-      ansible.builtin.debug:
-        msg: "{{ slack_channel_ids[0].slack_id }}"
-
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and Slack Channel exists
       ansible.builtin.uri:
         url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
@@ -81,7 +77,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: slack_channel_ids[0].slack_id is defined
+      when: item.name in slack_channel_ids[0].slack_name
       failed_when: true
 
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and SlackId doesnot exist
@@ -104,7 +100,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: slack_channel_ids[0].slack_id is undefined
+      when: not item.name in slack_channel_ids[0].slack_name
       failed_when: true
 
     - name: Update CR status to IntegrationsCreated

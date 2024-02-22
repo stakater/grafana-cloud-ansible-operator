@@ -54,7 +54,7 @@
         label: "{{ item.metadata.name }}"
 
     - name: Retrieve value from JSON array for ID
-      debug:
+      ansible.builtin.debug:
         msg: "{{ slack_channel_ids.name | selectattr('name', 'contains', item.name) | map(attribute='slack_id') | join(',') }}"
 
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and Slack Channel exists

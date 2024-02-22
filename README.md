@@ -119,7 +119,8 @@ The operator's workflow can be described in two different architectural models:
 
         CreateIntegration --> |API Call: Create Integration| GO
         GO -->|Return: Endpoint| ModSecret
-        ModSecret --> PatchSecret
+        ModSecret --> Reencode
+        Reencode --> PatchSecret
         PatchSecret --> UpdateCR
         CheckIntegration -- Integration exists --> UpdateCR
     ```
@@ -290,6 +291,7 @@ Here's a step-by-step guide on understanding and applying this configuration:
       grafanaAPIToken:
         key: api-token  # The key field within the secret holding the Grafana OnCall API token
         secretName: grafana-api-token-secret  # The name of the Kubernetes secret storing the Grafana OnCall API token
+      slackId: C0DDD0ZD4JZ #
       provisionMode: hubAndSpoke  # Determines the mode of operation - 'hubAndSpoke' or 'standaloneCluster'
     ```
 

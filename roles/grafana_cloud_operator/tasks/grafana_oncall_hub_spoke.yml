@@ -55,7 +55,7 @@
 
     - name: Retrieve value from JSON array for ID
       ansible.builtin.debug:
-        msg: "{{ slack_channel_ids | selectattr('name', 'contains', item.name) }}"
+        msg: "{{ slack_channel_ids | selectattr('name', 'contains', item.name) | map(attribute='slack_id')  }}"
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.name }}"

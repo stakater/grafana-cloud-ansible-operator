@@ -91,6 +91,39 @@
       when: slack_channel_validated is defined and (slack_channel_validated[loop_index].slack_id | length > 0)
       failed_when: false
 
+    - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and SlackId doesnot exist
+      ansible.builtin.uri:
+        url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
+        method: POST
+        body_format: json
+        return_content: true
+        headers:
+          Authorization: "{{ grafana_cloud_api_token }}"
+          Content-Type: "application/json"
+        body:
+          type: "alertmanager"
+          name: "{{ item.name }}"
+        status_code: [200, 201]
+      register: grafana_integration_response
+      loop: "{{ create_integration_for }}"
+      loop_control:
+        label: "{{ item.name }}"
+      retries: 5
+      delay: 6
+      until: grafana_integration_response.status in [200, 201]
+      when: (slack_channel_validated is undefined) or ( slack_channel_validated[loop_index].slack_id | default('', true) | trim != '')
+      failed_when: false
+
+    - name: Merge responses
+      ansible.builtin.set_fact:
+        grafana_integration_response_merged: >-
+          {{ grafana_integration_response_merged|default({})|combine({item:
+          (grafana_integration_response_slack[item]|default({'status': []})).status +
+          (grafana_integration_response[item]|default({'status': []})).status
+          })
+          }}
+      loop: "{{ (grafana_integration_response_slack.keys()|list + grafana_integration_response.keys()|list)|unique }}"
+
     - name: Update CR status to IntegrationsCreated
       kubernetes.core.k8s:
         state: present
@@ -105,11 +138,11 @@
             phase: "Successful"
             reason: "IntegrationsCreated"
             message: "Grafana integrations created for all ClusterDeployments."
-      when: create_integration_for | length == grafana_integration_response.results | length
+      when: create_integration_for | length == grafana_integration_response_merged.results | length
       failed_when: false
 
     - name: Inform user if Grafana integration creation was skipped or failed
-      when: grafana_integration_response is skipped or (grafana_integration_response.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)
+      when: grafana_integration_response_merged is skipped or (grafana_integration_response_merged.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)
       block:
         - name: Display message about potential Grafana integration issues
           ansible.builtin.debug:
@@ -138,7 +171,7 @@
     - name: Associate Grafana integration details with ClusterDeployments
       ansible.builtin.set_fact:
         mapped_integrations: "{{ mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
-      loop: "{{ grafana_integration_response.results }}"
+      loop: "{{ grafana_integration_response_merged.results }}"
 
     # Following tasks will execute only if Grafana integration was created successfully
     - name: Modify Alertmanager secret

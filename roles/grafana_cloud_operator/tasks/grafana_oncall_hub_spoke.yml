@@ -80,14 +80,14 @@
               channel_id: "{{ slack_channel_validated[loop_index].slack_id }}"
               enabled: true
         status_code: [200, 201]
-      register: grafana_integration_response_slack
+      register: grafana_int_response_slack
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.name }}"
         index_var: loop_index
       retries: 5
       delay: 6
-      until: grafana_integration_response_slack.status in [200, 201]
+      until: grafana_int_response_slack.status in [200, 201]
       when: slack_channel_validated is defined and (slack_channel_validated[loop_index].slack_id | length > 0)
       failed_when: false
 
@@ -104,13 +104,13 @@
           type: "alertmanager"
           name: "{{ item.name }}"
         status_code: [200, 201]
-      register: grafana_integration_response
+      register: grafana_int_response
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.name }}"
       retries: 5
       delay: 6
-      until: grafana_integration_response.status in [200, 201]
+      until: grafana_int.status in [200, 201]
       when: (slack_channel_validated is undefined) or ( slack_channel_validated[loop_index].slack_id | default('', true) | trim != '')
       failed_when: false
 
@@ -118,11 +118,11 @@
       ansible.builtin.set_fact:
         grafana_integration_response_merged: >-
           {{ grafana_integration_response_merged|default({})|combine({item:
-          (grafana_integration_response_slack[item]|default({'status': []})).status +
-          (grafana_integration_response[item]|default({'status': []})).status
+          (grafana_int_response_slack[item]|default({'status': []})).status +
+          (grafana_int_response[item]|default({'status': []})).status
           })
           }}
-      loop: "{{ (grafana_integration_response_slack.keys()|list + grafana_integration_response.keys()|list)|unique }}"
+      loop: "{{ (grafana_int_response_slack.keys()|list + grafana_int_response.keys()|list)|unique }}"
 
     - name: Update CR status to IntegrationsCreated
       kubernetes.core.k8s:

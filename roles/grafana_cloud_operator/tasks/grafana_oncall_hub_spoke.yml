@@ -79,7 +79,7 @@
             slack:
               channel_id: "{{ slack_channel_validated[loop_index].slack_id }}"
               enabled: true
-        status_code: [200, 201]
+        status_code: [200, 201, 400]
       register: grafana_integration_response
       loop: "{{ create_integration_for }}"
       loop_control:
@@ -103,8 +103,8 @@
         body:
           type: "alertmanager"
           name: "{{ item.name }}"
-        status_code: [200, 201]
-      register: grafana_integration_response_slack
+        status_code: [200, 201, 400]
+      register: grafana_integration_response
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.name }}"

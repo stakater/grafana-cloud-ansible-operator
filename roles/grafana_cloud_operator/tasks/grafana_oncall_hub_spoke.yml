@@ -54,8 +54,8 @@
         label: "{{ item.metadata.name }}"
 
     - name: Retrieve value from JSON array for ID
-      ansible.builtin.debug:
-        msg: "{{ slack_channel_ids | selectattr('name', 'contains', item.name) | map(attribute='slack_id') }}"
+      ansible.builtin.set_fact:
+        slack_channel_validated: "{{ slack_channel_ids | selectattr('name', 'contains', item.name) | map(attribute='slack_id') }}"
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.name }}"
@@ -74,7 +74,7 @@
           name: "{{ item.name }}"
           default_route:
             slack:
-              channel_id: "{{ slack_channel_ids | selectattr('name', 'contains', item.name) | map(attribute='slack_id') }}"
+              channel_id: "slack_channel_validated[loop_index]"
               enabled: true
         status_code: [200, 201]
       register: grafana_integration_response
@@ -85,7 +85,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: slack_channel_ids is defined
+      when: slack_channel_validated[loop_index] | length > 0
       failed_when: false
 
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and SlackId doesnot exist
@@ -108,7 +108,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: slack_channel_ids is undefined
+      when: slack_channel_validated[loop_index] | length == 0
       failed_when: false
 
     - name: Update CR status to IntegrationsCreated

@@ -104,11 +104,13 @@
           type: "alertmanager"
           name: "{{ item.name }}"
         status_code: [200, 201]
+      register: grafana_integration_response_slack
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.name }}"
       retries: 5
       delay: 6
+      until: grafana_integration_response.status in [200, 201]
       when: (slack_channel_validated is undefined) or ( slack_channel_validated[loop_index].slack_id | default('', true) | trim != '')
       failed_when: false
 

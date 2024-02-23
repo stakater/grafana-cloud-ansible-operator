@@ -74,7 +74,7 @@
           name: "{{ item.name }}"
           default_route:
             slack:
-              channel_id: "slack_channel_validated[loop_index]"
+              channel_id: "slack_channel_validated[0]"
               enabled: true
         status_code: [200, 201]
       register: grafana_integration_response

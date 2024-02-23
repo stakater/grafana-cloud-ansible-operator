@@ -64,8 +64,7 @@
 
     - name: Display value from JSON array for ID
       ansible.builtin.debug:
-        msg:
-          var3: "{{ slack_channel_validated[loop_index].slack_id }}"
+        msg: "{{ slack_channel_validated[loop_index].slack_id }}"
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.name }}"

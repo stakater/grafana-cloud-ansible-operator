@@ -111,7 +111,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: (slack_channel_validated is undefined) or ( not slack_channel_validated[loop_index].slack_id | default(None))
+      when: (slack_channel_validated is undefined) or ( slack_channel_validated[loop_index].slack_id | default(None))
       failed_when: false
 
     - name: Update CR status to IntegrationsCreated

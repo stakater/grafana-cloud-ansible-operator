@@ -76,7 +76,7 @@
           name: "{{ item.name }}"
           default_route:
             slack:
-              channel_id: "slack_channel_validated[loop_index].slack_id"
+              channel_id: "slack_channel_validated[loop_index].slack_id[0]"
               enabled: true
         status_code: [200, 201]
       register: grafana_integration_response
@@ -87,7 +87,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: slack_channel_validated is defined
+      when: slack_channel_validated[loop_index].slack_id[0] is defined
       failed_when: false
 
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and SlackId doesnot exist
@@ -110,7 +110,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: slack_channel_validated is undefined
+      when: slack_channel_validated[loop_index].slack_id[0] is undefined
       failed_when: false
 
     - name: Update CR status to IntegrationsCreated

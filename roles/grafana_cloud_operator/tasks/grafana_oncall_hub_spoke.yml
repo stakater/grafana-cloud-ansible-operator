@@ -81,6 +81,7 @@
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.name }}"
+        index_var: loop_index
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]

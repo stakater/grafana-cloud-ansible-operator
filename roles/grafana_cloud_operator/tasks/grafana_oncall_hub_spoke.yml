@@ -152,7 +152,7 @@
                 reason: "IntegrationCreationFailed"
                 message: "Failed to create Grafana integration for {{ item.name }} ClusterDeployment."
           loop: "{{ grafana_integration_response.results }}"
-          when: item.status_code not in [200, 201] or item.status not in [200, 201]
+          when: item.status_code is undefined or item.status_code not in [200, 201] or item.status not in [200, 201]
 
         - name: End play if any integrations failed or were skipped
           ansible.builtin.meta: end_play

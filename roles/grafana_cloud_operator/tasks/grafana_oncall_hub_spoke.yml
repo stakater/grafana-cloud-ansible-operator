@@ -84,7 +84,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: "{{ slack_channel_ids | selectattr('name', 'contains', item.name) }}" is defined
+      when: {{ slack_channel_ids | selectattr('name', 'contains', item.name) }} is defined
       failed_when: false
 
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and SlackId doesnot exist
@@ -107,7 +107,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: "{{ slack_channel_ids | selectattr('name', 'contains', item.name) }}" is undefined
+      when: {{ slack_channel_ids | selectattr('name', 'contains', item.name) }} is undefined
       failed_when: false
 
     - name: Update CR status to IntegrationsCreated

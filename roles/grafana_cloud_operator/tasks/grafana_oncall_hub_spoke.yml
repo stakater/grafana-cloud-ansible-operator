@@ -84,7 +84,6 @@
           name: "{{ item.name }}"
           default_route:
             slack:
-              channel_id: "slack_channel_validated[loop_index].slack_id"
               channel_id: "{{ slack_channel_validated[loop_index].slack_id }}"
               enabled: true
         status_code: [200, 201]

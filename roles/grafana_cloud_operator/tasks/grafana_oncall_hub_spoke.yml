@@ -79,7 +79,7 @@
             slack:
               channel_id: "{{ slack_channel_validated[loop_index].slack_id }}"
               enabled: true
-        status_code: [200, 201, 400]
+        status_code: [200, 201]
       register: grafana_integration_response
       loop: "{{ create_integration_for }}"
       loop_control:
@@ -88,7 +88,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: slack_channel_validated is defined
+      when: slack_channel_validated is defined and (slack_channel_validated[loop_index].slack_id | length > 0)
       failed_when: false
 
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and SlackId doesnot exist
@@ -103,7 +103,7 @@
         body:
           type: "alertmanager"
           name: "{{ item.name }}"
-        status_code: [200, 201, 400]
+        status_code: [200, 201]
       register: grafana_integration_response
       loop: "{{ create_integration_for }}"
       loop_control:
@@ -129,6 +129,7 @@
             reason: "IntegrationsCreated"
             message: "Grafana integrations created for all ClusterDeployments."
       when: create_integration_for | length == grafana_integration_response.results | length
+      failed_when: false
 
     - name: Inform user if Grafana integration creation was skipped or failed
       when: grafana_integration_response is skipped or (grafana_integration_response.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)
@@ -152,7 +153,7 @@
                 reason: "IntegrationCreationFailed"
                 message: "Failed to create Grafana integration for {{ item.name }} ClusterDeployment."
           loop: "{{ grafana_integration_response.results }}"
-          when: item.status_code is undefined or item.status_code not in [200, 201] or item.status not in [200, 201]
+          when: item is defined or item.status_code not in [200, 201]
 
         - name: End play if any integrations failed or were skipped
           ansible.builtin.meta: end_play

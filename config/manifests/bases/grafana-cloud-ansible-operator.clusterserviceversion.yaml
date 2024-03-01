@@ -9,8 +9,8 @@ metadata:
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions: {}
-  description: Grafana Cloud Operator that configures on call and sre features of
-    Grafana Cloud
+  description: Grafana Cloud Operator that configures Grafana OnCall and SRE features
+    of Grafana Cloud
   displayName: grafana-cloud-operator
   icon:
   - base64data: ""

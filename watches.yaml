@@ -1,6 +1,6 @@
 ---
 - version: v1alpha1
   group: grafanacloud.stakater.com
-  kind: GrafanaCloudOperator
+  kind: GrafanaCloudConfig
   role: grafana_cloud_operator
   reconcilePeriod: 5m

@@ -36,7 +36,7 @@ The operator's workflow can be described in two different architectural models:
         subgraph "Hub and Spoke Integration with Grafana OnCall"
             subgraph "OpenShift Hub Cluster"
                 InitHub[Start: Operation Initiated in Hub]
-                GetGCOHub[Get All GrafanaCloudOperator CRs]
+                GetGCOHub[Get All GrafanaCloudConfig CRs]
                 CheckMultipleCRs[Ensure Only One GCO CR Exists]
                 GetToken[Retrieve Grafana API Token from Secret]
                 ListIntegrations[Fetch List of Existing Integrations in Grafana OnCall]
@@ -278,9 +278,9 @@ This section outlines the process of installing the Grafana Cloud Operator throu
 
 ### Quick Start
 
-After installation, you can create a `GrafanaCloudOperator` resource by applying the below CRD that the operator recognizes.
+After installation, you can create a `GrafanaCloudConfig` resource by applying the below CRD that the operator recognizes.
 
-The operator gets its instructions from a custom resource (CR) that follows the `GrafanaCloudOperator` Custom Resource Definition (CRD). This CR contains all the necessary information, from the API token required to interact with Grafana Cloud to the mode of operation the operator should adopt.
+The operator gets its instructions from a custom resource (CR) that follows the `GrafanaCloudConfig` Custom Resource Definition (CRD). This CR contains all the necessary information, from the API token required to interact with Grafana Cloud to the mode of operation the operator should adopt.
 
 Here's a step-by-step guide on understanding and applying this configuration:
 
@@ -290,9 +290,9 @@ Here's a step-by-step guide on understanding and applying this configuration:
 
     ```yaml
     apiVersion: grafanacloud.stakater.com/v1alpha1
-    kind: GrafanaCloudOperator
+    kind: GrafanaCloudConfig
     metadata:
-      name: grafanacloudoperator-sample  # This is a user-defined name for your custom resource
+      name: grafanacloudconfig-sample  # This is a user-defined name for your custom resource
       namespace: grafana-cloud-operator  # Namespace where the operator is installed
     spec:
       enabled: true

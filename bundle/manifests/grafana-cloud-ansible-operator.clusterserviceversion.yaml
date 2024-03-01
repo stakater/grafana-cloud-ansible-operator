@@ -6,16 +6,16 @@ metadata:
       [
         {
           "apiVersion": "grafanacloud.stakater.com/v1alpha1",
-          "kind": "GrafanaCloudOperator",
+          "kind": "GrafanaCloudConfig",
           "metadata": {
             "labels": {
               "app.kubernetes.io/created-by": "grafana-cloud-ansible-operator",
-              "app.kubernetes.io/instance": "grafanacloudoperator-sample",
+              "app.kubernetes.io/instance": "grafanacloudconfig-sample",
               "app.kubernetes.io/managed-by": "kustomize",
-              "app.kubernetes.io/name": "grafanacloudoperator",
+              "app.kubernetes.io/name": "grafanacloudconfig",
               "app.kubernetes.io/part-of": "grafana-cloud-ansible-operator"
             },
-            "name": "grafanacloudoperator-sample"
+            "name": "grafanacloudconfig-sample"
           },
           "spec": {
             "enabled": true,
@@ -28,7 +28,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    createdAt: "2024-02-28T09:25:01Z"
+    createdAt: "2024-03-01T08:25:45Z"
     operators.operatorframework.io/builder: operator-sdk-v1.31.0
     operators.operatorframework.io/project_layout: ansible.sdk.operatorframework.io/v1
   name: grafana-cloud-ansible-operator.v0.0.45
@@ -37,11 +37,11 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - kind: GrafanaCloudOperator
-      name: grafanacloudoperators.grafanacloud.stakater.com
+    - kind: GrafanaCloudConfig
+      name: grafanacloudconfigs.grafanacloud.stakater.com
       version: v1alpha1
-  description: Grafana Cloud Operator that configures on call and sre features of
-    Grafana Cloud
+  description: Grafana Cloud Operator that configures Grafana OnCall and SRE features
+    of Grafana Cloud
   displayName: grafana-cloud-operator
   icon:
   - base64data: ""
@@ -83,9 +83,9 @@ spec:
         - apiGroups:
           - grafanacloud.stakater.com
           resources:
-          - grafanacloudoperators
-          - grafanacloudoperators/status
-          - grafanacloudoperators/finalizers
+          - grafanacloudconfigs
+          - grafanacloudconfigs/status
+          - grafanacloudconfigs/finalizers
           verbs:
           - create
           - delete

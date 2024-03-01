@@ -1,14 +1,14 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: grafanacloudoperators.grafanacloud.stakater.com
+  name: grafanacloudconfigs.grafanacloud.stakater.com
 spec:
   group: grafanacloud.stakater.com
   names:
-    kind: GrafanaCloudOperator
-    listKind: GrafanaCloudOperatorList
-    plural: grafanacloudoperators
-    singular: grafanacloudoperator
+    kind: GrafanaCloudConfig
+    listKind: GrafanaCloudConfigList
+    plural: grafanacloudconfigs
+    singular: grafanacloudconfig
     shortNames:
       - gco
   scope: Namespaced
@@ -16,7 +16,7 @@ spec:
     - name: v1alpha1
       schema:
         openAPIV3Schema:
-          description: GrafanaCloudOperator is the Schema for the grafanacloudoperators API
+          description: GrafanaCloudConfig is the Schema for the grafanacloudconfigs API
           properties:
             apiVersion:
               description: 'APIVersion defines the versioned schema of this representation
@@ -33,7 +33,7 @@ spec:
             metadata:
               type: object
             spec:
-              description: Spec defines the desired state of GrafanaCloudOperator
+              description: Spec defines the desired state of GrafanaCloudConfig
               type: object
               properties:
                 enabled:
@@ -76,7 +76,7 @@ spec:
                       type: string
               x-kubernetes-preserve-unknown-fields: true
             status:
-              description: Status defines the observed state of GrafanaCloudOperator
+              description: Status defines the observed state of GrafanaCloudConfig
               type: object
               properties:
                 lastUpdated:

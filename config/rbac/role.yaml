@@ -38,14 +38,14 @@ rules:
       - update
       - watch
   ##
-  ## Rules for grafanacloud.stakater.com/v1alpha1, Kind: GrafanaCloudConfig
+  ## Rules for grafanacloud.stakater.com/v1alpha1, Kind: Config
   ##
   - apiGroups:
       - grafanacloud.stakater.com
     resources:
-      - grafanacloudconfigs
-      - grafanacloudconfigs/status
-      - grafanacloudconfigs/finalizers
+      - configs
+      - configs/status
+      - configs/finalizers
     verbs:
       - create
       - delete

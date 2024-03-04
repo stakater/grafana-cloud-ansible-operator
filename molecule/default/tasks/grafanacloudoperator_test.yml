@@ -1,5 +1,5 @@
 ---
-- name: Create the grafanacloud.stakater.com/v1alpha1.GrafanaCloudConfig
+- name: Create the grafanacloud.stakater.com/v1alpha1.Config
   kubernetes.core.k8s:
     state: present
     namespace: '{{ namespace }}'
@@ -10,7 +10,7 @@
       type: Successful
       status: "True"
   vars:
-    cr_file: 'grafanacloud_v1alpha1_grafanacloudconfig.yaml'
+    cr_file: 'grafanacloud_v1alpha1_config.yaml'
 
 - name: Add assertions here
   ansible.builtin.assert:

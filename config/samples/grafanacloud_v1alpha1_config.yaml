@@ -1,13 +1,13 @@
 apiVersion: grafanacloud.stakater.com/v1alpha1
-kind: GrafanaCloudOperator
+kind: Config
 metadata:
   labels:
-    app.kubernetes.io/name: grafanacloudoperator
-    app.kubernetes.io/instance: grafanacloudoperator-sample
+    app.kubernetes.io/name: config
+    app.kubernetes.io/instance: config-sample
     app.kubernetes.io/part-of: grafana-cloud-ansible-operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: grafana-cloud-ansible-operator
-  name: grafanacloudoperator-sample
+  name: config-sample
 spec:
   enabled: true
   provisionMode: standalone # or hubAndSpoke

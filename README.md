@@ -296,7 +296,7 @@ Here's a step-by-step guide on understanding and applying this configuration:
         key: api-token  # The key field within the secret holding the Grafana OnCall API token
         secretName: grafana-api-token-secret  # The name of the Kubernetes secret storing the Grafana OnCall API token
       slackId: C0DDD0ZD4JZ # For Standalone mode populate this field to connect Slack Channel to Grafana OnCall Integration
-      provisionMode: hubAndSpoke  # Determines the mode of operation - 'hubAndSpoke' or 'standaloneCluster'
+      provisionMode: standalone  # Determines the mode of operation - 'hubAndSpoke' or 'standaloneCluster'
     ```
 
     - `metadata`: Contains general information about the custom resource that you are creating, such as its name and the namespace it resides in.

@@ -6,16 +6,16 @@ metadata:
       [
         {
           "apiVersion": "grafanacloud.stakater.com/v1alpha1",
-          "kind": "GrafanaCloudOperator",
+          "kind": "Config",
           "metadata": {
             "labels": {
               "app.kubernetes.io/created-by": "grafana-cloud-ansible-operator",
-              "app.kubernetes.io/instance": "grafanacloudoperator-sample",
+              "app.kubernetes.io/instance": "config-sample",
               "app.kubernetes.io/managed-by": "kustomize",
-              "app.kubernetes.io/name": "grafanacloudoperator",
+              "app.kubernetes.io/name": "config",
               "app.kubernetes.io/part-of": "grafana-cloud-ansible-operator"
             },
-            "name": "grafanacloudoperator-sample"
+            "name": "config-sample"
           },
           "spec": {
             "enabled": true,
@@ -28,20 +28,20 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    createdAt: "2024-02-21T09:14:48Z"
+    createdAt: "2024-03-04T12:10:00Z"
     operators.operatorframework.io/builder: operator-sdk-v1.31.0
     operators.operatorframework.io/project_layout: ansible.sdk.operatorframework.io/v1
-  name: grafana-cloud-ansible-operator.v0.0.43
+  name: grafana-cloud-ansible-operator.v0.0.46
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - kind: GrafanaCloudOperator
-      name: grafanacloudoperators.grafanacloud.stakater.com
+    - kind: Config
+      name: configs.grafanacloud.stakater.com
       version: v1alpha1
-  description: Grafana Cloud Operator that configures on call and sre features of
-    Grafana Cloud
+  description: Grafana Cloud Operator that configures Grafana OnCall and SRE features
+    of Grafana Cloud
   displayName: grafana-cloud-operator
   icon:
   - base64data: ""
@@ -83,9 +83,9 @@ spec:
         - apiGroups:
           - grafanacloud.stakater.com
           resources:
-          - grafanacloudoperators
-          - grafanacloudoperators/status
-          - grafanacloudoperators/finalizers
+          - configs
+          - configs/status
+          - configs/finalizers
           verbs:
           - create
           - delete
@@ -247,7 +247,7 @@ spec:
                 env:
                 - name: ANSIBLE_GATHERING
                   value: explicit
-                image: ghcr.io/stakater/grafana-cloud-ansible-operator:v0.0.43
+                image: ghcr.io/stakater/grafana-cloud-ansible-operator:v0.0.46
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -340,4 +340,4 @@ spec:
   provider:
     name: Stakater
     url: www.stakater.com
-  version: 0.0.43
+  version: 0.0.46

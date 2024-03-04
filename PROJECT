@@ -15,6 +15,6 @@ resources:
     namespaced: true
   domain: stakater.com
   group: grafanacloud
-  kind: GrafanaCloudOperator
+  kind: Config
   version: v1alpha1
 version: "3"

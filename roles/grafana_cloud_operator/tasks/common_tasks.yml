@@ -8,16 +8,16 @@
     ansible_date_time:
       iso8601: "{{ current_datetime.stdout }}"
 
-- name: Get all GrafanaCloudOperator CRs in the operator namespace
+- name: Get all Config CRs in the operator namespace
   kubernetes.core.k8s_info:
     api_version: grafanacloud.stakater.com/v1alpha1
-    kind: GrafanaCloudOperator
+    kind: Config
     namespace: "{{ grafana_cloud_operator_operator_namespace }}"
   register: all_gco_crs
 
 - name: Fail if there's more than one CR
   ansible.builtin.fail:
-    msg: "There are multiple GrafanaCloudOperator CRs in the {{ grafana_cloud_operator_operator_namespace }} namespace. Only one is expected"
+    msg: "There are multiple Config CRs in the {{ grafana_cloud_operator_operator_namespace }} namespace. Only one is expected"
   when: all_gco_crs.resources | length > 1
 
 - name: Set the CR name from the fetched list
@@ -30,11 +30,11 @@
     cr_namespace: "{{ grafana_cloud_operator_operator_namespace }}"
     gco_cr: "{{ all_gco_crs.resources[0] }}"
 
-# # Fetch the single GrafanaCloudOperator CR
-# - name: Get the specific GrafanaCloudOperator CR
+# # Fetch the single Config CR
+# - name: Get the specific Config CR
 #   kubernetes.core.k8s_info:
 #     api_version: grafanacloud.stakater.com/v1alpha1
-#     kind: GrafanaCloudOperator
+#     kind: Config
 #     namespace: "{{ cr_namespace }}"
 #     name: "{{ cr_name }}"
 #   register: gco_cr
@@ -44,7 +44,7 @@
     state: present
     definition:
       apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: GrafanaCloudOperator
+      kind: Config
       metadata:
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
@@ -52,11 +52,11 @@
         lastUpdated: "{{ ansible_date_time.iso8601 }}"
         phase: "Processing"
         reason: "CRRetrieved"
-        message: "GrafanaCloudOperator CR retrieved"
+        message: "Config CR retrieved"
 
 - name: Ensure required CR fields are set
   ansible.builtin.fail:
-    msg: "Required field '{{ item.field }}' is missing in the GrafanaCloudOperator CR"
+    msg: "Required field '{{ item.field }}' is missing in the Config CR"
   loop:
     - { field: "grafanaAPIToken.secretName", value: gco_cr.spec.grafanaAPIToken.secretName }
     - { field: "grafanaAPIToken.key", value: gco_cr.spec.grafanaAPIToken.key }
@@ -86,7 +86,7 @@
     state: present
     definition:
       apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: GrafanaCloudOperator
+      kind: Config
       metadata:
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
@@ -125,7 +125,7 @@
     state: present
     definition:
       apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: GrafanaCloudOperator
+      kind: Config
       metadata:
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
@@ -147,7 +147,7 @@
     state: present
     definition:
       apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: GrafanaCloudOperator
+      kind: Config
       metadata:
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
@@ -163,7 +163,7 @@
     state: present
     definition:
       apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: GrafanaCloudOperator
+      kind: Config
       metadata:
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"

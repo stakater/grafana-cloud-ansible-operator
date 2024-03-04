@@ -36,8 +36,8 @@ The operator's workflow can be described in two different architectural models:
         subgraph "Hub and Spoke Integration with Grafana OnCall"
             subgraph "OpenShift Hub Cluster"
                 InitHub[Start: Operation Initiated in Hub]
-                GetGCOHub[Get All GrafanaCloudOperator CRs]
-                CheckMultipleCRs[Ensure Only One GCO CR Exists]
+                GetGCOHub[Get All Config CRs]
+                CheckMultipleCRs[Ensure Only One GCC CR Exists]
                 GetToken[Retrieve Grafana API Token from Secret]
                 ListIntegrations[Fetch List of Existing Integrations in Grafana OnCall]
                 FetchClusters[Fetch ClusterDeployments from All Namespaces]
@@ -133,7 +133,7 @@ The operator's workflow can be described in two different architectural models:
     The operator functions within the single OpenShift cluster, monitoring  resources that indicate the local cluster's need for Grafana On Call integration.
 
     *Direct Grafana On Call Setup:*
-    Upon identifying the GCO CR, described in the next section, the operator proceeds with the Grafana OnCall setup by interacting with Grafana Cloud's API.
+    Upon identifying the GCC CR, described in the next section, the operator proceeds with the Grafana OnCall setup by interacting with Grafana Cloud's API.
     It establishes the necessary integrations and secures essential details, including the Alertmanager HTTP URL.
 
     *In-Cluster Configuration Management:*
@@ -274,9 +274,9 @@ This section outlines the process of installing the Grafana Cloud Operator throu
 
 ### Quick Start
 
-After installation, you can create a `GrafanaCloudOperator` resource by applying the below CRD that the operator recognizes.
+After installation, you can create a `Config` resource by applying the below CRD that the operator recognizes.
 
-The operator gets its instructions from a custom resource (CR) that follows the `GrafanaCloudOperator` Custom Resource Definition (CRD). This CR contains all the necessary information, from the API token required to interact with Grafana Cloud to the mode of operation the operator should adopt.
+The operator gets its instructions from a custom resource (CR) that follows the `Config` Custom Resource Definition (CRD). This CR contains all the necessary information, from the API token required to interact with Grafana Cloud to the mode of operation the operator should adopt.
 
 Here's a step-by-step guide on understanding and applying this configuration:
 
@@ -286,9 +286,9 @@ Here's a step-by-step guide on understanding and applying this configuration:
 
     ```yaml
     apiVersion: grafanacloud.stakater.com/v1alpha1
-    kind: GrafanaCloudOperator
+    kind: Config
     metadata:
-      name: grafanacloudoperator-sample  # This is a user-defined name for your custom resource
+      name: config-sample  # This is a user-defined name for your custom resource
       namespace: grafana-cloud-operator  # Namespace where the operator is installed
     spec:
       enabled: true

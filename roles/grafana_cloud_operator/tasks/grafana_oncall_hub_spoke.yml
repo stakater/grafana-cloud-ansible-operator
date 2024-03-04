@@ -7,7 +7,7 @@
     state: present
     definition:
       apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: GrafanaCloudOperator
+      kind: Config
       metadata:
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
@@ -126,7 +126,7 @@
         state: present
         definition:
           apiVersion: grafanacloud.stakater.com/v1alpha1
-          kind: GrafanaCloudOperator
+          kind: Config
           metadata:
             name: "{{ cr_name }}"
             namespace: "{{ cr_namespace }}"
@@ -149,7 +149,7 @@
             state: present
             definition:
               apiVersion: grafanacloud.stakater.com/v1alpha1
-              kind: GrafanaCloudOperator
+              kind: Config
               metadata:
                 name: "{{ cr_name }}"
                 namespace: "{{ cr_namespace }}"
@@ -185,7 +185,7 @@
     state: present
     definition:
       apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: GrafanaCloudOperator
+      kind: Config
       metadata:
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
@@ -201,7 +201,7 @@
     state: present
     definition:
       apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: GrafanaCloudOperator
+      kind: Config
       metadata:
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"

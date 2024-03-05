@@ -52,7 +52,7 @@
     status_code: [200, 201]
   when: not integration_exists_for_cluster and slack_id is defined
   register: grafana_integration_response
-  failed_when: true
+  failed_when: false
 
 - name: Create a new integration in Grafana OnCall for the cluster only if it does not have one without slackId
   ansible.builtin.uri:
@@ -69,7 +69,7 @@
     status_code: [200, 201]
   when: not integration_exists_for_cluster and slack_id is undefined
   register: grafana_integration_response
-  failed_when: true
+  failed_when: false
 
 - name: Inform user if Grafana integration creation was skipped or failed
   when:

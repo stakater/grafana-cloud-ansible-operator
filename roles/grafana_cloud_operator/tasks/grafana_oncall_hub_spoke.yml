@@ -53,7 +53,7 @@
       loop_control:
         label: "{{ item.metadata.name }}"
 
-    - name: Retrieve value from JSON array for ID
+    - name: Populate List with spaces if any
       vars:
         slack_id_fetched: "{{ slack_channel_ids | selectattr('name', 'contains', item.name) | map(attribute='slack_id') | join(',') }}"
       ansible.builtin.set_fact:
@@ -95,7 +95,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: slack_channel_validated[loop_index].slack_id[0] is defined
+      when: slack_channel_validated[loop_index].slack_id is defined
       failed_when: true
 
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and SlackId doesnot exist
@@ -118,7 +118,7 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: slack_channel_validated[loop_index].slack_id[0] is undefined
+      when: slack_channel_validated[loop_index].slack_id is undefined
       failed_when: true
 
     - name: Update CR status to IntegrationsCreated

@@ -88,7 +88,7 @@ The operator's workflow can be described in two different architectural models:
 
     *Centralized Secret Management:*
     The operator centrally manages the `alertmanager-main-generated` secret for each Spoke cluster.
-    Through the `Syncset`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana On Call. Addionally it adds option for for Oncall Hearbeat which acts as a monitoring for monitoring systems. Other than updating secret the syncsets also create PrometheusRule that adds a vector as heartbeat generator.
+    Through the `Syncset`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana On Call. Addionally it adds option for Oncall Hearbeat which acts as a monitoring for monitoring systems. Other than updating secret the syncsets also create PrometheusRule that adds a vector as heartbeat generator.
 
     *Forwarding alerts to Slack*
     Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
@@ -143,7 +143,7 @@ The operator's workflow can be described in two different architectural models:
 
     *In-Cluster Configuration Management:*
     The operator directly applies configuration changes within the cluster, bypassing the need for `Syncsets`.
-    It ensures the Alertmanager's alert forwarding settings are correctly configured for seamless communication with Grafana On Call. Addionally it adds option for for Oncall Hearbeat which acts as a monitoring for monitoring systems. It also create PrometheusRule that adds a vector as heartbeat generator.
+    It ensures the Alertmanager's alert forwarding settings are correctly configured for seamless communication with Grafana On Call. Addionally it adds option for Oncall Hearbeat which acts as a monitoring for monitoring systems. It also create PrometheusRule that adds a vector as heartbeat generator.
 
     *Local Secret Management:*
     Managing the `alertmanager-main-generated` secret locally, the operator updates its configurations.

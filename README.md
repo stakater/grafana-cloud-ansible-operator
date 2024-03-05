@@ -143,7 +143,7 @@ The operator's workflow can be described in two different architectural models:
 
     *In-Cluster Configuration Management:*
     The operator directly applies configuration changes within the cluster, bypassing the need for `Syncsets`.
-    It ensures the Alertmanager's alert forwarding settings are correctly configured for seamless communication with Grafana On Call. Additionally it adds option for On call Heartbeat which acts as a monitoring for monitoring systems. It also creates PrometheusRule that adds a vector as heartbeat generator.
+    It ensures the Alertmanager's alert forwarding settings are correctly configured for seamless communication with Grafana On Call. Additionally, it adds option for On call Heartbeat which acts as a monitoring for monitoring systems. It also creates PrometheusRule that adds a vector as heartbeat generator.
 
     *Local Secret Management:*
     Managing the `alertmanager-main-generated` secret locally, the operator updates its configurations.

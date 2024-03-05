@@ -96,7 +96,7 @@
       delay: 6
       until: grafana_integration_response.status in [200, 201]
       when: slack_channel_validated[loop_index].slack_id[0] is defined
-      failed_when: false
+      failed_when: true
 
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and SlackId doesnot exist
       ansible.builtin.uri:
@@ -119,7 +119,7 @@
       delay: 6
       until: grafana_integration_response.status in [200, 201]
       when: slack_channel_validated[loop_index].slack_id[0] is undefined
-      failed_when: false
+      failed_when: true
 
     - name: Update CR status to IntegrationsCreated
       kubernetes.core.k8s:

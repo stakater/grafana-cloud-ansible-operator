@@ -70,6 +70,7 @@
       loop_control:
         label: "{{ item.name }}"
         index_var: loop_index
+      when: slack_channel_validated is defined
 
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one and Slack Channel exists
       ansible.builtin.uri:

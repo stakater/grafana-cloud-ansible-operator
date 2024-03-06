@@ -206,14 +206,15 @@
 #        - name: End play if any integrations failed or were skipped
 #          ansible.builtin.meta: end_play
 
+    - name: Display values from Grafana Loops SLACK
+      ansible.builtin.debug:
+        msg: "{{ item.item }} "
+      loop: "{{ grafana_int_response_slack.results }}"
+
     - name: Display values from Grafana Loops
       ansible.builtin.debug:
-        msg: "{{ slack_channel_validated[loop_index].slack_id }} "
-      loop: "{{ create_integration_for }}"
-      loop_control:
-        label: "{{ grafana_integration_response.results  }}"
-        index_var: loop_index
-      when: slack_channel_validated is defined
+        msg: "{{ item.item }} "
+      loop: "{{ grafana_integration_response.results }}"
 
     - name: Associate Grafana integration details with ClusterDeployments
       ansible.builtin.set_fact:

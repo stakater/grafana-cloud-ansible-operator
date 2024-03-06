@@ -103,7 +103,7 @@
         alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
   when: not integration_exists_for_cluster
 
-- name: Adds prometheus rule for cluster
+- name: Add prometheus rule for cluster
   kubernetes.core.k8s:
     state: present
     namespace: "openshift-monitoring"
@@ -111,7 +111,7 @@
       apiVersion: monitoring.coreos.com/v1
       kind: PrometheusRule
       metadata:
-        name: "heartbeat"
+        name: "heartbeat-grafana-oncall"
         namespace: "openshift-monitoring"
       spec:
         groups:

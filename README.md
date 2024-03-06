@@ -130,7 +130,7 @@ The operator's workflow can be described in two different architectural models:
         ConfigureSlack --> ModSecret
         ModSecret --> PatchSecret
         PatchSecret --> AddPrometheusRule
-        AddPrometheusRule --> UpdateCR
+        AddPrometheusRule --> CheckIntegration
         CheckIntegration -- Integration exists --> UpdateCR
     ```
 

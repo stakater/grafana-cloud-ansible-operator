@@ -74,13 +74,13 @@ The operator's workflow can be described in two different architectural models:
 
     *Centralized ClusterDeployments Monitoring:*
     The operator, installed on the Hub cluster, continually monitors for the presence of ClusterDeployment resources from Hive that are registered from Spoke clusters.
-    These resources are significant markers, indicating the clusters that require Grafana On Call integration.
+    These resources are significant markers, indicating the clusters that require Grafana OnCall integration.
 
     *Centralized Slack Channel CRs Monitoring:*
     The operator installed on the Hub cluster continually monitors for the presence of Slack Channel resources from Slack Operator that are registered for Spoke clusters.
-    These resources are present in the same namespace as ClusterDeployments and are attached to the Grafana on Call integration.
+    These resources are present in the same namespace as ClusterDeployments and are attached to the Grafana onCall integration.
 
-    *Cross-Cluster Grafana On Call Setup:*
+    *Cross-Cluster Grafana OnCall Setup:*
     For each ClusterDeployment identified, the operator communicates with the Grafana Cloud's API, initiating the integration process.
     This setup involves creating necessary configurations on Grafana Cloud and retrieving vital details such as the Alertmanager HTTP URL for each respective Spoke cluster.
 
@@ -90,7 +90,7 @@ The operator's workflow can be described in two different architectural models:
 
     *Centralized Secret Management:*
     The operator centrally manages the `alertmanager-main-generated` secret for each Spoke cluster.
-    Through the `Syncset`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana On Call.
+    Through the `Syncset`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall.
 
     *Forwarding alerts to Slack*
     Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
@@ -133,19 +133,19 @@ The operator's workflow can be described in two different architectural models:
     ```
 
     *Operator Workflow in Standalone Cluster:*
-    The operator functions within the single OpenShift cluster, monitoring  resources that indicate the local cluster's need for Grafana On Call integration.
+    The operator functions within the single OpenShift cluster, monitoring  resources that indicate the local cluster's need for Grafana OnCall integration.
 
-    *Direct Grafana On Call Setup:*
+    *Direct Grafana OnCall Setup:*
     Upon identifying the GCC CR, described in the next section, the operator proceeds with the Grafana OnCall setup by interacting with Grafana Cloud's API.
     It establishes the necessary integrations and secures essential details, including the Alertmanager HTTP URL.
 
     *In-Cluster Configuration Management:*
     The operator directly applies configuration changes within the cluster, bypassing the need for `Syncsets`.
-    It ensures the Alertmanager's alert forwarding settings are correctly configured for seamless communication with Grafana On Call. Additionally, it adds option for On call Heartbeat which acts as a monitoring for monitoring systems. It also creates PrometheusRule that adds a Vector as heartbeat generator.
+    It ensures the Alertmanager's alert forwarding settings are correctly configured for seamless communication with Grafana OnCall. Additionally, it adds option for On call Heartbeat which acts as a monitoring for monitoring systems. It also creates PrometheusRule that adds a Vector as heartbeat generator.
 
     *Local Secret Management:*
     Managing the `alertmanager-main-generated` secret locally, the operator updates its configurations.
-    This update enables the Alertmanager within the standalone cluster to route alerts effectively to Grafana On Call, completing the integration process.
+    This update enables the Alertmanager within the standalone cluster to route alerts effectively to Grafana OnCall, completing the integration process.
 
     *Forwarding alerts to Slack*
     Just like the hub-and-spoke model, Slack channel can be configured in Standalone mode by populating the `slackId` field , this additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
@@ -331,7 +331,7 @@ Here's a step-by-step guide on understanding and applying this configuration:
       provisionMode: standaloneCluster
     ```
 
-    The operator adapts its behavior based on this directive, ensuring that your Grafana On Call integrations are set up and managed in a way that's optimal for your organizational architecture and needs.
+    The operator adapts its behavior based on this directive, ensuring that your Grafana OnCall integrations are set up and managed in a way that's optimal for your organizational architecture and needs.
 
 ### Monitoring and Troubleshooting
 

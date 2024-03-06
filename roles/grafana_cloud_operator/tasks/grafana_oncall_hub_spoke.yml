@@ -203,8 +203,8 @@
           loop: "{{ grafana_integration_response.results }}"
           when: item.status_code not in [200, 201] or item.status not in [200, 201]
 
-        - name: End play if any integrations failed or were skipped
-          ansible.builtin.meta: end_play
+#        - name: End play if any integrations failed or were skipped
+#          ansible.builtin.meta: end_play
 
     - name: Display values from Grafana Loops
       ansible.builtin.debug:

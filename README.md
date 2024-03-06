@@ -78,7 +78,7 @@ The operator's workflow can be described in two different architectural models:
 
     *Centralized Slack Channel CRs Monitoring:*
     The operator installed on the Hub cluster continually monitors for the presence of Slack Channel resources from Slack Operator that are registered for Spoke clusters.
-    These resources are present in the same namespace as ClusterDeployments and are attached to the Grafana onCall integration.
+    These resources are present in the same namespace as ClusterDeployments and are attached to the Grafana OnCall integration.
 
     *Cross-Cluster Grafana OnCall Setup:*
     For each ClusterDeployment identified, the operator communicates with the Grafana Cloud's API, initiating the integration process.

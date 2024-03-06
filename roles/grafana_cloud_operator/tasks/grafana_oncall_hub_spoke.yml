@@ -89,14 +89,14 @@
               channel_id: "{{ slack_channel_validated[loop_index].slack_id }}"
               enabled: true
         status_code: [200, 201]
-      register: grafana_integration_response_slack
+      register: grafana_int_response_slack
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.name }}"
         index_var: loop_index
       retries: 5
       delay: 6
-      until: grafana_integration_response_slack.status in [200, 201]
+      until: grafana_int_response_slack.status in [200, 201]
       when: (slack_channel_validated is defined) and (slack_channel_validated[loop_index].slack_id | length > 0)
       failed_when: true
 
@@ -137,7 +137,7 @@
             phase: "Successful"
             reason: "IntegrationsCreated"
             message: "Grafana integrations created for all ClusterDeployments."
-      when: create_integration_for | length == grafana_integration_response_slack.results | length
+      when: create_integration_for | length == grafana_int_response_slack.results | length
 
     - name: Update CR status to IntegrationsCreated without Slack Ids
       kubernetes.core.k8s:
@@ -156,7 +156,7 @@
       when: create_integration_for | length == grafana_integration_response.results | length
 
     - name: Inform user if Grafana integration creation was skipped or failed with Slack Ids
-      when: grafana_integration_response_slack is skipped or (grafana_integration_response_slack.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)
+      when: grafana_int_response_slack is skipped or (grafana_int_response_slack.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)
       block:
         - name: Display message about potential Grafana integration issues
           ansible.builtin.debug:
@@ -176,7 +176,7 @@
                 phase: "Failed"
                 reason: "IntegrationCreationFailed"
                 message: "Failed to create Grafana integration for {{ item.name }} ClusterDeployment."
-          loop: "{{ grafana_integration_response_slack.results }}"
+          loop: "{{ grafana_int_response_slack.results }}"
           when: item.status_code not in [200, 201] or item.status not in [200, 201]
 
     - name: Inform user if Grafana integration creation was skipped or failed without Slack Ids
@@ -218,7 +218,7 @@
     - name: Associate Grafana integration details with ClusterDeployments
       ansible.builtin.set_fact:
         mapped_integrations_slack: "{{ mapped_integrations_slack | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
-      loop: "{{ grafana_integration_response_slack.results }}"
+      loop: "{{ grafana_int_response_slack.results }}"
 
     - name: Associate Grafana integration details with ClusterDeployments
       ansible.builtin.set_fact:

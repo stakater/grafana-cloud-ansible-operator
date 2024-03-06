@@ -111,6 +111,7 @@ The operator's workflow can be described in two different architectural models:
             ModSecret[Include: modify_alertmanager_secret]
             Reencode[Re-encode Alertmanager Content]
             PatchSecret[Patch alertmanager-main Secret]
+            AddPrometheusRule[Add PrometheusRule]
             UpdateCR[Update CR Status to ConfigUpdated]
             Init --> GetClusterName
             GetClusterName --> CheckIntegration
@@ -121,12 +122,14 @@ The operator's workflow can be described in two different architectural models:
             GO[Grafana OnCall]
         end
 
-        CreateIntegration --> |API Call: Create Integration| GO
-        GO -->|Return: Endpoint| ModSecret
-        ModSecret --> Reencode
-        Reencode --> PatchSecret
-        PatchSecret --> UpdateCR
-        CheckIntegration -- Integration exists --> UpdateCR
+        CreateIntegration --> FetchSlackInfo
+        FetchSlackInfo --> ConfigureSlack
+        ConfigureSlack -->|API Call: Configure Slack| GO
+        GO -->|Return: Endpoint| ConfigureSlack
+        ConfigureSlack --> ModSecret
+        ModSecret --> PatchSecret
+        PatchSecret --> AddPrometheusRule
+        AddPrometheusRule --> UpdateCR
     ```
 
     *Operator Workflow in Standalone Cluster:*
@@ -138,7 +141,7 @@ The operator's workflow can be described in two different architectural models:
 
     *In-Cluster Configuration Management:*
     The operator directly applies configuration changes within the cluster, bypassing the need for `Syncsets`.
-    It ensures the Alertmanager's alert forwarding settings are correctly configured for seamless communication with Grafana On Call.
+    It ensures the Alertmanager's alert forwarding settings are correctly configured for seamless communication with Grafana On Call. Additionally, it adds option for On call Heartbeat which acts as a monitoring for monitoring systems. It also creates PrometheusRule that adds a Vector as heartbeat generator.
 
     *Local Secret Management:*
     Managing the `alertmanager-main-generated` secret locally, the operator updates its configurations.

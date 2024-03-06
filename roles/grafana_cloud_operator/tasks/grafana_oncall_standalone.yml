@@ -42,32 +42,24 @@
     headers:
       Authorization: "{{ grafana_cloud_api_token }}"
       Content-Type: "application/json"
-    body:
-      type: "alertmanager"
-      name: "{{ cluster_name }}"
-      default_route:
-        slack:
-          channel_id: "{{ slack_id }}"
-          enabled: true
+    body: >
+      {{
+        {
+          "type": "alertmanager",
+          "name": cluster_name,
+          "default_route": {
+            "slack": {
+              "channel_id": slack_id,
+              "enabled": true
+            }
+          }
+        } if slack_id | length > 0 else {
+          "type": "alertmanager",
+          "name": cluster_name
+        }
+      }}
     status_code: [200, 201]
-  when: not integration_exists_for_cluster and slack_id is defined
-  register: grafana_integration_response
-  failed_when: true
-
-- name: Create a new integration in Grafana OnCall for the cluster only if it does not have one without slackId
-  ansible.builtin.uri:
-    url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
-    method: POST
-    body_format: json
-    return_content: true
-    headers:
-      Authorization: "{{ grafana_cloud_api_token }}"
-      Content-Type: "application/json"
-    body:
-      type: "alertmanager"
-      name: "{{ cluster_name }}"
-    status_code: [200, 201]
-  when: not integration_exists_for_cluster and slack_id is undefined
+  when: not integration_exists_for_cluster
   register: grafana_integration_response
   failed_when: true
 

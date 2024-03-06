@@ -220,10 +220,20 @@
         mapped_integrations_slack: "{{ mapped_integrations_slack | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
       loop: "{{ grafana_int_response_slack.results }}"
 
+    - name: Display values from mapped_integrations_slack
+      ansible.builtin.debug:
+        msg: "{{ item.grafana_details.name }} {{ item.cluster.name }} "
+      loop: "{{ mapped_integrations_slack }}"
+
     - name: Associate Grafana integration details with ClusterDeployments
       ansible.builtin.set_fact:
         mapped_integrations: "{{ mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
       loop: "{{ grafana_integration_response.results }}"
+
+    - name: Display values from mapped_integrations
+      ansible.builtin.debug:
+        msg: "{{ item.grafana_details.name }} {{ item.cluster.name }}"
+      loop: "{{ mapped_integrations }}"
 
     # Following tasks will execute only if Grafana integration was created successfully
     - name: Modify Alertmanager secret with Slack Id

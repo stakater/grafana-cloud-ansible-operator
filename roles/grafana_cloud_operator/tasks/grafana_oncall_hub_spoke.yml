@@ -148,12 +148,6 @@
         mapped_integrations: "{{ mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
       loop: "{{ grafana_integration_response.results }}"
 
-    - name: Display values from mapped_integrations
-      ansible.builtin.debug:
-        msg: "{{ item.grafana_details.name }} {{ item.cluster.name }}"
-      loop: "{{ mapped_integrations }}"
-      when: mapped_integrations is defined
-
     # Following tasks will execute only if Grafana integration was created successfully
     - name: Modify Alertmanager secret
       ansible.builtin.include_tasks: modify_alertmanager_secret.yml
@@ -164,7 +158,6 @@
         cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"
-      when: mapped_integrations is defined
 
 - name: Update CR status for SyncSet creation
   kubernetes.core.k8s:

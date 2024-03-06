@@ -63,15 +63,6 @@
         label: "{{ item.name }}"
       when: slack_channel_ids is defined
 
-    - name: Display value from JSON array for ID
-      ansible.builtin.debug:
-        msg: "{{ grafana_request_body[loop_index] }}"
-      loop: "{{ create_integration_for }}"
-      loop_control:
-        label: "{{ item.name }}"
-        index_var: loop_index
-      when: slack_channel_validated is defined
-
     - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one
       ansible.builtin.uri:
         url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"

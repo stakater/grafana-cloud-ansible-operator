@@ -109,6 +109,7 @@ The operator's workflow can be described in two different architectural models:
             ModSecret[Include: modify_alertmanager_secret]
             Reencode[Re-encode Alertmanager Content]
             PatchSecret[Patch alertmanager-main Secret]
+            AddPrometheusRule[Add PrometheusRule]
             UpdateCR[Update CR Status to ConfigUpdated]
             Init --> GetClusterName
             GetClusterName --> CheckIntegration
@@ -130,8 +131,7 @@ The operator's workflow can be described in two different architectural models:
         ConfigureSlack --> ModSecret
         ModSecret --> PatchSecret
         PatchSecret --> AddPrometheusRule
-        AddPrometheusRule --> CheckIntegration
-        CheckIntegration -- Integration exists --> UpdateCR
+        AddPrometheusRule --> UpdateCR
     ```
 
     *Operator Workflow in Standalone Cluster:*

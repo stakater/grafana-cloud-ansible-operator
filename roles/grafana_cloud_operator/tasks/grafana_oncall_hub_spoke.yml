@@ -137,7 +137,7 @@
             phase: "Successful"
             reason: "IntegrationsCreated"
             message: "Grafana integrations created for all ClusterDeployments."
-      when: create_integration_for | length == grafana_int_response_slack.results | length
+      when: grafana_int_response_slack.results > 0
 
     - name: Update CR status to IntegrationsCreated without Slack Ids
       kubernetes.core.k8s:
@@ -153,7 +153,7 @@
             phase: "Successful"
             reason: "IntegrationsCreated"
             message: "Grafana integrations created for all ClusterDeployments."
-      when: create_integration_for | length == grafana_integration_response.results | length
+      when: grafana_integration_response.results > 0
 
     - name: Inform user if Grafana integration creation was skipped or failed with Slack Ids
       when: grafana_int_response_slack is skipped or (grafana_int_response_slack.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)
@@ -202,7 +202,7 @@
                 message: "Failed to create Grafana integration for {{ item.name }} ClusterDeployment."
           loop: "{{ grafana_integration_response.results }}"
           when: item.status not in [200, 201]
-
+      failed_when: false
 #        - name: End play if any integrations failed or were skipped
 #          ansible.builtin.meta: end_play
 
@@ -210,11 +210,13 @@
       ansible.builtin.debug:
         msg: "{{ item.item }} "
       loop: "{{ grafana_int_response_slack.results }}"
+      failed_when: false
 
     - name: Display values from Grafana Loops
       ansible.builtin.debug:
         msg: "{{ item.item }} "
       loop: "{{ grafana_integration_response.results }}"
+      failed_when: false
 
     - name: Associate Grafana integration details with ClusterDeployments
       ansible.builtin.set_fact:
@@ -249,6 +251,7 @@
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations_slack }}"
       when: mapped_integrations_slack is defined
+      failed_when: false
 
 
     # Following tasks will execute only if Grafana integration was created successfully
@@ -262,6 +265,7 @@
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"
       when: mapped_integrations is defined
+      failed_when: false
 
 - name: Update CR status for SyncSet creation
   kubernetes.core.k8s:

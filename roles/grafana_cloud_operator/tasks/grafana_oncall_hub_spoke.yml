@@ -225,6 +225,7 @@
       ansible.builtin.debug:
         msg: "{{ item.grafana_details.name }} {{ item.cluster.name }} "
       loop: "{{ mapped_integrations_slack }}"
+      when: mapped_integrations_slack is defined
 
     - name: Associate Grafana integration details with ClusterDeployments
       ansible.builtin.set_fact:
@@ -235,6 +236,7 @@
       ansible.builtin.debug:
         msg: "{{ item.grafana_details.name }} {{ item.cluster.name }}"
       loop: "{{ mapped_integrations }}"
+      when: mapped_integrations is defined
 
     # Following tasks will execute only if Grafana integration was created successfully
     - name: Modify Alertmanager secret with Slack Id

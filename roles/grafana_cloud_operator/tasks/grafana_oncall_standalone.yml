@@ -103,6 +103,28 @@
         alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
   when: not integration_exists_for_cluster
 
+- name: Add prometheus rule for cluster
+  kubernetes.core.k8s:
+    state: present
+    namespace: "openshift-monitoring"
+    definition:
+      apiVersion: monitoring.coreos.com/v1
+      kind: PrometheusRule
+      metadata:
+        name: "heartbeat-grafana-oncall"
+        namespace: "openshift-monitoring"
+      spec:
+        groups:
+          - name: meta
+            rules:
+              - alert: heartbeat
+                annotations:
+                  description: This is a heartbeat alert for Grafana OnCall
+                  summary: Heartbeat for Grafana OnCall
+                expr: vector(1)
+                labels:
+                  severity: none
+
 - name: Update CR status to ConfigUpdated
   kubernetes.core.k8s:
     state: present

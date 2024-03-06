@@ -33,7 +33,7 @@
   ansible.builtin.set_fact:
     integration_exists_for_cluster: "{{ cluster_name in existing_integration_names }}"
 
-- name: Create a new integration in Grafana OnCall for the cluster only if it does not have one
+- name: Create a new integration in Grafana OnCall for the cluster only if it does not have one with slackId
   ansible.builtin.uri:
     url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
     method: POST
@@ -42,13 +42,26 @@
     headers:
       Authorization: "{{ grafana_cloud_api_token }}"
       Content-Type: "application/json"
-    body:
-      type: "alertmanager"
-      name: "{{ cluster_name }}"
+    body: >
+      {{
+        {
+          "type": "alertmanager",
+          "name": cluster_name,
+          "default_route": {
+            "slack": {
+              "channel_id": slack_id,
+              "enabled": true
+            }
+          }
+        } if slack_id | length > 0 else {
+          "type": "alertmanager",
+          "name": cluster_name
+        }
+      }}
     status_code: [200, 201]
   when: not integration_exists_for_cluster
   register: grafana_integration_response
-  failed_when: false
+  failed_when: true
 
 - name: Inform user if Grafana integration creation was skipped or failed
   when:

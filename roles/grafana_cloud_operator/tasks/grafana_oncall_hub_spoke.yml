@@ -235,6 +235,7 @@
         cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations_slack }}"
+      when: mapped_integrations_slack is defined
 
 
     # Following tasks will execute only if Grafana integration was created successfully
@@ -247,6 +248,7 @@
         cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"
+      when: mapped_integrations is defined
 
 - name: Update CR status for SyncSet creation
   kubernetes.core.k8s:

@@ -86,11 +86,11 @@ The operator's workflow can be described in two different architectural models:
 
     *`Syncset` Synchronization:*
     Utilizing `Syncset` resources from Hive, the operator ensures that alerting configurations are consistent across all Spoke clusters.
-    This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager.
+    This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager and adding PrometheusRule.
 
     *Centralized Secret Management:*
     The operator centrally manages the `alertmanager-main-generated` secret for each Spoke cluster.
-    Through the `Syncset`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall.
+    Through the `Syncset`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall. Addionally it adds option for Oncall Hearbeat which acts as a monitoring for monitoring systems. Other than updating secret the syncsets also creates PrometheusRule that adds a vector as heartbeat generator.
 
     *Forwarding alerts to Slack*
     Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.

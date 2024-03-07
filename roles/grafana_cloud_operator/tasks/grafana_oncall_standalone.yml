@@ -61,7 +61,7 @@
     status_code: [200, 201]
   when: not integration_exists_for_cluster
   register: grafana_integration_response
-  failed_when: true
+  failed_when: false
 
 - name: Inform user if Grafana integration creation was skipped or failed
   when:

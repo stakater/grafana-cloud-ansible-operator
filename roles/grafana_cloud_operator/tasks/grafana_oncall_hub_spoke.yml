@@ -159,6 +159,10 @@
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"
 
+- name: Debug syncset_creation_result
+  debug:
+    var: syncset_creation_results
+
 - name: Update CR status for SyncSet creation
   kubernetes.core.k8s:
     state: present

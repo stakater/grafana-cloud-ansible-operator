@@ -157,9 +157,6 @@
         namespace: "{{ item.cluster.namespace }}"
         cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
-        cr_name: "{{ cr_name }}"
-        cr_namespace: "{{ cr_namespace }}"
-        mapped_integrations: "{{ mapped_integrations }}"
       loop: "{{ mapped_integrations }}"
 
 - name: Debug syncset_creation_result

@@ -163,34 +163,34 @@
   ansible.builtin.debug:
     msg: "syncset_creation_results : {{ syncset_creation_results }}"
 
-# - name: Update CR status for SyncSet creation
-#   kubernetes.core.k8s:
-#     state: present
-#     definition:
-#       apiVersion: grafanacloud.stakater.com/v1alpha1
-#       kind: Config
-#       metadata:
-#         name: "{{ cr_name }}"
-#         namespace: "{{ cr_namespace }}"
-#       status:
-#         lastUpdated: "{{ ansible_date_time.iso8601 }}"
-#         phase: "Successful"
-#         reason: "SyncSetsCreated"
-#         message: "SyncSets created for all ClusterDeployments"
-#   when: syncset_creation_results.results | rejectattr('failed', 'equalto', true) | list | length == mapped_integrations | length
+- name: Update CR status for SyncSet creation
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: Config
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "Successful"
+        reason: "SyncSetsCreated"
+        message: "SyncSets created for all ClusterDeployments"
+  when: syncset_creation_results.results | rejectattr('failed', 'equalto', true) | list | length == mapped_integrations | length
 
-# - name: Update CR status for SyncSet creation failure
-#   kubernetes.core.k8s:
-#     state: present
-#     definition:
-#       apiVersion: grafanacloud.stakater.com/v1alpha1
-#       kind: Config
-#       metadata:
-#         name: "{{ cr_name }}"
-#         namespace: "{{ cr_namespace }}"
-#       status:
-#         lastUpdated: "{{ ansible_date_time.iso8601 }}"
-#         phase: "Failed"
-#         reason: "SyncSetCreationFailed"
-#         message: "Failed to create SyncSet for one or more ClusterDeployments"
-#   when: syncset_creation_results.results | rejectattr('failed', 'equalto', false) | list | length > 0
+- name: Update CR status for SyncSet creation failure
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: Config
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "Failed"
+        reason: "SyncSetCreationFailed"
+        message: "Failed to create SyncSet for one or more ClusterDeployments"
+  when: syncset_creation_results.results | rejectattr('failed', 'equalto', false) | list | length > 0

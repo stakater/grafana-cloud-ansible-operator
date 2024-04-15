@@ -78,8 +78,7 @@
 
 - name: Fetch SlackId
   ansible.builtin.set_fact:
-    slack_id: "{{ gco_cr.spec.slackId }}"
-  when: gco_cr.spec.slackId is defined
+    slack_id: "{{ gco_cr.spec.slackId | default('') }}"
 
 - name: Update CR status to TokenFetched
   kubernetes.core.k8s:

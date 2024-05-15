@@ -127,11 +127,13 @@ spec:
           - update
           - watch
         - apiGroups:
-          - ""
+          - operator.openshift.io
           resources:
           - ingresscontrollers
           verbs:
           - list
+          - get
+          - watch
         - apiGroups:
           - hive.openshift.io
           resources:

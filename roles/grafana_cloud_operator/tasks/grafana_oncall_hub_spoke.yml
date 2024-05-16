@@ -30,6 +30,20 @@
   loop_control:
     loop_var: item
 
+
+- name: Fetch Hosted Clusters from all namespaces
+  kubernetes.core.k8s_info:
+    api_version: hypershift.openshift.io/v1beta1
+    kind: HostedCluster
+  register: hosted_clusters_raw
+
+- name: Extract list of Hosted Clusters with their namespaces
+  ansible.builtin.set_fact:
+    cluster_deployments: "{{ cluster_deployments | default([]) + [{'name': item.metadata.name, 'namespace': item.metadata.namespace}] }}"
+  loop: "{{ hosted_clusters_raw.resources }}"
+  loop_control:
+    loop_var: item
+
 - name: Determine which ClusterDeployments don't have integrations
   ansible.builtin.set_fact:
     create_integration_for: "{{ cluster_deployments | rejectattr('name', 'in', existing_integration_names) | list }}"

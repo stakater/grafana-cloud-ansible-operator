@@ -19,15 +19,13 @@
 
 - name: Get the Cluster's name
   kubernetes.core.k8s_info:
-    api_version: v1
-    kind: Node
-  register: node_info
+    kind: IngressController
+    api_version: operator.openshift.io/v1
+  register: ingress_controller_info
 
 - name: Update hostname
   ansible.builtin.set_fact:
-    cluster_name: >
-      {{ node_info.resources[0].metadata.labels['kubernetes.io/hostname'] | regex_replace('-master.*', '')
-        | regex_replace('-worker.*', '') | regex_replace('-infra.*', '') }}
+    cluster_name: "{{ ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+(?=\\.)') }}"
 
 - name: Determine if integration exists for the cluster
   ansible.builtin.set_fact:

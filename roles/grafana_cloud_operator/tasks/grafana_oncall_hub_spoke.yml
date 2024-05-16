@@ -57,7 +57,7 @@
       vars:
         slack_id_fetched: "{{ slack_channel_ids | selectattr('name', 'contains', item.name) | map(attribute='slack_id') | join(',') }}"
       ansible.builtin.set_fact:
-        slack_channel_validated: "{{ slack_channel_validated | default([]) + [{'name': item.name, 'slack_id': slack_id_fetched }] }}"
+        slack_channel_validated: "{{ slack_channel_validated | default([]) + [{'name': item.name, 'slack_id': slack_id_fetched}] }}"
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.name }}"

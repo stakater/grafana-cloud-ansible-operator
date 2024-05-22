@@ -48,7 +48,7 @@
           "default_route": {
             "slack": {
               "channel_id": slack_id,
-              "enabled": gco_cr.spec.slack
+              "enabled": {{ gco_cr.spec.slack | default('true') }}
             }
           }
         } if slack_id | length > 0 else {

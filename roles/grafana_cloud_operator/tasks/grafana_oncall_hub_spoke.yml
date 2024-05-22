@@ -80,7 +80,7 @@
               "default_route": {
                 "slack": {
                   "channel_id": slack_channel_validated[loop_index].slack_id,
-                  "enabled": {{ gco_cr.spec.slack | default('true') }}
+                  "enabled": {{ slack_cond }}
                 }
               }
             } if slack_channel_validated[loop_index].slack_id | length > 0 else {

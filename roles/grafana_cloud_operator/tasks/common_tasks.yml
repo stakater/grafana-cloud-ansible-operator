@@ -82,7 +82,7 @@
 
 - name: Fetch Slack Condition
   ansible.builtin.set_fact:
-    slack_cond: gco_cr.spec.slack | default('true')
+    slack_cond: "{{ gco_cr.spec.slack | default('true') }}"
 
 - name: Update CR status to TokenFetched
   kubernetes.core.k8s:

@@ -80,7 +80,7 @@ spec:
                   OnCall app must be invited for this to work if the channel is private
                 type: string
               slack:
-                description: Slack alerts toggle for standalone configuration
+                description: Slack alerts toggle for integration
                 type: boolean
             type: object
             x-kubernetes-preserve-unknown-fields: true

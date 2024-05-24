@@ -70,7 +70,7 @@ spec:
                   description: Slack channel ID for standalone configuration , Grafana OnCall app must be invited for this to work if the channel is private
                   type: string
                 slack:
-                  description: Slack alerts toggle for standalone configuration
+                  description: Slack alerts toggle for integration
                   type: boolean
                 grafanaAPIToken:
                   description: Secret reference to the Grafana API token. Avoid putting the token directly.

@@ -309,7 +309,7 @@ Here's a step-by-step guide on understanding and applying this configuration:
       - `grafanaAPIToken`: Since the operator needs to interact with Grafana OnCall's API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.
       - `provisionMode`: Indicates how the operator should function. It could be in a 'hubAndSpoke' mode where it manages multiple clusters or 'standaloneCluster' for managing a single cluster.
       - `slackId`: For `standalone` provision mode populate this field to connect Slack Channel to Grafana OnCall Integration.
-      - `slack`: This is toggle for slack alerts to channel. It accepts boolean. By default it set to true.
+      - `slack`: This is toggle for slack alerts to channel. It accepts boolean. By default, it set to true.
 
 1. Applying the Custom Resource:
 

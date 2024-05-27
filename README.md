@@ -299,7 +299,7 @@ Here's a step-by-step guide on understanding and applying this configuration:
         key: api-token  # The key field within the secret holding the Grafana OnCall API token
         secretName: grafana-api-token-secret  # The name of the Kubernetes secret storing the Grafana OnCall API token
       slackId: C0DDD0ZD4JZ # For Standalone mode populate this field to connect Slack Channel to Grafana OnCall Integration
-      slack: true # Slack alerts toggle for integration. This would disable sending of alerts to the channel. By default it set to true
+      slack: true # Slack alerts toggle for integration. This would disable sending of alerts to the channel. By default, it set to true
       provisionMode: standalone  # Determines the mode of operation - 'hubAndSpoke' or 'standaloneCluster'
     ```
 

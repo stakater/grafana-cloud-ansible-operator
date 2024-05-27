@@ -48,7 +48,7 @@
           "default_route": {
             "slack": {
               "channel_id": slack_id,
-              "enabled": true
+              "enabled": slack_cond
             }
           }
         } if slack_id | length > 0 else {

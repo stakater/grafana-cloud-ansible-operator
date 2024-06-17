@@ -65,7 +65,7 @@ jobs:
           password: ${{ secrets.STAKATER_GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         id: build_and_push
         with:
           context: .

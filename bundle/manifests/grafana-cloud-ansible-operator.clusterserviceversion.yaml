@@ -149,6 +149,14 @@ spec:
           verbs:
           - '*'
         - apiGroups:
+          - hypershift.openshift.io
+          resources:
+          - hostedclusters
+          verbs:
+          - get
+          - list
+          - watch
+        - apiGroups:
           - slack.stakater.com
           resources:
           - channels

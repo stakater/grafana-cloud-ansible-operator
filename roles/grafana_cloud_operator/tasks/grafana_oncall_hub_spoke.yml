@@ -34,9 +34,26 @@
   ansible.builtin.set_fact:
     create_integration_for: "{{ cluster_deployments | rejectattr('name', 'in', existing_integration_names) | list }}"
 
+- name: Fetch HostedClusters from all namespaces
+  kubernetes.core.k8s_info:
+    api_version: hypershift.openshift.io/v1beta1
+    kind: HostedCluster
+  register: hosted_clusters_raw
+
+- name: Extract list of HostedClusters with their namespaces
+  ansible.builtin.set_fact:
+    hosted_clusters: "{{ hosted_clusters | default([]) + [{'name': item.metadata.name, 'namespace': item.metadata.namespace}] }}"
+  loop: "{{ hosted_clusters_raw.resources }}"
+  loop_control:
+    loop_var: item
+
+- name: Determine which HostedClusters don't have integrations
+  ansible.builtin.set_fact:
+    create_integration_for: "{{ hosted_clusters | rejectattr('name', 'in', existing_integration_names) | list }}"
+
 - name: Integration creation
   block:
-    - name: Fetch Slack Channel from clusterdeployment namespace
+    - name: Fetch Slack Channel from clusterdeployment or HostedClusters namespace
       kubernetes.core.k8s_info:
         api_version: slack.stakater.com/v1alpha1
         kind: Channel

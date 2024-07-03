@@ -17,43 +17,26 @@
         reason: "OperationStarted"
         message: "Operation to integrate Grafana OnCall started"
 
-- name: Fetch ClusterDeployments from all namespaces
+- name: Fetch ManagedCluster from all namespaces
   kubernetes.core.k8s_info:
-    api_version: hive.openshift.io/v1
-    kind: ClusterDeployment
-  register: cluster_deployments_raw
+    api_version: clusterview.open-cluster-management.io/v1
+    kind: ManagedCluster
+  register: managed_clusters_raw
 
-- name: Extract list of ClusterDeployments with their namespaces
+- name: Extract list of ManagedCluster with their namespaces
   ansible.builtin.set_fact:
-    cluster_deployments: "{{ cluster_deployments | default([]) + [{'name': item.metadata.name, 'namespace': item.metadata.namespace}] }}"
-  loop: "{{ cluster_deployments_raw.resources }}"
+    managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name, 'namespace': item.metadata.namespace}] }}"
+  loop: "{{ managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
 
-- name: Determine which ClusterDeployments don't have integrations
+- name: Determine which ManagedCluster don't have integrations
   ansible.builtin.set_fact:
-    create_integration_for: "{{ cluster_deployments | rejectattr('name', 'in', existing_integration_names) | list }}"
-
-- name: Fetch HostedClusters from all namespaces
-  kubernetes.core.k8s_info:
-    api_version: hypershift.openshift.io/v1beta1
-    kind: HostedCluster
-  register: hosted_clusters_raw
-
-- name: Extract list of HostedClusters with their namespaces
-  ansible.builtin.set_fact:
-    hosted_clusters: "{{ hosted_clusters | default([]) + [{'name': item.metadata.name, 'namespace': item.metadata.namespace}] }}"
-  loop: "{{ hosted_clusters_raw.resources }}"
-  loop_control:
-    loop_var: item
-
-- name: Determine which HostedClusters don't have integrations
-  ansible.builtin.set_fact:
-    create_integration_for: "{{ hosted_clusters | rejectattr('name', 'in', existing_integration_names) | list }}"
+    create_integration_for: "{{ managed_clusters | rejectattr('name', 'in', existing_integration_names) | list }}"
 
 - name: Integration creation
   block:
-    - name: Fetch Slack Channel from clusterdeployment or HostedClusters namespace
+    - name: Fetch Slack Channel from ManagedCluster namespace
       kubernetes.core.k8s_info:
         api_version: slack.stakater.com/v1alpha1
         kind: Channel
@@ -80,7 +63,7 @@
         label: "{{ item.name }}"
       when: slack_channel_ids is defined
 
-    - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment that does not have one
+    - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment or HostedClusters that does not have one
       ansible.builtin.uri:
         url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
         method: POST

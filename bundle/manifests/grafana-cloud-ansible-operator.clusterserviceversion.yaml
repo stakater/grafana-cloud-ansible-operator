@@ -137,21 +137,13 @@ spec:
         - apiGroups:
           - hive.openshift.io
           resources:
-          - clusterdeployments
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - hive.openshift.io
-          resources:
           - syncsets
           verbs:
           - '*'
         - apiGroups:
-          - hypershift.openshift.io
+          - clusterview.open-cluster-management.io
           resources:
-          - hostedclusters
+          - managedclusters
           verbs:
           - get
           - list

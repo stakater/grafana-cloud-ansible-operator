@@ -40,11 +40,11 @@
       kubernetes.core.k8s_info:
         api_version: slack.stakater.com/v1alpha1
         kind: Channel
-        namespace: "{{ stakater-slack-operator }}"
+        namespace: "stakater-slack-operator"
       register: slack_channel_info
       loop: "{{ create_integration_for }}"
       loop_control:
-        label: "{{ stakater-slack-operator }}"
+        label: "stakater-slack-operator"
 
     - name: Extract Channel id from slack channel
       ansible.builtin.set_fact:

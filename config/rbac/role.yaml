@@ -69,7 +69,7 @@ rules:
   - apiGroups: ["operator.openshift.io"]
     resources: ["ingresscontrollers"]
     verbs: ["get", "list", "watch"]
-  - apiGroups: ["clusterview.open-cluster-management.io"]
+  - apiGroups: ["cluster.open-cluster-management.io"]
     resources: ["managedclusters"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["hive.openshift.io"]

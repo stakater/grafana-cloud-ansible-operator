@@ -19,13 +19,13 @@
 
 - name: Fetch ManagedCluster from all namespaces
   kubernetes.core.k8s_info:
-    api_version: clusterview.open-cluster-management.io/v1
+    api_version: cluster.open-cluster-management.io/v1
     kind: ManagedCluster
   register: managed_clusters_raw
 
 - name: Extract list of ManagedCluster with their namespaces
   ansible.builtin.set_fact:
-    managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name, 'namespace': item.metadata.namespace}] }}"
+    managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name}] }}"
   loop: "{{ managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
@@ -40,11 +40,11 @@
       kubernetes.core.k8s_info:
         api_version: slack.stakater.com/v1alpha1
         kind: Channel
-        namespace: "{{ item.namespace }}"
+        namespace: "{{ stakater-slack-operator }}"
       register: slack_channel_info
       loop: "{{ create_integration_for }}"
       loop_control:
-        label: "{{ item.namespace }}"
+        label: "{{ stakater-slack-operator }}"
 
     - name: Extract Channel id from slack channel
       ansible.builtin.set_fact:

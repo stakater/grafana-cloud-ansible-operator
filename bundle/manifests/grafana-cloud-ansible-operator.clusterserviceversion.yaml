@@ -141,7 +141,7 @@ spec:
           verbs:
           - '*'
         - apiGroups:
-          - clusterview.open-cluster-management.io
+          - cluster.open-cluster-management.io
           resources:
           - managedclusters
           verbs:

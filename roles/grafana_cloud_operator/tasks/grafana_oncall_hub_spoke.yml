@@ -40,11 +40,11 @@
       kubernetes.core.k8s_info:
         api_version: slack.stakater.com/v1alpha1
         kind: Channel
-        namespace: "stakater-slack-operator"
+        namespace: "{{ item.name }}"
       register: slack_channel_info
       loop: "{{ create_integration_for }}"
       loop_control:
-        label: "stakater-slack-operator"
+        label: "{{ item.name }}"
 
     - name: Extract Channel id from slack channel
       ansible.builtin.set_fact:
@@ -63,7 +63,7 @@
         label: "{{ item.name }}"
       when: slack_channel_ids is defined
 
-    - name: Create a new integration in Grafana OnCall integration for each ClusterDeployment or HostedClusters that does not have one
+    - name: Create a new integration in Grafana OnCall integration for each ManagedClusters that does not have one
       ansible.builtin.uri:
         url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
         method: POST
@@ -78,15 +78,15 @@
               "type": "alertmanager",
               "name": item.name,
               "default_route": {
-                "slack": {
-                  "channel_id": slack_channel_validated[loop_index].slack_id,
-                  "enabled": slack_cond
+              "slack": {
+                    "channel_id": slack_channel_validated[loop_index].slack_id,
+                    "enabled": slack_cond
+                  }
                 }
+              } if slack_channel_validated is defined and slack_channel_validated | length > loop_index and slack_channel_validated[loop_index].slack_id | length > 0 else {
+                "type": "alertmanager",
+                "name": item.name
               }
-            } if slack_channel_validated[loop_index].slack_id | length > 0 else {
-              "type": "alertmanager",
-              "name": item.name
-            }
           }}
         status_code: [200, 201]
       register: grafana_integration_response
@@ -97,7 +97,6 @@
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
-      when: slack_channel_validated is defined
       failed_when: false
 
     - name: Update CR status to IntegrationsCreated
@@ -113,7 +112,7 @@
             lastUpdated: "{{ ansible_date_time.iso8601 }}"
             phase: "Successful"
             reason: "IntegrationsCreated"
-            message: "Grafana integrations created for all ClusterDeployments."
+            message: "Grafana integrations created for all ManagedClusters."
       when: create_integration_for | length == grafana_integration_response.results | length
 
     - name: Inform user if Grafana integration creation was skipped or failed
@@ -136,14 +135,14 @@
                 lastUpdated: "{{ ansible_date_time.iso8601 }}"
                 phase: "Failed"
                 reason: "IntegrationCreationFailed"
-                message: "Failed to create Grafana integration for {{ item.name }} ClusterDeployment."
+                message: "Failed to create Grafana integration for {{ item.name }} ManagedClusters."
           loop: "{{ grafana_integration_response.results }}"
           when: item.status not in [200, 201]
 
         - name: End play if any integrations failed or were skipped
           ansible.builtin.meta: end_play
 
-    - name: Associate Grafana integration details with ClusterDeployments
+    - name: Associate Grafana integration details with ManagedClusters
       ansible.builtin.set_fact:
         mapped_integrations: "{{ mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
       loop: "{{ grafana_integration_response.results }}"
@@ -154,7 +153,7 @@
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
-        namespace: "{{ item.cluster.namespace }}"
+        namespace: "{{ item.cluster.name }}"
         cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"
@@ -172,8 +171,8 @@
         lastUpdated: "{{ ansible_date_time.iso8601 }}"
         phase: "Successful"
         reason: "SyncSetsCreated"
-        message: "SyncSets created for all ClusterDeployments"
-  when: syncset_creation_results.results | rejectattr('failed', 'equalto', true) | list | length == mapped_integrations | length
+        message: "SyncSets created for all ManagedClusters"
+  when: syncset_creation_results.results or object_creation_results.results | rejectattr('failed', 'equalto', true) | list | length == mapped_integrations | length
 
 - name: Update CR status for SyncSet creation failure
   kubernetes.core.k8s:
@@ -188,5 +187,5 @@
         lastUpdated: "{{ ansible_date_time.iso8601 }}"
         phase: "Failed"
         reason: "SyncSetCreationFailed"
-        message: "Failed to create SyncSet for one or more ClusterDeployments"
-  when: syncset_creation_results.results | rejectattr('failed', 'equalto', false) | list | length > 0
+        message: "Failed to create SyncSet for one or more ManagedClusters"
+  when: syncset_creation_results.results or object_creation_results.results | rejectattr('failed', 'equalto', false) | list | length > 0

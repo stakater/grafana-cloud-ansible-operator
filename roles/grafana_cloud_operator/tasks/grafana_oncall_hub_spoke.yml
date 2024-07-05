@@ -83,9 +83,12 @@
                     "enabled": slack_cond
                   }
                 }
-              } if slack_channel_validated is defined and slack_channel_validated | length > loop_index and slack_channel_validated[loop_index].slack_id | length > 0 else {
-                "type": "alertmanager",
-                "name": item.name
+              } if slack_channel_validated is defined and 
+                   slack_channel_validated | length > loop_index and 
+                   slack_channel_validated[loop_index].slack_id | length > 0 
+                else {
+                  "type": "alertmanager",
+                  "name": item.name
               }
           }}
         status_code: [200, 201]
@@ -172,7 +175,11 @@
         phase: "Successful"
         reason: "SyncSetsCreated"
         message: "SyncSets created for all ManagedClusters"
-  when: syncset_creation_results.results or object_creation_results.results | rejectattr('failed', 'equalto', true) | list | length == mapped_integrations | length
+  when: >
+    syncset_creation_results.results or
+    object_creation_results.results |
+    rejectattr('failed', 'equalto', true) |
+    list | length == mapped_integrations | length
 
 - name: Update CR status for SyncSet creation failure
   kubernetes.core.k8s:
@@ -188,4 +195,7 @@
         phase: "Failed"
         reason: "SyncSetCreationFailed"
         message: "Failed to create SyncSet for one or more ManagedClusters"
-  when: syncset_creation_results.results or object_creation_results.results | rejectattr('failed', 'equalto', false) | list | length > 0
+    when: > 
+      syncset_creation_results.results or 
+      object_creation_results.results | 
+      rejectattr('failed', 'equalto', false) | list | length > 0

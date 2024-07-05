@@ -195,7 +195,7 @@
         phase: "Failed"
         reason: "SyncSetCreationFailed"
         message: "Failed to create SyncSet for one or more ManagedClusters"
-    when: > 
+    when: >
       syncset_creation_results.results or
       object_creation_results.results |
       rejectattr('failed', 'equalto', false) | list | length > 0

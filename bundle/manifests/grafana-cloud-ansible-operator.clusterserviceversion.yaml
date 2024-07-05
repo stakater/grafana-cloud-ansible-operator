@@ -140,6 +140,12 @@ spec:
           - syncsets
           verbs:
           - '*'
+        - verbs:
+          - '*'
+          apiGroups:
+          - kubernetes.crossplane.io
+          resources:
+          - objects
         - apiGroups:
           - cluster.open-cluster-management.io
           resources:

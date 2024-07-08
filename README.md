@@ -40,7 +40,7 @@ The operator's workflow can be described in two different architectural models:
                 CheckMultipleCRs[Ensure Only One GCC CR Exists]
                 GetToken[Retrieve Grafana API Token from Secret]
                 ListIntegrations[Fetch List of Existing Integrations in Grafana OnCall]
-                FetchClusters[Fetch ClusterDeployments from All Namespaces]
+                FetchClusters[Fetch HostedClusters]
                 FetchSlackChannels[Fetch Slack Channel CRs from All Namespaces]
                 DetermineMissingIntegrations[Determine Clusters Missing Integrations]
                 CreateIntegration[Create Integration in Grafana OnCall for Missing Clusters]
@@ -72,25 +72,25 @@ The operator's workflow can be described in two different architectural models:
         end
     ```
 
-    *Centralized ClusterDeployments Monitoring:*
-    The operator, installed on the Hub cluster, continually monitors for the presence of ClusterDeployment resources from Hive that are registered from Spoke clusters.
+    *Centralized HostedClusters Monitoring:*
+    The operator, installed on the Hub cluster, continually monitors for the presence of HostedCluster resources from Hive that are registered from Spoke clusters.
     These resources are significant markers, indicating the clusters that require Grafana OnCall integration.
 
     *Centralized Slack Channel CRs Monitoring:*
     The operator installed on the Hub cluster continually monitors for the presence of Slack Channel resources from Slack Operator that are registered for Spoke clusters.
-    These resources are present in the same namespace as ClusterDeployments and are attached to the Grafana OnCall integration.
+    The channel resources are present in the same namespace as the Custom Resource generating the HostedCluster and are attached to the Grafana OnCall integration.
 
     *Cross-Cluster Grafana OnCall Setup:*
-    For each ClusterDeployment identified, the operator communicates with the Grafana Cloud's API, initiating the integration process.
+    For each HostedClusters identified, the operator communicates with the Grafana Cloud's API, initiating the integration process.
     This setup involves creating necessary configurations on Grafana Cloud and retrieving vital details such as the Alertmanager HTTP URL for each respective Spoke cluster.
 
     *`Syncset` Synchronization:*
     Utilizing `Syncset` resources from Hive, the operator ensures that alerting configurations are consistent across all Spoke clusters.
-    This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager and adding PrometheusRule.
+    This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager and using Watchdog for heartbeats.
 
     *Centralized Secret Management:*
     The operator centrally manages the `alertmanager-main-generated` secret for each Spoke cluster.
-    Through the `Syncset`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall. Additionally it adds option for OnCall Heartbeat which acts as a monitoring for monitoring systems. Other than updating secret the `Syncsets` also creates PrometheusRule that adds a Vector as heartbeat generator.
+    Through the `Syncset`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall. Additionally it adds option for OnCall Heartbeat which acts as a monitoring for monitoring systems. Other than updating secret the `Syncsets`. We will be using Watchdog for our heartbeats.
 
     *Forwarding alerts to Slack*
     Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
@@ -111,7 +111,6 @@ The operator's workflow can be described in two different architectural models:
             ModSecret[Include: modify_alertmanager_secret]
             Reencode[Re-encode Alertmanager Content]
             PatchSecret[Patch alertmanager-main Secret]
-            AddPrometheusRule[Add PrometheusRule]
             UpdateCR[Update CR Status to ConfigUpdated]
             Init --> GetClusterName
             GetClusterName --> CheckIntegration
@@ -128,8 +127,7 @@ The operator's workflow can be described in two different architectural models:
         GO -->|Return: Endpoint| ConfigureSlack
         ConfigureSlack --> ModSecret
         ModSecret --> PatchSecret
-        PatchSecret --> AddPrometheusRule
-        AddPrometheusRule --> UpdateCR
+        PatchSecret --> UpdateCR
     ```
 
     *Operator Workflow in Standalone Cluster:*
@@ -141,7 +139,7 @@ The operator's workflow can be described in two different architectural models:
 
     *In-Cluster Configuration Management:*
     The operator directly applies configuration changes within the cluster, bypassing the need for `Syncsets`.
-    It ensures the Alertmanager's alert forwarding settings are correctly configured for seamless communication with Grafana OnCall. Additionally, it adds option for On call Heartbeat which acts as a monitoring for monitoring systems. It also creates PrometheusRule that adds a Vector as heartbeat generator.
+    It ensures the Alertmanager's alert forwarding settings are correctly configured for seamless communication with Grafana OnCall. Additionally, it adds option for On call Heartbeat which acts as a monitoring for monitoring systems using Watchdog.
 
     *Local Secret Management:*
     Managing the `alertmanager-main-generated` secret locally, the operator updates its configurations.

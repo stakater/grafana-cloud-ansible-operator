@@ -40,7 +40,7 @@ The operator's workflow can be described in two different architectural models:
                 CheckMultipleCRs[Ensure Only One GCC CR Exists]
                 GetToken[Retrieve Grafana API Token from Secret]
                 ListIntegrations[Fetch List of Existing Integrations in Grafana OnCall]
-                FetchClusters[Fetch HostedClusters]
+                FetchClusters[Fetch ManagedClusters]
                 FetchSlackChannels[Fetch Slack Channel CRs from All Namespaces]
                 DetermineMissingIntegrations[Determine Clusters Missing Integrations]
                 CreateIntegration[Create Integration in Grafana OnCall for Missing Clusters]
@@ -78,16 +78,16 @@ The operator's workflow can be described in two different architectural models:
         end
     ```
 
-    *Centralized HostedClusters Monitoring:*
-    The operator, installed on the Hub cluster, continually monitors for the presence of HostedCluster resources from Hive that are registered from Spoke clusters.
+    *Centralized ManagedClusters Monitoring:*
+    The operator, installed on the Hub cluster, continually monitors for the presence of ManagedCluster resources from Hive that are registered from Spoke clusters.
     These resources are significant markers, indicating the clusters that require Grafana OnCall integration.
 
     *Centralized Slack Channel CRs Monitoring:*
     The operator installed on the Hub cluster continually monitors for the presence of Slack Channel resources from Slack Operator that are registered for Spoke clusters.
-    The channel resources are present in the same namespace as the Custom Resource generating the HostedCluster and are attached to the Grafana OnCall integration.
+    The channel resources are present in the same namespace as the Custom Resource generating the ManagedCluster and are attached to the Grafana OnCall integration.
 
     *Cross-Cluster Grafana OnCall Setup:*
-    For each HostedClusters identified, the operator communicates with the Grafana Cloud's API, initiating the integration process.
+    For each ManagedClusters identified, the operator communicates with the Grafana Cloud's API, initiating the integration process.
     This setup involves creating necessary configurations on Grafana Cloud and retrieving vital details such as the Alertmanager HTTP URL for each respective Spoke cluster.
 
     *`Syncset` Synchronization:*

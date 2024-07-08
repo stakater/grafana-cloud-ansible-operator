@@ -137,17 +137,23 @@ spec:
         - apiGroups:
           - hive.openshift.io
           resources:
-          - clusterdeployments
+          - syncsets
+          verbs:
+          - '*'
+        - verbs:
+          - '*'
+          apiGroups:
+          - kubernetes.crossplane.io
+          resources:
+          - objects
+        - apiGroups:
+          - cluster.open-cluster-management.io
+          resources:
+          - managedclusters
           verbs:
           - get
           - list
           - watch
-        - apiGroups:
-          - hive.openshift.io
-          resources:
-          - syncsets
-          verbs:
-          - '*'
         - apiGroups:
           - slack.stakater.com
           resources:

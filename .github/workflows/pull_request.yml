@@ -7,7 +7,7 @@ on:
 
 jobs:
   qa:
-    uses: stakater/.github/.github/workflows/pull_request_doc_qa.yaml@v0.0.79
+    uses: stakater/.github/.github/workflows/pull_request_doc_qa.yaml@v0.0.82
     with:
       MD_CONFIG: .github/md_config.json
       DOC_SRC: README.md
@@ -29,7 +29,7 @@ jobs:
       #   run: make test
 
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@v24.6.0
+        uses: ansible/ansible-lint@v24.6.1
 
       - name: Generate Tag
         id: generate_tag
@@ -56,7 +56,7 @@ jobs:
           echo IMAGE_REPOSITORY=$(echo ghcr.io/stakater/${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
       - name: Build and Push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         id: build_and_push
         with:
           context: .

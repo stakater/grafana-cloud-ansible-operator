@@ -95,7 +95,7 @@ The operator's workflow can be described in two different architectural models:
     This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager and Utilizing Watchdog for heartbeats.
 
     *`Crossplane Object` Synchronization:*
-    Utilizing `object` resources from crossplane, the operator ensures that alerting configurations are consistent across all Spoke clusters.
+    Utilizing `object` resources from Crossplane, the operator ensures that alerting configurations are consistent across all Spoke clusters.
     This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager and utilizing Watchdog for heartbeats.
 
     *Centralized Secret Management:*

@@ -69,6 +69,12 @@ The operator's workflow can be described in two different architectural models:
             Syncset --> |Hive Operator| SC1
             Syncset --> |Hive Operator| SC2
             Syncset --> |Hive Operator| SC3
+
+            CreateIntegration --> |Create Integration| GOHub
+            GOHub -->|Return: Endpoint| Crossplane Object
+            Crossplane Object --> |Crossplane Operator| SC1
+            Crossplane Object --> |Crossplane Operator| SC2
+            Crossplane Object --> |Crossplane Operator| SC3
         end
     ```
 
@@ -86,11 +92,15 @@ The operator's workflow can be described in two different architectural models:
 
     *`Syncset` Synchronization:*
     Utilizing `Syncset` resources from Hive, the operator ensures that alerting configurations are consistent across all Spoke clusters.
-    This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager and using Watchdog for heartbeats.
+    This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager and Utilizing Watchdog for heartbeats.
+
+    *`Crossplane Object` Synchronization:*
+    Utilizing `object` resources from crossplane, the operator ensures that alerting configurations are consistent across all Spoke clusters.
+    This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager and utilizing Watchdog for heartbeats.
 
     *Centralized Secret Management:*
     The operator centrally manages the `alertmanager-main-generated` secret for each Spoke cluster.
-    Through the `Syncset`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall. Additionally it adds option for OnCall Heartbeat which acts as a monitoring for monitoring systems. Other than updating secret the `Syncsets`. We will be using Watchdog for our heartbeats.
+    Through the `Syncset` and `Crossplane Object`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall. Additionally it adds option for OnCall Heartbeat which acts as a monitoring for monitoring systems. It is utilizing Watchdog for our heartbeats.
 
     *Forwarding alerts to Slack*
     Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.

@@ -28,10 +28,10 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    createdAt: "2024-07-08T10:28:18Z"
+    createdAt: "2024-07-08T10:35:35Z"
     operators.operatorframework.io/builder: operator-sdk-v1.31.0
     operators.operatorframework.io/project_layout: ansible.sdk.operatorframework.io/v1
-  name: grafana-cloud-ansible-operator.v0.0.80
+  name: grafana-cloud-ansible-operator.v0.0.81
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -261,7 +261,7 @@ spec:
                 env:
                 - name: ANSIBLE_GATHERING
                   value: explicit
-                image: ghcr.io/stakater/grafana-cloud-ansible-operator:v0.0.80
+                image: ghcr.io/stakater/grafana-cloud-ansible-operator:v0.0.81
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -354,4 +354,4 @@ spec:
   provider:
     name: Stakater
     url: www.stakater.com
-  version: 0.0.80
+  version: 0.0.81

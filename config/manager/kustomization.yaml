@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: ghcr.io/stakater/grafana-cloud-ansible-operator
-  newTag: v0.0.83
+  newTag: v0.0.84

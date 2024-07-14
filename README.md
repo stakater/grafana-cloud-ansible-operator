@@ -64,17 +64,22 @@ The operator's workflow can be described in two different architectural models:
                 SC3[Spoke Cluster 3]
             end
 
+            subgraph "Hive"
             CreateIntegration --> |Create Integration| GOHub
-            GOHub -->|Return: Endpoint| Syncset
-            Syncset --> |Hive Operator| SC1
-            Syncset --> |Hive Operator| SC2
-            Syncset --> |Hive Operator| SC3
+            GOHub -->|Return: Endpoint| HiveOperator
+            HiveOperator --> |SyncSet| SC1
+            HiveOperator --> |SyncSet| SC2
+            HiveOperator --> |SyncSet| SC3
+            end
 
+            subgraph "Crossplane"
             CreateIntegration --> |Create Integration| GOHub
-            GOHub -->|Return: Endpoint| Crossplane Object
-            Crossplane Object --> |Crossplane Operator| SC1
-            Crossplane Object --> |Crossplane Operator| SC2
-            Crossplane Object --> |Crossplane Operator| SC3
+            GOHub -->|Return: Endpoint| CrossplaneOperator
+            CrossplaneOperator --> |CrossplaneObject| SC1
+            CrossplaneOperator --> |CrossplaneObject| SC2
+            CrossplaneOperator --> |CrossplaneObject| SC3
+            end
+            
         end
     ```
 

@@ -1,0 +1,104 @@
+- name: Debug at the start of deletion
+  ansible.builtin.debug:
+    msg: "Started processing deletion tasks"
+
+- name: Update CR status to DeletionInitiated
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: Config
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "DeletionInitiated"
+        reason: "OperationStarted"
+        message: "Operation to delete Grafana OnCall integration started"
+
+- name: Determine if integration exists for the cluster
+  ansible.builtin.set_fact:
+    integration_exists_for_cluster: "{{ cluster_name in existing_integration_names }}"
+
+- name: Delete Grafana OnCall integration if it exists
+  ansible.builtin.uri:
+    url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}/{{ cluster_name }}"
+    method: DELETE
+    headers:
+      Authorization: "{{ grafana_cloud_api_token }}"
+      Content-Type: "application/json"
+    status_code: [200, 204]
+  when: integration_exists_for_cluster
+  register: grafana_integration_delete_response
+  failed_when: false
+
+- name: Inform user if Grafana integration deletion was skipped or failed
+  when:
+    - grafana_integration_delete_response.skipped is true
+      or
+      (grafana_integration_delete_response.status is defined and grafana_integration_delete_response.status not in [200, 204])
+  block:
+    - name: Display message to the user
+      ansible.builtin.debug:
+        msg: "Grafana integration for {{ cluster_name }} either does not exist or failed to be deleted. Halting further operations."
+
+    - name: End play gracefully
+      ansible.builtin.meta: end_play
+
+- name: Update CR status after Grafana integration deletion
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: Config
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "DeletionCompleted"
+        reason: "GrafanaIntegrationDeleted"
+        message: "Grafana integration deleted successfully"
+
+- name: Clean up Alertmanager secret
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ grafana_cloud_operator_alertmanager_secret_name }}"
+        namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
+      data:
+        alertmanager.yaml: ""
+  when: integration_exists_for_cluster
+
+- name: Remove Prometheus rule for cluster
+  kubernetes.core.k8s:
+    state: absent
+    namespace: "openshift-monitoring"
+    definition:
+      apiVersion: monitoring.coreos.com/v1
+      kind: PrometheusRule
+      metadata:
+        name: "heartbeat-grafana-oncall"
+        namespace: "openshift-monitoring"
+  when: integration_exists_for_cluster
+
+- name: Update CR status to DeletionSuccessful
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: Config
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "Successful"
+        reason: "DeletionCompleted"
+        message: "Grafana OnCall integration and related configurations deleted successfully"
+  when: integration_exists_for_cluster

@@ -16,7 +16,7 @@
         phase: "DeletionInitiated"
         reason: "OperationStarted"
         message: "Operation to delete Grafana OnCall integration started"
-  
+
 - name: Get the Cluster's name
   kubernetes.core.k8s_info:
     kind: IngressController

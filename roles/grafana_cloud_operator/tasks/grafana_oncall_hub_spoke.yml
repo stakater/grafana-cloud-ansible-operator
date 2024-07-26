@@ -112,11 +112,15 @@
             name: "{{ cr_name }}"
             namespace: "{{ cr_namespace }}"
           status:
+            ManagedCluster: "{{ item.name }}"
             lastUpdated: "{{ ansible_date_time.iso8601 }}"
             phase: "Successful"
             reason: "IntegrationsCreated"
             message: "Grafana integrations created for all ManagedClusters."
       when: create_integration_for | length == grafana_integration_response.results | length
+      loop: "{{ create_integration_for }}"
+      loop_control:
+        label: "{{ item.name }}"
 
     - name: Inform user if Grafana integration creation was skipped or failed
       when: grafana_integration_response is skipped or (grafana_integration_response.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)

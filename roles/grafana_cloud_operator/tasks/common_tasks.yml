@@ -49,10 +49,12 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
       status:
-        lastUpdated: "{{ ansible_date_time.iso8601 }}"
-        phase: "Processing"
-        reason: "CRRetrieved"
-        message: "Config CR retrieved"
+        conditions:
+          - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+            status: 'True'
+            type: "Processing"
+            reason: "CRRetrieved"
+            message: "Config CR retrieved"
 
 - name: Ensure required CR fields are set
   ansible.builtin.fail:
@@ -94,10 +96,12 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
       status:
-        lastUpdated: "{{ ansible_date_time.iso8601 }}"
-        phase: "Processing"
-        reason: "TokenFetched"
-        message: "Grafana API token fetched from the secret"
+        conditions:
+          - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+            type: "Processing"
+            status: 'True'
+            reason: "TokenFetched"
+            message: "Grafana API token fetched from the secret"
 
 - name: Ensure Grafana API Token is available
   ansible.builtin.fail:
@@ -133,10 +137,12 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
       status:
-        lastUpdated: "{{ ansible_date_time.iso8601 }}"
-        phase: "Processing"
-        reason: "IntegrationsListFetched"
-        message: "List of existing Grafana integrations fetched"
+        conditions:
+          - lastUpdated: "{{ ansible_date_time.iso8601 }}"
+            status: 'True'
+            type: "Processing"
+            reason: "IntegrationsListFetched"
+            message: "List of existing Grafana integrations fetched"
 
 - name: Fetch alertmanager-main secret for cluster
   kubernetes.core.k8s_info:
@@ -155,10 +161,12 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
       status:
-        lastUpdated: "{{ ansible_date_time.iso8601 }}"
-        phase: "Processing"
-        reason: "AlertmanagerSecretFetched"
-        message: "Fetched alertmanager-main secret for cluster"
+        conditions:
+          - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+            type: "Processing"
+            status: 'True'
+            reason: "AlertmanagerSecretFetched"
+            message: "Fetched alertmanager-main secret for cluster"
   when: (fetched_alertmanager_secret.resources | default([]) | length) > 0
 
 - name: Update CR status to AlertmanagerSecretInvalid
@@ -171,10 +179,12 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
       status:
-        lastUpdated: "{{ ansible_date_time.iso8601 }}"
-        phase: "Failed"
-        reason: "AlertmanagerSecretInvalid"
-        message: "Alertmanager secret data is invalid or empty"
+        conditions:
+          - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+            status: 'True'
+            tyoe: "Failed"
+            reason: "AlertmanagerSecretInvalid"
+            message: "Alertmanager secret data is invalid or empty"
   when: (fetched_alertmanager_secret.resources[0].data | default({}) | length) == 0
 
 - name: Ensure alertmanager secret data is valid

@@ -1,0 +1,3 @@
+- name: Debug Finalizer
+  ansible.builtin.debug:
+    msg: "Finalizer Test"

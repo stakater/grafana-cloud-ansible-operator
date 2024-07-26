@@ -4,3 +4,10 @@
   kind: Config
   role: grafana_cloud_operator
   reconcilePeriod: 5m
+---  
+- version: v1alpha1
+  group: grafanacloud.stakater.com
+  kind: Config
+  finalizer:
+    name: grafanacloud.stakater.com/finalizer
+    role: test.yml

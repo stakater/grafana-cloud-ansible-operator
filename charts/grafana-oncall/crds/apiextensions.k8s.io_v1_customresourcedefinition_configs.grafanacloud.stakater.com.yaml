@@ -82,6 +82,11 @@ spec:
               description: TemplateGroupInstanceStatus defines the observed state of TemplateGroupInstance
               type: object
               properties:
+                managedClusters:
+                  description: List of ManagedCluster
+                    items:
+                    type: string
+                  type: array
                 conditions:
                   description: Status conditions
                   type: array

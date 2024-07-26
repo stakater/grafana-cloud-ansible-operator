@@ -86,7 +86,7 @@ spec:
           status:
             description: Status defines the observed state of Config
             properties:
-              ManagedClusters:
+              managedClusters:
                 description: List of ManagedCluster Integration
                 items:
                   type: string

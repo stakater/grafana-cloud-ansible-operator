@@ -112,7 +112,7 @@
             name: "{{ cr_name }}"
             namespace: "{{ cr_namespace }}"
           status:
-            ManagedCluster: "{{ item.name }}"
+            managedClusters: "{{ item.name }}"
             lastUpdated: "{{ ansible_date_time.iso8601 }}"
             phase: "Successful"
             reason: "IntegrationsCreated"
@@ -180,10 +180,14 @@
         reason: "SyncSetsCreated"
         message: "SyncSets created for all ManagedClusters"
   when: >
-    syncset_creation_results.results or
-    object_creation_results.results |
+    (syncset_creation_results.results |
     rejectattr('failed', 'equalto', true) |
-    list | length == mapped_integrations | length
+    list | length) == mapped_integrations |
+    length or
+    (object_creation_results.results |
+    rejectattr('failed', 'equalto', true) |
+    list | length) == mapped_integrations |
+    length
 
 - name: Update CR status for SyncSet creation failure
   kubernetes.core.k8s:

@@ -182,7 +182,7 @@
         conditions:
           - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
             status: 'True'
-            tyoe: "Failed"
+            type: "Failed"
             reason: "AlertmanagerSecretInvalid"
             message: "Alertmanager secret data is invalid or empty"
   when: (fetched_alertmanager_secret.resources[0].data | default({}) | length) == 0

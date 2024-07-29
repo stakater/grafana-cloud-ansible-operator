@@ -108,8 +108,7 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
         status:
-          managedClusters:
-            - "{{ item.name }}"
+          managedClusters: "{{ item.name }}"
           conditions:
             - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
               status: "True"

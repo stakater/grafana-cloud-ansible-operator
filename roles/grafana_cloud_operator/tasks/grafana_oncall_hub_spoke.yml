@@ -22,7 +22,7 @@
     kind: ManagedCluster
   register: managed_clusters_raw
 
-- name: Extract list of ManagedCluster with their namespaces
+- name: Extract list of ManagedCluster and use name as key
   ansible.builtin.set_fact:
     managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name}] }}"
   loop: "{{ managed_clusters_raw.resources }}"
@@ -101,6 +101,13 @@
       until: grafana_integration_response.status in [200, 201]
       failed_when: false
 
+    - name: Extract list of ManagedCluster
+      ansible.builtin.set_fact:
+        managed_clusters: "{{ managed_clusters + [item.name] }}"
+      loop: "{{ managed_clusters_raw.resources }}"
+      loop_control:
+        loop_var: item
+
     - name: Update CR status to IntegrationsCreated
       operator_sdk.util.k8s_status:
         api_version: grafanacloud.stakater.com/v1alpha1
@@ -108,7 +115,7 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
         status:
-          managedClusters: "{{ managed_clusters.name }}"
+          managedClusters: "{{ managed_clusters }}"
           conditions:
             - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
               status: "True"

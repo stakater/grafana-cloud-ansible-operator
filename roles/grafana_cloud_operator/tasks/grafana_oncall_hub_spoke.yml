@@ -108,7 +108,7 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
         status:
-          managedClusters: "{{ managed_clusters }}"
+          managedClusters: "{{ managed_clusters.name }}"
           conditions:
             - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
               status: "True"
@@ -116,9 +116,6 @@
               reason: "IntegrationsCreated"
               message: "Grafana integrations created for all ManagedClusters."
       when: create_integration_for | length == grafana_integration_response.results | length
-      loop: "{{ managed_clusters }}"
-      loop_control:
-        label: "{{ item.name }}"
 
     - name: Inform user if Grafana integration creation was skipped or failed
       when: grafana_integration_response is skipped or (grafana_integration_response.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)

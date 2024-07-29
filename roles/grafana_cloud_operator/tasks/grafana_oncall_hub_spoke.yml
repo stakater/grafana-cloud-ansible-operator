@@ -3,21 +3,18 @@
     msg: "Started processing hub spoke tasks"
 
 - name: Update CR status to Initiated
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: Config
-      metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
-      status:
-        conditions:
-          - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
-            status: 'True'
-            type: "Initiated"
-            reason: "OperationStarted"
-            message: "Operation to integrate Grafana OnCall started"
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      conditions:
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          status: 'True'
+          type: "Initiated"
+          reason: "OperationStarted"
+          message: "Operation to integrate Grafana OnCall started"
 
 - name: Fetch ManagedCluster from all namespaces
   kubernetes.core.k8s_info:
@@ -131,14 +128,11 @@
             msg: "Checking if Grafana integration for the cluster was skipped or failed."
 
         - name: Update CR status to Failure for failed integrations
-          kubernetes.core.k8s:
-            state: present
-            definition:
-              apiVersion: grafanacloud.stakater.com/v1alpha1
-              kind: Config
-              metadata:
-                name: "{{ cr_name }}"
-                namespace: "{{ cr_namespace }}"
+          operator_sdk.util.k8s_status:
+            api_version: grafanacloud.stakater.com/v1alpha1
+            kind: Config
+            name: "{{ cr_name }}"
+            namespace: "{{ cr_namespace }}"
             status:
               conditions:
                 - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
@@ -169,21 +163,18 @@
       loop: "{{ mapped_integrations }}"
 
 - name: Update CR status for SyncSet creation
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: Config
-      metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
-      status:
-        conditions:
-          - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
-            status: 'True'
-            type: "Successful"
-            reason: "SyncSetsCreated"
-            message: "SyncSets created for all ManagedClusters"
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      conditions:
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          status: 'True'
+          type: "Successful"
+          reason: "SyncSetsCreated"
+          message: "SyncSets created for all ManagedClusters"
   when: >
     (syncset_creation_results.results |
     rejectattr('failed', 'equalto', true) |
@@ -195,22 +186,19 @@
     length
 
 - name: Update CR status for SyncSet creation failure
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: Config
-      metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
-      status:
-        conditions:
-          - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
-            status: 'True'
-            type: "Failed"
-            reason: "SyncSetCreationFailed"
-            message: "Failed to create SyncSet for one or more ManagedClusters"
-    when: >
-      syncset_creation_results.results or
-      object_creation_results.results |
-      rejectattr('failed', 'equalto', false) | list | length > 0
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      conditions:
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          status: 'True'
+          type: "Failed"
+          reason: "SyncSetCreationFailed"
+          message: "Failed to create SyncSet for one or more ManagedClusters"
+  when: >
+    syncset_creation_results.results or
+    object_creation_results.results |
+    rejectattr('failed', 'equalto', false) | list | length > 0

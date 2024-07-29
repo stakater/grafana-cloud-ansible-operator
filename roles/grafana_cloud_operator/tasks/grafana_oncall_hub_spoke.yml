@@ -106,21 +106,19 @@
 
     - name: Update CR status to IntegrationsCreated
       operator_sdk.util.k8s_status:
-        state: present
-        definition:
-          api_version: grafanacloud.stakater.com/v1alpha1
-          kind: Config
-          name: "{{ cr_name }}"
-          namespace: "{{ cr_namespace }}"
-          status:
-            managedClusters:
-              - "{{ item.name }}"
-            conditions:
-              - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
-                status: "True"
-                type: "Successful"
-                reason: "IntegrationsCreated"
-                message: "Grafana integrations created for all ManagedClusters."
+        api_version: grafanacloud.stakater.com/v1alpha1
+        kind: Config
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+        status:
+          managedClusters:
+            - "{{ item.name }}"
+          conditions:
+            - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+              status: "True"
+              type: "Successful"
+              reason: "IntegrationsCreated"
+              message: "Grafana integrations created for all ManagedClusters."
       loop: "{{ create_integration_for }}"
       loop_control:
         label: "{{ item.name }}"

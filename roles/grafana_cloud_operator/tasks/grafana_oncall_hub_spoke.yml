@@ -103,10 +103,11 @@
 
     - name: Extract list of ManagedCluster
       ansible.builtin.set_fact:
-        managed_clusters: "{{ managed_clusters + [item.name] }}"
+        managedClusters: "{{ item.name }} | list"
       loop: "{{ managed_clusters_raw.resources }}"
       loop_control:
         loop_var: item
+      when: create_integration_for | length == grafana_integration_response.results | length
 
     - name: Update CR status to IntegrationsCreated
       operator_sdk.util.k8s_status:

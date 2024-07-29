@@ -84,9 +84,9 @@ spec:
               properties:
                 managedClusters:
                   description: List of ManagedCluster
-                    items:
-                    type: string
                   type: array
+                  items:
+                    type: string
                 conditions:
                   description: Status conditions
                   type: array

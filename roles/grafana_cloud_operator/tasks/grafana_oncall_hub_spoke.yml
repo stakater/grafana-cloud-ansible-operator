@@ -105,14 +105,13 @@
       failed_when: false
 
     - name: Update CR status to IntegrationsCreated
-      kubernetes.core.k8s:
+      operator_sdk.util.k8s_status:
         state: present
         definition:
-          apiVersion: grafanacloud.stakater.com/v1alpha1
+          api_version: grafanacloud.stakater.com/v1alpha1
           kind: Config
-          metadata:
-            name: "{{ cr_name }}"
-            namespace: "{{ cr_namespace }}"
+          name: "{{ cr_name }}"
+          namespace: "{{ cr_namespace }}"
           status:
             managedClusters:
               - "{{ item.name }}"

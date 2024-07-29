@@ -117,7 +117,7 @@
               reason: "IntegrationsCreated"
               message: "Grafana integrations created for all ManagedClusters."
       when: create_integration_for | length == grafana_integration_response.results | length
-      loop: "{{ create_integration_for }}"
+      loop: "{{ managed_clusters }}"
       loop_control:
         label: "{{ item.name }}"
 

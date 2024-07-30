@@ -102,3 +102,4 @@
           type: "DeletionCompleted"
           reason: "OperationDone"
           message: "Deleted the integrations {{ delete_integration_for }}"
+  when: delete_integration_for

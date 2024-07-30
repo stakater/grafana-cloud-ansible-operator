@@ -3,19 +3,16 @@
     msg: "Started processing deletion tasks"
 
 - name: Update CR status to DeletionInitiated
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: Config
-      metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
-      status:
-        lastUpdated: "{{ ansible_date_time.iso8601 }}"
-        phase: "DeletionInitiated"
-        reason: "OperationStarted"
-        message: "Operation to delete Grafana OnCall integration started"
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      lastUpdated: "{{ ansible_date_time.iso8601 }}"
+      phase: "DeletionInitiated"
+      reason: "OperationStarted"
+      message: "Operation to delete Grafana OnCall integration started"
 
 - name: Get the Cluster's name
   kubernetes.core.k8s_info:
@@ -82,16 +79,13 @@
   failed_when: false
 
 - name: Update CR status to DeletionCompleted
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: Config
-      metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
-      status:
-        lastUpdated: "{{ ansible_date_time.iso8601 }}"
-        phase: "Successful"
-        reason: "IntegrationDeleted"
-        message: "Deleted integration for cluster {{ cluster_name }}"
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      lastUpdated: "{{ ansible_date_time.iso8601 }}"
+      phase: "Successful"
+      reason: "IntegrationDeleted"
+      message: "Deleted integration for cluster {{ cluster_name }}"

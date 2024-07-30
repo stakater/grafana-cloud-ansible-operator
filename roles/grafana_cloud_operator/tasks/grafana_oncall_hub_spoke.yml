@@ -28,6 +28,7 @@
   loop: "{{ managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
+  when: item.metadata.name != 'local-cluster'
 
 - name: Determine which ManagedCluster don't have integrations
   ansible.builtin.set_fact:

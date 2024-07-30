@@ -28,6 +28,7 @@
   loop: "{{ managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
+  when: item.metadata.name != 'local-cluster'
 
 - name: Determine which ManagedCluster don't have integrations
   ansible.builtin.set_fact:
@@ -98,7 +99,6 @@
         index_var: loop_index
       retries: 5
       delay: 6
-      when: item.name != 'local-cluster'
       until: grafana_integration_response.status in [200, 201]
       failed_when: false
 

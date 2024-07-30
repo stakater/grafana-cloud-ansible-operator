@@ -101,12 +101,9 @@
       until: grafana_integration_response.status in [200, 201]
       failed_when: false
 
-    - name: Extract list of ManagedCluster
+    - name: Set fact for list of ManagedCluster names
       ansible.builtin.set_fact:
-        managedClusters: "{{ item.name }} | list"
-      loop: "{{ managed_clusters_raw.resources }}"
-      loop_control:
-        loop_var: item
+        managed_cluster_names: "{{ managed_clusters | map(attribute='name') | list }}"
       when: create_integration_for | length == grafana_integration_response.results | length
 
     - name: Update CR status to IntegrationsCreated
@@ -116,7 +113,7 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
         status:
-          managedClusters: "{{ managed_clusters }}"
+          managedClusters: "{{ managed_cluster_names }}"
           conditions:
             - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
               status: "True"

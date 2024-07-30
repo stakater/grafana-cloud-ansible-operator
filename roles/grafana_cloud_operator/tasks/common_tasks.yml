@@ -40,21 +40,18 @@
 #   register: gco_cr
 
 - name: Update CR status to CRRetrieved
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: Config
-      metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
-      status:
-        conditions:
-          - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
-            status: 'True'
-            type: "Processing"
-            reason: "CRRetrieved"
-            message: "Config CR retrieved"
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      conditions:
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          status: 'True'
+          type: "Processing"
+          reason: "CRRetrieved"
+          message: "Config CR retrieved"
 
 - name: Ensure required CR fields are set
   ansible.builtin.fail:
@@ -87,21 +84,18 @@
     slack_cond: "{{ gco_cr.spec.slack | default('true') }}"
 
 - name: Update CR status to TokenFetched
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: Config
-      metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
-      status:
-        conditions:
-          - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
-            type: "Processing"
-            status: 'True'
-            reason: "TokenFetched"
-            message: "Grafana API token fetched from the secret"
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      conditions:
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          type: "Processing"
+          status: 'True'
+          reason: "TokenFetched"
+          message: "Grafana API token fetched from the secret"
 
 - name: Ensure Grafana API Token is available
   ansible.builtin.fail:
@@ -128,21 +122,18 @@
   when: existing_integration_names is none or existing_integration_names | type_debug != 'list'
 
 - name: Update CR status to IntegrationsListFetched
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: Config
-      metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
-      status:
-        conditions:
-          - lastUpdated: "{{ ansible_date_time.iso8601 }}"
-            status: 'True'
-            type: "Processing"
-            reason: "IntegrationsListFetched"
-            message: "List of existing Grafana integrations fetched"
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      conditions:
+        - lastUpdated: "{{ ansible_date_time.iso8601 }}"
+          status: 'True'
+          type: "Processing"
+          reason: "IntegrationsListFetched"
+          message: "List of existing Grafana integrations fetched"
 
 - name: Fetch alertmanager-main secret for cluster
   kubernetes.core.k8s_info:
@@ -152,39 +143,33 @@
   register: fetched_alertmanager_secret
 
 - name: Update CR status to AlertmanagerSecretFetched
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: Config
-      metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
-      status:
-        conditions:
-          - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
-            type: "Processing"
-            status: 'True'
-            reason: "AlertmanagerSecretFetched"
-            message: "Fetched alertmanager-main secret for cluster"
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      conditions:
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          type: "Processing"
+          status: 'True'
+          reason: "AlertmanagerSecretFetched"
+          message: "Fetched alertmanager-main secret for cluster"
   when: (fetched_alertmanager_secret.resources | default([]) | length) > 0
 
 - name: Update CR status to AlertmanagerSecretInvalid
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: Config
-      metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
-      status:
-        conditions:
-          - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
-            status: 'True'
-            type: "Failed"
-            reason: "AlertmanagerSecretInvalid"
-            message: "Alertmanager secret data is invalid or empty"
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      conditions:
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          status: 'True'
+          type: "Failed"
+          reason: "AlertmanagerSecretInvalid"
+          message: "Alertmanager secret data is invalid or empty"
   when: (fetched_alertmanager_secret.resources[0].data | default({}) | length) == 0
 
 - name: Ensure alertmanager secret data is valid

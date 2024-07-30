@@ -3,19 +3,16 @@
     msg: "Started processing standalone tasks"
 
 - name: Update CR status to Initiated
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: Config
-      metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
-      status:
-        lastUpdated: "{{ ansible_date_time.iso8601 }}"
-        phase: "Initiated"
-        reason: "OperationStarted"
-        message: "Operation to integrate Grafana OnCall started"
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      lastUpdated: "{{ ansible_date_time.iso8601 }}"
+      phase: "Initiated"
+      reason: "OperationStarted"
+      message: "Operation to integrate Grafana OnCall started"
 
 - name: Get the Cluster's name
   kubernetes.core.k8s_info:
@@ -75,19 +72,16 @@
       ansible.builtin.meta: end_play
 
 - name: Update CR status after Grafana integration creation
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: Config
-      metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
-      status:
-        lastUpdated: "{{ ansible_date_time.iso8601 }}"
-        phase: "IntegrationCreated"
-        reason: "GrafanaIntegrationSuccess"
-        message: "Grafana integration created successfully"
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      lastUpdated: "{{ ansible_date_time.iso8601 }}"
+      phase: "IntegrationCreated"
+      reason: "GrafanaIntegrationSuccess"
+      message: "Grafana integration created successfully"
 
 - name: Modify Alertmanager secret
   ansible.builtin.include_tasks: modify_alertmanager_secret.yml
@@ -114,40 +108,15 @@
         alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
   when: not integration_exists_for_cluster
 
-- name: Add prometheus rule for cluster
-  kubernetes.core.k8s:
-    state: present
-    namespace: "openshift-monitoring"
-    definition:
-      apiVersion: monitoring.coreos.com/v1
-      kind: PrometheusRule
-      metadata:
-        name: "heartbeat-grafana-oncall"
-        namespace: "openshift-monitoring"
-      spec:
-        groups:
-          - name: meta
-            rules:
-              - alert: heartbeat
-                annotations:
-                  description: This is a heartbeat alert for Grafana OnCall
-                  summary: Heartbeat for Grafana OnCall
-                expr: vector(1)
-                labels:
-                  severity: none
-
 - name: Update CR status to ConfigUpdated
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: grafanacloud.stakater.com/v1alpha1
-      kind: Config
-      metadata:
-        name: "{{ gco_cr.metadata.name }}"
-        namespace: "{{ gco_cr.metadata.namespace }}"
-      status:
-        lastUpdated: "{{ ansible_date_time.iso8601 }}"
-        phase: "Successful"
-        reason: "ConfigUpdated"
-        message: "Alertmanager configuration updated successfully for the cluster {{ cluster_name }}"
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ gco_cr.metadata.name }}"
+    namespace: "{{ gco_cr.metadata.namespace }}"
+    status:
+      lastUpdated: "{{ ansible_date_time.iso8601 }}"
+      phase: "Successful"
+      reason: "ConfigUpdated"
+      message: "Alertmanager configuration updated successfully for the cluster {{ cluster_name }}"
   when: not integration_exists_for_cluster

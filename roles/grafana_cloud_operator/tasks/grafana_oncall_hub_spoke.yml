@@ -16,6 +16,14 @@
           reason: "OperationStarted"
           message: "Operation to integrate Grafana OnCall started"
 
+- name: Fetch current status from Config CR
+  kubernetes.core.k8s_info:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+  register: current_config_cr
+
 - name: Fetch ManagedCluster from all namespaces
   kubernetes.core.k8s_info:
     api_version: cluster.open-cluster-management.io/v1
@@ -101,9 +109,22 @@
       until: grafana_integration_response.status in [200, 201]
       failed_when: false
 
+    - name: Extract existing managed cluster names from current status
+      ansible.builtin.set_fact:
+        existing_managed_cluster_names: "{{ current_config_cr.resources[0].status.managedClusters | map(attribute='name') | list | default([]) }}"
+      when: create_integration_for | length == grafana_integration_response.results | length
+
     - name: Set fact for list of ManagedCluster names
       ansible.builtin.set_fact:
         managed_cluster_names: "{{ managed_clusters | map(attribute='name') | list }}"
+      when: create_integration_for | length == grafana_integration_response.results | length
+
+    - name: Merge existing managed cluster names with new ones
+      ansible.builtin.set_fact:
+        updated_managed_cluster_names: >-
+          {{
+            (existing_managed_cluster_names + managed_cluster_names) | unique
+          }}
       when: create_integration_for | length == grafana_integration_response.results | length
 
     - name: Update CR status to IntegrationsCreated

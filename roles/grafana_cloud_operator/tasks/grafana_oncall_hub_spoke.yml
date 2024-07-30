@@ -99,7 +99,7 @@
         index_var: loop_index
       retries: 5
       delay: 6
-      when: item.metadata.name != 'local-cluster'
+      when: item.name != 'local-cluster'
       until: grafana_integration_response.status in [200, 201]
       failed_when: false
 

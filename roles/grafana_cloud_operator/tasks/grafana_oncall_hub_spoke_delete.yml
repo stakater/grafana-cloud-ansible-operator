@@ -106,7 +106,7 @@
 
 - name: Decode and modify alertmanager secret configuration
   ansible.builtin.set_fact:
-    modified_alertmanager_secret_content: ""
+    modified_alertmanager_secret_content: "{{ {} | to_nice_yaml | b64encode }}"
 
 - name: Patch alertmanager-main secret for cluster
   kubernetes.core.k8s:
@@ -122,7 +122,7 @@
         alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
   when: not integration_exists_for_cluster
 
-- name: Create a new SyncSet for each cluster to patch alertmanager-main secret
+- name: Update syncset with no data for each cluster to patch alertmanager-main secret
   kubernetes.core.k8s:
     state: present
     namespace: hive
@@ -145,10 +145,9 @@
               data:
                 alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
   when:
-    - create_integration_for | length > 0
-  register: syncset_creation_results
+    - delete_integration_for | length > 0
 
-- name: Create an Object for each cluster to patch alertmanager-main secret
+- name: Update Object with no data for each cluster to patch alertmanager-main secret
   kubernetes.core.k8s:
     state: present
     definition:
@@ -175,5 +174,30 @@
         readiness:
           policy: SuccessfulCreate
   when:
-    - create_integration_for | length > 0
+    - delete_integration_for | length > 0
+
+- name: Update syncset with no data for each cluster to patch alertmanager-main secret
+  kubernetes.core.k8s:
+    state: absent
+    namespace: hive
+    definition:
+      apiVersion: hive.openshift.io/v1
+      kind: SyncSet
+      metadata:
+        name: "{{ item.grafana_details.name }}-syncset-grafana-oncall"
+        namespace: "{{ item.cluster.name }}"
+  when:
+    - delete_integration_for | length > 0
+  register: syncset_removal_results
+
+- name: Update Object with no data for each cluster to patch alertmanager-main secret
+  kubernetes.core.k8s:
+    state: absent
+    definition:
+      apiVersion: kubernetes.crossplane.io/v1alpha2
+      kind: Object
+      metadata:
+        name: "{{ receiver_item.grafana_details.namename }}-alertmanager-main-secret"
+  when:
+    - delete_integration_for | length > 0
   register: syncset_creation_results

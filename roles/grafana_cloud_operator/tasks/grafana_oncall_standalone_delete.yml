@@ -80,7 +80,7 @@
 
 - name: Decode and modify alertmanager secret configuration
   ansible.builtin.set_fact:
-    modified_alertmanager_secret_content: ""
+    modified_alertmanager_secret_content: "{{ {} | to_nice_yaml | b64encode }}"
 
 - name: Patch alertmanager-main secret for cluster
   kubernetes.core.k8s:

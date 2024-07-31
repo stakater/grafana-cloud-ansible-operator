@@ -78,6 +78,24 @@
   register: grafana_integration_response
   failed_when: false
 
+- name: Decode and modify alertmanager secret configuration
+  ansible.builtin.set_fact:
+    modified_alertmanager_secret_content: ""
+
+- name: Patch alertmanager-main secret for cluster
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ grafana_cloud_operator_alertmanager_secret_name }}"
+        namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
+      data:
+        alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
+  when: not integration_exists_for_cluster
+
 - name: Update CR status to DeletionCompleted
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1

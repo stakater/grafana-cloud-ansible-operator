@@ -93,10 +93,10 @@ The operator's workflow can be described in two different architectural models:
 
     *Centralized Secret Management:*
     The operator centrally manages the `alertmanager-main-generated` secret for each Spoke cluster.
-    Through the `ManifestWork`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall. Additionally it adds option for OnCall Heartbeat which acts as a monitoring for monitoring systems. It is utilizing Watchdog for our heartbeats.
+    Through the `ManifestWork`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall. Additionally, it adds option for OnCall Heartbeat which acts as a monitoring for monitoring systems. It is utilizing Watchdog for our heartbeats.
 
     *Forwarding alerts to Slack*
-    Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
+    Fetch Slack Info and Configure Slack, details how the operator additionally, configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
     *Note: This feature utilizes [slack-operator](https://github.com/stakater/slack-operator) which is another one of our open source projects. Please head over there to find detailed information on that operator.*
 
 - **B. Standalone Cluster Model**
@@ -149,7 +149,7 @@ The operator's workflow can be described in two different architectural models:
     This update enables the Alertmanager within the standalone cluster to route alerts effectively to Grafana OnCall, completing the integration process.
 
     *Forwarding alerts to Slack*
-    Just like the hub-and-spoke model, Slack channel can be configured in Standalone mode by populating the `slackId` field , this additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
+    Just like the hub-and-spoke model, Slack channel can be configured in Standalone mode by populating the `slackId` field , this additionally, configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
     *Note: This feature utilizes [slack-operator](https://github.com/stakater/slack-operator) which is another one of our open source projects. Please head over there to find detailed information on that operator.*
 
 ### Prerequisites

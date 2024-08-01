@@ -176,8 +176,7 @@
         reason: "SyncSetsCreated"
         message: "SyncSets created for all ManagedClusters"
   when: >
-    syncset_creation_results.results or
-    object_creation_results.results |
+    manifestwork_creation_results.results |
     rejectattr('failed', 'equalto', true) |
     list | length == mapped_integrations | length
 
@@ -196,6 +195,5 @@
         reason: "SyncSetCreationFailed"
         message: "Failed to create SyncSet for one or more ManagedClusters"
     when: >
-      syncset_creation_results.results or
-      object_creation_results.results |
+      manifestwork_creation_results.results |
       rejectattr('failed', 'equalto', false) | list | length > 0

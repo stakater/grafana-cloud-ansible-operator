@@ -66,10 +66,10 @@ The operator's workflow can be described in two different architectural models:
 
             subgraph "OpenClusterManagement"
             CreateIntegration --> |Create Integration| GOHub
-            GOHub -->|Return: Endpoint| HiveOperator
-            HiveOperator --> |ManifestWork| SC1
-            HiveOperator --> |ManifestWork| SC2
-            HiveOperator --> |ManifestWork| SC3
+            GOHub -->|Return: Endpoint| RHACM
+            RHACM --> |ManifestWork| SC1
+            RHACM --> |ManifestWork| SC2
+            RHACM --> |ManifestWork| SC3
             end
             
         end

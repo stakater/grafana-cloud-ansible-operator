@@ -64,20 +64,12 @@ The operator's workflow can be described in two different architectural models:
                 SC3[Spoke Cluster 3]
             end
 
-            subgraph "Hive"
+            subgraph "OpenClusterManagement"
             CreateIntegration --> |Create Integration| GOHub
             GOHub -->|Return: Endpoint| HiveOperator
-            HiveOperator --> |SyncSet| SC1
-            HiveOperator --> |SyncSet| SC2
-            HiveOperator --> |SyncSet| SC3
-            end
-
-            subgraph "Crossplane"
-            CreateIntegration --> |Create Integration| GOHub
-            GOHub -->|Return: Endpoint| CrossplaneOperator
-            CrossplaneOperator --> |CrossplaneObject| SC1
-            CrossplaneOperator --> |CrossplaneObject| SC2
-            CrossplaneOperator --> |CrossplaneObject| SC3
+            HiveOperator --> |ManifestWork| SC1
+            HiveOperator --> |ManifestWork| SC2
+            HiveOperator --> |ManifestWork| SC3
             end
             
         end
@@ -95,17 +87,13 @@ The operator's workflow can be described in two different architectural models:
     For each ManagedClusters identified, the operator communicates with the Grafana Cloud's API, initiating the integration process.
     This setup involves creating necessary configurations on Grafana Cloud and retrieving vital details such as the Alertmanager HTTP URL for each respective Spoke cluster.
 
-    *`Syncset` Synchronization:*
-    Utilizing `Syncset` resources from Hive, the operator ensures that alerting configurations are consistent across all Spoke clusters.
+    *`ManifestWork` Synchronization:*
+    Utilizing `ManifestWork` resources from open-cluster-management, the operator ensures that alerting configurations are consistent across all Spoke clusters.
     This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager and Utilizing Watchdog for heartbeats.
-
-    *`Crossplane Object` Synchronization:*
-    Utilizing `object` resources from Crossplane, the operator ensures that alerting configurations are consistent across all Spoke clusters.
-    This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager and utilizing Watchdog for heartbeats.
 
     *Centralized Secret Management:*
     The operator centrally manages the `alertmanager-main-generated` secret for each Spoke cluster.
-    Through the `Syncset` and `Crossplane Object`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall. Additionally it adds option for OnCall Heartbeat which acts as a monitoring for monitoring systems. It is utilizing Watchdog for our heartbeats.
+    Through the `ManifestWork`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall. Additionally it adds option for OnCall Heartbeat which acts as a monitoring for monitoring systems. It is utilizing Watchdog for our heartbeats.
 
     *Forwarding alerts to Slack*
     Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
@@ -153,7 +141,7 @@ The operator's workflow can be described in two different architectural models:
     It establishes the necessary integrations and secures essential details, including the Alertmanager HTTP URL.
 
     *In-Cluster Configuration Management:*
-    The operator directly applies configuration changes within the cluster, bypassing the need for `Syncsets`.
+    The operator directly applies configuration changes within the cluster, bypassing the need for `ManifestWork`.
     It ensures the Alertmanager's alert forwarding settings are correctly configured for seamless communication with Grafana OnCall. Additionally, it adds option for On call Heartbeat which acts as a monitoring for monitoring systems using Watchdog.
 
     *Local Secret Management:*

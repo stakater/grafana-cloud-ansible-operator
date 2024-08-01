@@ -143,15 +143,9 @@ spec:
           - list
           - watch
         - apiGroups:
-          - hive.openshift.io
+          - work.open-cluster-management.io
           resources:
-          - syncsets
-          verbs:
-          - '*'
-        - apiGroups:
-          - kubernetes.crossplane.io
-          resources:
-          - objects
+          - manifestworks
           verbs:
           - '*'
         - apiGroups:

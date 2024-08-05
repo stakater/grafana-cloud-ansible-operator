@@ -1,4 +1,8 @@
 # main.yml
+- name: Set default values
+  ansible.builtin.set_fact:
+    state: "{{ state | default('present') }}"
+
 - name: Include common tasks
   ansible.builtin.include_tasks: common_tasks.yml
 

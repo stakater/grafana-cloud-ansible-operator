@@ -37,17 +37,6 @@
     namespace: "{{ cr_namespace }}"
   register: current_config_cr
 
-- name: Update status with managedCluster field
-  operator_sdk.util.k8s_status:
-    api_version: grafanacloud.stakater.com/v1alpha1
-    kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
-    status:
-      conditions:
-        managedClusters: []
-  when: "'managedClusters' not in current_config_cr.resources[0].status"
-
 - name: Fetch ManagedCluster from all namespaces
   kubernetes.core.k8s_info:
     api_version: cluster.open-cluster-management.io/v1
@@ -133,6 +122,17 @@
       until: grafana_integration_response.status in [200, 201]
       failed_when: false
 
+    - name: Update status with managedCluster field
+      operator_sdk.util.k8s_status:
+        api_version: grafanacloud.stakater.com/v1alpha1
+        kind: Config
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+        status:
+          managedClusters: []
+      when: 
+        - "'managedClusters' not in current_config_cr.resources[0].status"
+        - create_integration_for | length == grafana_integration_response.results | length
     - name: Extract existing managed cluster names from current status
       ansible.builtin.set_fact:
         existing_managed_cluster_names: "{{ current_config_cr.resources[0].status.managedClusters | list | default([]) }}"

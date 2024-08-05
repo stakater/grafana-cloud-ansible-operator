@@ -64,12 +64,12 @@ The operator's workflow can be described in two different architectural models:
                 SC3[Spoke Cluster 3]
             end
 
-            subgraph "OpenClusterManagement"
+            subgraph "OpenClusterManagement (OCM)"
             CreateIntegration --> |Create Integration| GOHub
-            GOHub -->|Return: Endpoint| RHACM
-            RHACM --> |ManifestWork| SC1
-            RHACM --> |ManifestWork| SC2
-            RHACM --> |ManifestWork| SC3
+            GOHub -->|Return: Endpoint| RHACM/OCM
+            RHACM/OCM --> |ManifestWork| SC1
+            RHACM/OCM --> |ManifestWork| SC2
+            RHACM/OCM --> |ManifestWork| SC3
             end
             
         end
@@ -96,7 +96,7 @@ The operator's workflow can be described in two different architectural models:
     Through the `ManifestWork`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall. Additionally, it adds option for OnCall Heartbeat which acts as a monitoring for monitoring systems. It is utilizing Watchdog for our heartbeats.
 
     *Forwarding alerts to Slack*
-    Fetch Slack Info and Configure Slack, details how the operator additionally, configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
+    Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
     *Note: This feature utilizes [slack-operator](https://github.com/stakater/slack-operator) which is another one of our open source projects. Please head over there to find detailed information on that operator.*
 
 - **B. Standalone Cluster Model**
@@ -129,7 +129,8 @@ The operator's workflow can be described in two different architectural models:
         ConfigureSlack -->|API Call: Configure Slack| GO
         GO -->|Return: Endpoint| ConfigureSlack
         ConfigureSlack --> ModSecret
-        ModSecret --> PatchSecret
+        ModSecret --> Reencode
+        Reencode --> PatchSecret
         PatchSecret --> UpdateCR
     ```
 

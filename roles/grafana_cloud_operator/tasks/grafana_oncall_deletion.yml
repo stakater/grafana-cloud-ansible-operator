@@ -7,7 +7,7 @@
   when: gco_cr.spec.provisionMode == 'standalone'
 
 - name: Remove finalizer from CR
-  k8s:
+  kubernetes.core.k8s:
     definition:
       apiVersion: grafanacloud.stakater.com/v1alpha1
       kind: Config

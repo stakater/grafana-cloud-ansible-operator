@@ -24,8 +24,6 @@
     status:
       conditions:
         managedClusters: []
-  ansible.builtin.set_fact:
-    existing_managed_cluster_names: "{{ current_config_cr.resources[0].status.managedClusters | list | default([]) }}"
   when: "'managedClusters' not in current_config_cr.resources[0].status"
 
 - name: Update CR status to Initiated

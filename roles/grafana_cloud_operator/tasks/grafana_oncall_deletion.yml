@@ -14,3 +14,4 @@
       metadata:
         name: "{{ gco_cr.metadata.name }}"
         finalizers: []
+    state: present

@@ -29,11 +29,6 @@ spec:
               submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
-            properties:
-              finalizers:
-                items:
-                  type: string
-                type: array
             type: object
           spec:
             description: Spec defines the desired state of Config

@@ -13,5 +13,6 @@
       kind: Config
       metadata:
         name: "{{ gco_cr.metadata.name }}"
+        namespace: "{{ cr_namespace }}"
         finalizers: []
     state: present

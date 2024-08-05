@@ -33,11 +33,6 @@ spec:
               type: string
             metadata:
               type: object
-              properties:
-                finalizers:
-                  type: array
-                  items:
-                    type: string
             spec:
               description: Spec defines the desired state of Config
               type: object

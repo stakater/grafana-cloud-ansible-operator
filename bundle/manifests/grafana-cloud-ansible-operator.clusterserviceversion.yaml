@@ -28,7 +28,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    createdAt: "2024-08-05T06:50:38Z"
+    createdAt: "2024-08-05T09:54:25Z"
     operators.operatorframework.io/builder: operator-sdk-v1.31.0
     operators.operatorframework.io/project_layout: ansible.sdk.operatorframework.io/v1
   name: grafana-cloud-ansible-operator.v0.0.92

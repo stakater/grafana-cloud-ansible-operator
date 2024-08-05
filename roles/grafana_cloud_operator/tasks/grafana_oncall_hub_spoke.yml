@@ -15,17 +15,6 @@
           - "grafanacloud.stakater.com/config"
   when: "'grafanacloud.stakater.com/config' not in gco_cr.metadata.finalizers"
 
-- name: Update status with managedCluster field
-  operator_sdk.util.k8s_status:
-    api_version: grafanacloud.stakater.com/v1alpha1
-    kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
-    status:
-      conditions:
-        managedClusters: []
-  when: "'managedClusters' not in current_config_cr.resources[0].status"
-
 - name: Update CR status to Initiated
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
@@ -47,6 +36,17 @@
     name: "{{ cr_name }}"
     namespace: "{{ cr_namespace }}"
   register: current_config_cr
+
+- name: Update status with managedCluster field
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      conditions:
+        managedClusters: []
+  when: "'managedClusters' not in current_config_cr.resources[0].status"
 
 - name: Fetch ManagedCluster from all namespaces
   kubernetes.core.k8s_info:

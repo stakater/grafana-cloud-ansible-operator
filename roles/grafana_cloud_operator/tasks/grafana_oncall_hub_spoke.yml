@@ -130,7 +130,7 @@
         namespace: "{{ cr_namespace }}"
         status:
           managedClusters: []
-      when: 
+      when:
         - "'managedClusters' not in current_config_cr.resources[0].status"
         - create_integration_for | length == grafana_integration_response.results | length
 

@@ -199,29 +199,25 @@
           reason: "SyncSetsCreated"
           message: "SyncSets created for all ManagedClusters"
   when: >
-    (syncset_creation_results.results |
-    rejectattr('failed', 'equalto', true) |
-    list | length) == mapped_integrations |
-    length or
-    (object_creation_results.results |
+    manifestwork_creation_results |
     rejectattr('failed', 'equalto', true) |
     list | length) == mapped_integrations |
     length
 
 - name: Update CR status for SyncSet creation failure
-  operator_sdk.util.k8s_status:
-    api_version: grafanacloud.stakater.com/v1alpha1
-    kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
-    status:
-      conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
-          status: 'True'
-          type: "Failed"
-          reason: "SyncSetCreationFailed"
-          message: "Failed to create SyncSet for one or more ManagedClusters"
-  when: >
-    syncset_creation_results.results or
-    object_creation_results.results |
-    rejectattr('failed', 'equalto', false) | list | length > 0
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: Config
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+      status:
+        lastUpdated: "{{ ansible_date_time.iso8601 }}"
+        phase: "Failed"
+        reason: "SyncSetCreationFailed"
+        message: "Failed to create SyncSet for one or more ManagedClusters"
+    when: >
+      manifestwork_creation_results |
+      rejectattr('failed', 'equalto', false) | list | length > 0

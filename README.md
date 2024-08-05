@@ -106,32 +106,34 @@ The operator's workflow can be described in two different architectural models:
     ```mermaid
     graph TD
 
-        subgraph "OpenShift Standalone Cluster"
-            Init[Start: Operation Initiated]
-            GetClusterName[Retrieve Cluster Name]
-            CheckIntegration[Check Grafana Integration Existence]
-            CreateIntegration[Create Grafana OnCall Integration]
-            ModSecret[Include: modify_alertmanager_secret]
-            Reencode[Re-encode Alertmanager Content]
-            PatchSecret[Patch alertmanager-main Secret]
-            UpdateCR[Update CR Status to ConfigUpdated]
-            Init --> GetClusterName
-            GetClusterName --> CheckIntegration
-            CheckIntegration -- Integration doesn't exist --> CreateIntegration
-        end
+    subgraph "OpenShift Standalone Cluster"
+        Init[Start: Operation Initiated]
+        GetClusterName[Retrieve Cluster Name]
+        CheckIntegration[Check Grafana Integration Existence]
+        CreateIntegration[Create Grafana OnCall Integration]
+        ModSecret[Include: modify_alertmanager_secret]
+        Reencode[Re-encode Alertmanager Content]
+        PatchSecret[Patch alertmanager-main Secret]
+        UpdateCR[Update CR Status to ConfigUpdated]
 
-        subgraph "Grafana Cloud"
-            GO[Grafana OnCall]
-        end
-
+        Init --> GetClusterName
+        GetClusterName --> CheckIntegration
+        CheckIntegration -->|Integration doesn't exist| CreateIntegration
+        CheckIntegration -->|Integration exists| UpdateCR
         CreateIntegration --> FetchSlackInfo
         FetchSlackInfo --> ConfigureSlack
-        ConfigureSlack -->|API Call: Configure Slack| GO
-        GO -->|Return: Endpoint| ConfigureSlack
         ConfigureSlack --> ModSecret
         ModSecret --> Reencode
         Reencode --> PatchSecret
         PatchSecret --> UpdateCR
+    end
+
+    subgraph "Grafana Cloud"
+        GO[Grafana OnCall]
+    end
+
+    ConfigureSlack -->|API Call: Configure Slack| GO
+    GO -->|Return: Endpoint| ConfigureSlack
     ```
 
     *Operator Workflow in Standalone Cluster:*

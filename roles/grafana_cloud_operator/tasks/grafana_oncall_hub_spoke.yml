@@ -133,9 +133,7 @@
             managedClusters: []
       ansible.builtin.set_fact:
         existing_managed_cluster_names: "{{ current_config_cr.resources[0].status.managedClusters | list | default([]) }}"
-      when:
-        - "'managedClusters' not in current_config_cr.resources[0].status"
-        - create_integration_for | length == grafana_integration_response.results | length
+      when: "'managedClusters' not in current_config_cr.resources[0].status"
 
     - name: Extract existing managed cluster names from current status
       ansible.builtin.set_fact:

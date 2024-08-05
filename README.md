@@ -64,20 +64,12 @@ The operator's workflow can be described in two different architectural models:
                 SC3[Spoke Cluster 3]
             end
 
-            subgraph "Hive"
+            subgraph "OpenClusterManagement (OCM)"
             CreateIntegration --> |Create Integration| GOHub
-            GOHub -->|Return: Endpoint| HiveOperator
-            HiveOperator --> |SyncSet| SC1
-            HiveOperator --> |SyncSet| SC2
-            HiveOperator --> |SyncSet| SC3
-            end
-
-            subgraph "Crossplane"
-            CreateIntegration --> |Create Integration| GOHub
-            GOHub -->|Return: Endpoint| CrossplaneOperator
-            CrossplaneOperator --> |CrossplaneObject| SC1
-            CrossplaneOperator --> |CrossplaneObject| SC2
-            CrossplaneOperator --> |CrossplaneObject| SC3
+            GOHub -->|Return: Endpoint| RHACM/OCM
+            RHACM/OCM --> |ManifestWork| SC1
+            RHACM/OCM --> |ManifestWork| SC2
+            RHACM/OCM --> |ManifestWork| SC3
             end
             
         end
@@ -95,17 +87,13 @@ The operator's workflow can be described in two different architectural models:
     For each ManagedClusters identified, the operator communicates with the Grafana Cloud's API, initiating the integration process.
     This setup involves creating necessary configurations on Grafana Cloud and retrieving vital details such as the Alertmanager HTTP URL for each respective Spoke cluster.
 
-    *`Syncset` Synchronization:*
-    Utilizing `Syncset` resources from Hive, the operator ensures that alerting configurations are consistent across all Spoke clusters.
+    *`ManifestWork` Synchronization:*
+    Utilizing `ManifestWork` resources from open-cluster-management, the operator ensures that alerting configurations are consistent across all Spoke clusters.
     This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager and Utilizing Watchdog for heartbeats.
-
-    *`Crossplane Object` Synchronization:*
-    Utilizing `object` resources from Crossplane, the operator ensures that alerting configurations are consistent across all Spoke clusters.
-    This mechanism efficiently propagates configuration changes from the Hub to the Spokes, particularly for alert forwarding settings in Alertmanager and utilizing Watchdog for heartbeats.
 
     *Centralized Secret Management:*
     The operator centrally manages the `alertmanager-main-generated` secret for each Spoke cluster.
-    Through the `Syncset` and `Crossplane Object`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall. Additionally it adds option for OnCall Heartbeat which acts as a monitoring for monitoring systems. It is utilizing Watchdog for our heartbeats.
+    Through the `ManifestWork`, it disseminates the updated secret configurations, ensuring each Spoke cluster's Alertmanager can successfully forward alerts to Grafana OnCall. Additionally, it adds option for OnCall Heartbeat which acts as a monitoring for monitoring systems. It is utilizing Watchdog for our heartbeats.
 
     *Forwarding alerts to Slack*
     Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
@@ -118,31 +106,34 @@ The operator's workflow can be described in two different architectural models:
     ```mermaid
     graph TD
 
-        subgraph "OpenShift Standalone Cluster"
-            Init[Start: Operation Initiated]
-            GetClusterName[Retrieve Cluster Name]
-            CheckIntegration[Check Grafana Integration Existence]
-            CreateIntegration[Create Grafana OnCall Integration]
-            ModSecret[Include: modify_alertmanager_secret]
-            Reencode[Re-encode Alertmanager Content]
-            PatchSecret[Patch alertmanager-main Secret]
-            UpdateCR[Update CR Status to ConfigUpdated]
-            Init --> GetClusterName
-            GetClusterName --> CheckIntegration
-            CheckIntegration -- Integration doesn't exist --> CreateIntegration
-        end
+    subgraph "OpenShift Standalone Cluster"
+        Init[Start: Operation Initiated]
+        GetClusterName[Retrieve Cluster Name]
+        CheckIntegration[Check Grafana Integration Existence]
+        CreateIntegration[Create Grafana OnCall Integration]
+        ModSecret[Include: modify_alertmanager_secret]
+        Reencode[Re-encode Alertmanager Content]
+        PatchSecret[Patch alertmanager-main Secret]
+        UpdateCR[Update CR Status to ConfigUpdated]
 
-        subgraph "Grafana Cloud"
-            GO[Grafana OnCall]
-        end
-
+        Init --> GetClusterName
+        GetClusterName --> CheckIntegration
+        CheckIntegration -->|Integration doesn't exist| CreateIntegration
+        CheckIntegration -->|Integration exists| UpdateCR
         CreateIntegration --> FetchSlackInfo
         FetchSlackInfo --> ConfigureSlack
-        ConfigureSlack -->|API Call: Configure Slack| GO
-        GO -->|Return: Endpoint| ConfigureSlack
         ConfigureSlack --> ModSecret
-        ModSecret --> PatchSecret
+        ModSecret --> Reencode
+        Reencode --> PatchSecret
         PatchSecret --> UpdateCR
+    end
+
+    subgraph "Grafana Cloud"
+        GO[Grafana OnCall]
+    end
+
+    ConfigureSlack -->|API Call: Configure Slack| GO
+    GO -->|Return: Endpoint| ConfigureSlack
     ```
 
     *Operator Workflow in Standalone Cluster:*
@@ -153,7 +144,7 @@ The operator's workflow can be described in two different architectural models:
     It establishes the necessary integrations and secures essential details, including the Alertmanager HTTP URL.
 
     *In-Cluster Configuration Management:*
-    The operator directly applies configuration changes within the cluster, bypassing the need for `Syncsets`.
+    The operator directly applies configuration changes within the cluster, bypassing the need for `ManifestWork`.
     It ensures the Alertmanager's alert forwarding settings are correctly configured for seamless communication with Grafana OnCall. Additionally, it adds option for On call Heartbeat which acts as a monitoring for monitoring systems using Watchdog.
 
     *Local Secret Management:*
@@ -161,7 +152,7 @@ The operator's workflow can be described in two different architectural models:
     This update enables the Alertmanager within the standalone cluster to route alerts effectively to Grafana OnCall, completing the integration process.
 
     *Forwarding alerts to Slack*
-    Just like the hub-and-spoke model, Slack channel can be configured in Standalone mode by populating the `slackId` field , this additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
+    Just like the hub-and-spoke model, Slack channel can be configured in Standalone mode by populating the `slackId` field , this additionally, configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
     *Note: This feature utilizes [slack-operator](https://github.com/stakater/slack-operator) which is another one of our open source projects. Please head over there to find detailed information on that operator.*
 
 ### Prerequisites

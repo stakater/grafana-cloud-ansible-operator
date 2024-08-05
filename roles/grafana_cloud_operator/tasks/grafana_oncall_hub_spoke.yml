@@ -15,6 +15,19 @@
           - "grafanacloud.stakater.com/config"
   when: "'grafanacloud.stakater.com/config' not in gco_cr.metadata.finalizers"
 
+- name: Update status with managedCluster field
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      conditions:
+        managedClusters: []
+  ansible.builtin.set_fact:
+    existing_managed_cluster_names: "{{ current_config_cr.resources[0].status.managedClusters | list | default([]) }}"
+  when: "'managedClusters' not in current_config_cr.resources[0].status"
+
 - name: Update CR status to Initiated
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
@@ -121,19 +134,6 @@
       delay: 6
       until: grafana_integration_response.status in [200, 201]
       failed_when: false
-
-    - name: Update status with managedCluster field
-      operator_sdk.util.k8s_status:
-        api_version: grafanacloud.stakater.com/v1alpha1
-        kind: Config
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
-        status:
-          conditions:
-            managedClusters: []
-      ansible.builtin.set_fact:
-        existing_managed_cluster_names: "{{ current_config_cr.resources[0].status.managedClusters | list | default([]) }}"
-      when: "'managedClusters' not in current_config_cr.resources[0].status"
 
     - name: Extract existing managed cluster names from current status
       ansible.builtin.set_fact:

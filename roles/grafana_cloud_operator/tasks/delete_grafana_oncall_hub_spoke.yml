@@ -88,7 +88,7 @@
   when: delete_integration_for
   failed_when: false
 
-- name: Update CR status to IntegrationsDeleted
+- name: Update CR status for Integrations Deleted
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
@@ -108,7 +108,7 @@
   ansible.builtin.set_fact:
     encoded_alertmanager_secret_content: "{{ {} | to_nice_yaml | b64encode }}"
 
-- name: Create a new ManifestWork for each cluster to patch alertmanager-main secret
+- name: Empty ManifestWork for each cluster to patch alertmanager-main secret
   kubernetes.core.k8s:
     state: present
     definition:

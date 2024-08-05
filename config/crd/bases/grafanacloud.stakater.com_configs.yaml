@@ -17,6 +17,7 @@ spec:
       schema:
         openAPIV3Schema:
           description: Config is the Schema for the configs API
+          type: object
           properties:
             apiVersion:
               description: 'APIVersion defines the versioned schema of this representation
@@ -32,6 +33,11 @@ spec:
               type: string
             metadata:
               type: object
+              properties:
+                finalizers:
+                  type: array
+                  items:
+                    type: string
             spec:
               description: Spec defines the desired state of Config
               type: object
@@ -99,7 +105,6 @@ spec:
                   type: string
                   description: Detailed message about the current state
               x-kubernetes-preserve-unknown-fields: true
-          type: object
       served: true
       storage: true
       subresources:

@@ -1,0 +1,3 @@
+- name: Debug Finalizer for standalone
+  ansible.builtin.debug:
+    msg: "Finalizer Test: deletion called for standalone"

@@ -1,0 +1,16 @@
+- name: Delete resources for hub and spoke topology
+  ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml
+  when: gco_cr.spec.provisionMode == 'hubAndSpoke'
+
+- name: Delete resources for standalone topology
+  ansible.builtin.include_tasks: delete_grafana_oncall_standalone.yml
+  when: gco_cr.spec.provisionMode == 'standalone'
+
+- name: Remove finalizer from CR
+  k8s:
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: Config
+      metadata:
+        name: "{{ gco_cr.metadata.name }}"
+        finalizers: []

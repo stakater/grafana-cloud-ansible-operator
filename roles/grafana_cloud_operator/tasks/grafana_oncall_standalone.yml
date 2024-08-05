@@ -2,6 +2,19 @@
   ansible.builtin.debug:
     msg: "Started processing standalone tasks"
 
+- name: Add finalizer to the CR
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: grafanacloud.stakater.com/v1alpha1
+      kind: Config
+      metadata:
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+        finalizers:
+          - "grafanacloud.stakater.com/config"
+  when: "'grafanacloud.stakater.com/config' not in gco_cr.metadata.finalizers"
+
 - name: Update CR status to Initiated
   kubernetes.core.k8s:
     state: present

@@ -4,3 +4,7 @@
   kind: Config
   role: grafana_cloud_operator
   reconcilePeriod: 5m
+  finalizer:
+    name: grafanacloud.stakater.com/config
+    vars:
+      state: absent

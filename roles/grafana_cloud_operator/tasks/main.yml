@@ -4,8 +4,12 @@
 
 - name: Execute tasks for hub and spoke topology
   ansible.builtin.include_tasks: grafana_oncall_hub_spoke.yml
-  when: gco_cr.spec.provisionMode == 'hubAndSpoke'
+  when: gco_cr.spec.provisionMode == 'hubAndSpoke' and state != 'absent'
 
 - name: Execute tasks for standalone topology
   ansible.builtin.include_tasks: grafana_oncall_standalone.yml
-  when: gco_cr.spec.provisionMode == 'standalone'
+  when: gco_cr.spec.provisionMode == 'standalone' and state != 'absent'
+
+- name: Execute deletion tasks
+  ansible.builtin.include_tasks: grafana_oncall_deletion.yml
+  when: state == 'absent'

@@ -5,3 +5,7 @@
   role: grafana_cloud_operator
   reconcilePeriod: 5m
   manageStatus: false
+  finalizer:
+    name: grafanacloud.stakater.com/config
+    vars:
+      state: absent

@@ -106,98 +106,51 @@
 
 - name: Decode and modify alertmanager secret configuration
   ansible.builtin.set_fact:
-    modified_alertmanager_secret_content: "{{ {} | to_nice_yaml | b64encode }}"
+    encoded_alertmanager_secret_content: "{{ {} | to_nice_yaml | b64encode }}"
 
-- name: Patch alertmanager-main secret for cluster
+- name: Create a new ManifestWork for each cluster to patch alertmanager-main secret
   kubernetes.core.k8s:
     state: present
-    namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
     definition:
-      apiVersion: v1
-      kind: Secret
+      apiVersion: work.open-cluster-management.io/v1
+      kind: ManifestWork
       metadata:
-        name: "{{ grafana_cloud_operator_alertmanager_secret_name }}"
-        namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
-      data:
-        alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
-  when: not integration_exists_for_cluster
-
-- name: Update syncset with no data for each cluster to patch alertmanager-main secret
-  kubernetes.core.k8s:
-    state: present
-    namespace: hive
-    definition:
-      apiVersion: hive.openshift.io/v1
-      kind: SyncSet
-      metadata:
-        name: "{{ item.grafana_details.name }}-syncset-grafana-oncall"
-        namespace: "{{ item.cluster.name }}"
+        name: "{{ item.grafana_details.name }}-manifestwork-grafana-oncall"
+        namespace: "{{ item.grafana_details.name }}"
       spec:
-        clusterDeploymentRefs:
-          - name: "{{ item.grafana_details.name }}"
-        patches:
-          - apiVersion: v1
-            kind: Secret
-            name: "{{ grafana_cloud_operator_alertmanager_secret_name }}"
-            namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
-            patchType: merge
-            patch: |
+        workload:
+          manifests:
+            - apiVersion: v1
+              kind: Secret
+              metadata:
+                name: alertmanager-main
+                namespace: openshift-monitoring
               data:
                 alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
+  loop: "{{ integrations_to_delete }}"
+  loop_control:
+    label: "{{ item }}"
   when:
     - delete_integration_for | length > 0
+  register: manifestwork_deletion_results
 
 - name: Update Object with no data for each cluster to patch alertmanager-main secret
   kubernetes.core.k8s:
-    state: present
+    state: absent
     definition:
-      apiVersion: kubernetes.crossplane.io/v1alpha2
-      kind: Object
+      apiVersion: work.open-cluster-management.io/v1
+      kind: ManifestWork
       metadata:
-        name: "{{ receiver_item.grafana_details.namename }}-alertmanager-main-secret"
+        name: "{{ item.grafana_details.name }}-manifestwork-grafana-oncall"
+        namespace: "{{ item.grafana_details.name }}"
       spec:
-        deletionPolicy: Delete
-        forProvider:
-          manifest:
-            apiVersion: v1
-            data:
-              alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
-            kind: Secret
-            metadata:
-              name: alertmanager-main
-              namespace: openshift-monitoring
-        managementPolicies:
-          - '*'
-        providerConfigRef:
-          # Composed resource created by HyperShiftHostedCluster
-          name: "{{ receiver_name }}"
-        readiness:
-          policy: SuccessfulCreate
+        workload:
+          manifests:
+            - apiVersion: v1
+              kind: Secret
+              metadata:
+                name: alertmanager-main
+                namespace: openshift-monitoring
   when:
     - delete_integration_for | length > 0
-
-- name: Update syncset with no data for each cluster to patch alertmanager-main secret
-  kubernetes.core.k8s:
-    state: absent
-    namespace: hive
-    definition:
-      apiVersion: hive.openshift.io/v1
-      kind: SyncSet
-      metadata:
-        name: "{{ item.grafana_details.name }}-syncset-grafana-oncall"
-        namespace: "{{ item.cluster.name }}"
-  when:
-    - delete_integration_for | length > 0
-  register: syncset_removal_results
-
-- name: Update Object with no data for each cluster to patch alertmanager-main secret
-  kubernetes.core.k8s:
-    state: absent
-    definition:
-      apiVersion: kubernetes.crossplane.io/v1alpha2
-      kind: Object
-      metadata:
-        name: "{{ receiver_item.grafana_details.namename }}-alertmanager-main-secret"
-  when:
-    - delete_integration_for | length > 0
-  register: syncset_creation_results
+  register: manifestwork_deletion_results

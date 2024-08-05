@@ -115,8 +115,8 @@
       apiVersion: work.open-cluster-management.io/v1
       kind: ManifestWork
       metadata:
-        name: "{{ item.grafana_details.name }}-manifestwork-grafana-oncall"
-        namespace: "{{ item.grafana_details.name }}"
+        name: "{{ item.name }}-manifestwork-grafana-oncall"
+        namespace: "{{ item.name }}"
       spec:
         workload:
           manifests:
@@ -141,8 +141,8 @@
       apiVersion: work.open-cluster-management.io/v1
       kind: ManifestWork
       metadata:
-        name: "{{ item.grafana_details.name }}-manifestwork-grafana-oncall"
-        namespace: "{{ item.grafana_details.name }}"
+        name: "{{ item.name }}-manifestwork-grafana-oncall"
+        namespace: "{{ item.name }}"
       spec:
         workload:
           manifests:

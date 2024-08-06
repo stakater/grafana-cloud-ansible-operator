@@ -1,6 +1,6 @@
 - name: Debug at the start of deletion
   ansible.builtin.debug:
-    msg: "Started processing deletion tasks"
+    msg: "Started processing deletion tasks for standalone"
 
 - name: Update CR status to DeletionInitiated
   operator_sdk.util.k8s_status:
@@ -19,10 +19,6 @@
     kind: IngressController
     api_version: operator.openshift.io/v1
   register: ingress_controller_info
-
-- name: Display the integration names
-  ansible.builtin.debug:
-    msg: "{{ existing_integration_names }}"
 
 - name: Update hostname
   ansible.builtin.set_fact:
@@ -49,10 +45,6 @@
   register: grafana_integration_response
   failed_when: false
 
-- name: Display the integrations
-  ansible.builtin.debug:
-    msg: "{{ grafana_integration_response.json.results }}"
-
 - name: Find Grafana Integration ID for the Cluster
   ansible.builtin.set_fact:
     integration_id: >-
@@ -61,10 +53,6 @@
         if (grafana_integration_response.json.results | selectattr('name', 'eq', cluster_name) | list)
         else None
       }}
-
-- name: Display the Integration ID
-  ansible.builtin.debug:
-    msg: "The integration ID for cluster {{ cluster_name }} is {{ integration_id }}"
 
 - name: Delete the Integration
   ansible.builtin.uri:

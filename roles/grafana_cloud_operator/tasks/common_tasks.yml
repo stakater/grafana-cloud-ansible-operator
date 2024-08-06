@@ -53,6 +53,14 @@
           reason: "CRRetrieved"
           message: "Config CR retrieved"
 
+- name: Fetch current status of Config CR
+  kubernetes.core.k8s_info:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+  register: config_cr
+
 - name: Fetch ManagedCluster from all namespaces
   kubernetes.core.k8s_info:
     api_version: cluster.open-cluster-management.io/v1

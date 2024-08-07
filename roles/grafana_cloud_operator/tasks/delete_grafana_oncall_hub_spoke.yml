@@ -1,0 +1,152 @@
+- name: Debug at the start of hub spoke
+  ansible.builtin.debug:
+    msg: "Started processing deletion of hub spoke tasks"
+
+- name: Update CR status to DeletionInitiated
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      conditions:
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          status: "True"
+          type: "DeletionInitiated"
+          reason: "OperationStarted"
+          message: "Operation to delete Grafana OnCall integration for hubAndSpoke started"
+
+- name: Fetch ManagedCluster CRs
+  kubernetes.core.k8s_info:
+    api_version: cluster.open-cluster-management.io/v1
+    kind: ManagedCluster
+  register: managed_clusters_raw
+
+- name: Extract list of ManagedCluster CRs
+  ansible.builtin.set_fact:
+    managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name}] }}"
+  loop: "{{ managed_clusters_raw.resources }}"
+  loop_control:
+    loop_var: item
+
+- name: Determine which ManagedCluster CR doesn't have integrations
+  ansible.builtin.set_fact:
+    create_integration_for: "{{ managed_clusters | rejectattr('name', 'in', existing_integration_names) | list }}"
+
+- name: Fetch current status of Config CR
+  kubernetes.core.k8s_info:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+  register: config_cr
+
+- name: Set current ManagedCluster status
+  ansible.builtin.set_fact:
+    previous_managed_clusters: "{{ config_cr.resources[0].status.managed_clusters | default([]) }}"
+
+- name: Extract current ManagedCluster names
+  ansible.builtin.set_fact:
+    current_managed_clusters: "{{ managed_clusters | map(attribute='name') | list }}"
+
+- name: Determine integrations to delete in Grafana Cloud
+  ansible.builtin.set_fact:
+    delete_integration_for: "{{ previous_managed_clusters | difference(current_managed_clusters) }}"
+
+- name: Extract integration details from the response
+  ansible.builtin.set_fact:
+    grafana_integrations: "{{ existing_integrations_response.json.results }}"
+
+- name: Find Grafana Integration IDs for the Integrations to Delete
+  ansible.builtin.set_fact:
+    integrations_to_delete: "{{ integrations_to_delete | default([]) + [{'name': item, 'integration_id': integration_id}] }}"
+  loop: "{{ delete_integration_for }}"
+  vars:
+    integration_id: >-
+      {{
+        grafana_integrations | selectattr('name', 'eq', item) | map(attribute='id') | first | default(None)
+      }}
+  when: integration_id is not none
+
+- name: Delete integrations from Grafana Cloud for deleted ManagedClusters
+  ansible.builtin.uri:
+    url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}{{ item.integration_id }}"
+    method: DELETE
+    headers:
+      Authorization: "{{ grafana_cloud_api_token }}"
+      Content-Type: "application/json"
+    status_code: [200, 201]
+  loop: "{{ integrations_to_delete }}"
+  loop_control:
+    label: "{{ item }}"
+  retries: 5
+  delay: 6
+  when: delete_integration_for
+  failed_when: false
+
+- name: Update CR status for IntegrationsDeleted
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      managed_clusters: "{{ current_managed_clusters }}"
+      conditions:
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          status: "True"
+          type: "DeletionCompleted"
+          reason: "OperationDone"
+          message: "Deleted the integrations {{ delete_integration_for }}"
+  when: delete_integration_for
+
+- name: Decode and modify alertmanager secret configuration
+  ansible.builtin.set_fact:
+    encoded_alertmanager_secret_content: "{{ {} | to_nice_yaml | b64encode }}"
+
+- name: Update ManifestWork for each cluster to patch empty alertmanager-main secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: work.open-cluster-management.io/v1
+      kind: ManifestWork
+      metadata:
+        name: "{{ item.name }}-manifestwork-grafana-oncall"
+        namespace: "{{ item.name }}"
+      spec:
+        workload:
+          manifests:
+            - apiVersion: v1
+              kind: Secret
+              metadata:
+                name: alertmanager-main
+                namespace: openshift-monitoring
+              data:
+                alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
+  loop: "{{ integrations_to_delete }}"
+  loop_control:
+    label: "{{ item }}"
+  when:
+    - delete_integration_for | length > 0
+  register: manifestwork_deletion_results
+
+- name: Remove ManifestWork CR from cluster
+  kubernetes.core.k8s:
+    state: absent
+    definition:
+      apiVersion: work.open-cluster-management.io/v1
+      kind: ManifestWork
+      metadata:
+        name: "{{ item.name }}-manifestwork-grafana-oncall"
+        namespace: "{{ item.name }}"
+      spec:
+        workload:
+          manifests:
+            - apiVersion: v1
+              kind: Secret
+              metadata:
+                name: alertmanager-main
+                namespace: openshift-monitoring
+  when:
+    - delete_integration_for | length > 0
+  register: manifestwork_deletion_results

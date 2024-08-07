@@ -1,0 +1,97 @@
+- name: Debug at the start of deletion
+  ansible.builtin.debug:
+    msg: "Started processing deletion tasks for standalone"
+
+- name: Update CR status to DeletionInitiated
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      lastUpdated: "{{ ansible_date_time.iso8601 }}"
+      phase: "DeletionInitiated"
+      reason: "OperationStarted"
+      message: "Operation to delete Grafana OnCall integration started"
+
+- name: Get the Cluster's name
+  kubernetes.core.k8s_info:
+    kind: IngressController
+    api_version: operator.openshift.io/v1
+  register: ingress_controller_info
+
+- name: Update hostname
+  ansible.builtin.set_fact:
+    cluster_name: "{{ ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+(?=\\.)') }}"
+
+- name: Determine if integration exists for the cluster
+  ansible.builtin.set_fact:
+    integration_exists_for_cluster: "{{ cluster_name in existing_integration_names }}"
+
+- name: Display the integration exist for cluster
+  ansible.builtin.debug:
+    msg: "{{ integration_exists_for_cluster }}"
+
+- name: List integrations and regsiter it
+  ansible.builtin.uri:
+    url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
+    method: GET
+    return_content: true
+    headers:
+      Authorization: "{{ grafana_cloud_api_token }}"
+      Content-Type: "application/json"
+    status_code: [200, 201]
+  when: integration_exists_for_cluster
+  register: grafana_integration_response
+  failed_when: false
+
+- name: Find Grafana Integration ID for the Cluster
+  ansible.builtin.set_fact:
+    integration_id: >-
+      {{
+        (grafana_integration_response.json.results | selectattr('name', 'eq', cluster_name) | list)[0].id
+        if (grafana_integration_response.json.results | selectattr('name', 'eq', cluster_name) | list)
+        else None
+      }}
+
+- name: Delete the Integration
+  ansible.builtin.uri:
+    url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}{{ integration_id }}"
+    method: DELETE
+    headers:
+      Authorization: "{{ grafana_cloud_api_token }}"
+      Content-Type: "application/json"
+    status_code: [200, 201]
+  when: integration_exists_for_cluster
+  register: grafana_integration_response
+  failed_when: false
+
+- name: Decode and modify alertmanager secret configuration
+  ansible.builtin.set_fact:
+    modified_alertmanager_secret_content: "{{ {} | to_nice_yaml | b64encode }}"
+
+- name: Patch alertmanager-main secret for cluster
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ grafana_cloud_operator_alertmanager_secret_name }}"
+        namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
+      data:
+        alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
+  when: not integration_exists_for_cluster
+
+- name: Update CR status to DeletionCompleted
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      lastUpdated: "{{ ansible_date_time.iso8601 }}"
+      phase: "Successful"
+      reason: "IntegrationDeleted"
+      message: "Deleted integration for cluster {{ cluster_name }}"

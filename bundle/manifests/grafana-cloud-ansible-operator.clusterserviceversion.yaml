@@ -160,12 +160,6 @@ spec:
           - update
           - watch
         - apiGroups:
-          - monitoring.coreos.com
-          resources:
-          - prometheusrules
-          verbs:
-          - '*'
-        - apiGroups:
           - ""
           resources:
           - secrets

@@ -104,7 +104,7 @@
   ansible.builtin.set_fact:
     encoded_alertmanager_secret_content: "{{ {} | to_nice_yaml | b64encode }}"
 
-- name: Update ManifestWork for each cluster to patch epmty alertmanager-main secret
+- name: Update ManifestWork for each cluster to patch empty alertmanager-main secret
   kubernetes.core.k8s:
     state: present
     definition:

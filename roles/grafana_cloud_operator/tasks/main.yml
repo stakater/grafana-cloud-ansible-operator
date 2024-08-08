@@ -14,6 +14,10 @@
   ansible.builtin.include_tasks: grafana_oncall_standalone.yml
   when: gco_cr.spec.provisionMode == 'standalone' and state != 'absent'
 
+- name: Install SLO Dashboard
+  ansible.builtin.include_tasks: grafana_slo.yml
+  when: gco_cr.spec.provisionMode == 'hubAndSpoke' and state != 'absent'
+
 - name: Execute deletion tasks
   ansible.builtin.include_tasks: grafana_oncall_delete.yml
   when: state == 'absent'

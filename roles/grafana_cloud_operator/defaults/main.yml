@@ -23,3 +23,20 @@ grafana_cloud_operator_alertmanager_secret_name: alertmanager-main
 
 # SyncSet details
 grafana_cloud_operator_syncset_namespace: grafana-cloud-operator
+
+
+## SLO Dashboard
+
+# URL of the Grafana Cloud dashboard API
+slo_grafana_cloud_api: https://grafanacloudpocroot.grafana.net/api
+# Token with permissions to interact with Grafana Cloud Dashboard
+slo_grafana_token:
+# The URL of the endpoint to send samples to
+slo_remote_write_url: https://prometheus-prod-24-prod-eu-west-2.grafana.net/api/prom/push
+# Username for authentication when sending data to the remote endpoint
+slo_remote_write_username:
+# Password for authentication when sending data to the remote endpoint
+slo_remote_write_password:
+slo_customer_name: customer
+slo_namespace: monitoring
+slo_release_name: slo

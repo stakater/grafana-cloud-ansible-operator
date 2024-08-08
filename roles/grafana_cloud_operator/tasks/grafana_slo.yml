@@ -1,0 +1,117 @@
+- name: Get all folders in Grafana Cloud
+  ansible.builtin.uri:
+    url: "{{ slo_grafana_cloud_api }}/folders"
+    method: GET
+    body_format: json
+    headers:
+      Authorization: "Bearer {{ slo_grafana_token }}"
+    status_code: 200
+  register: grafana_cloud_folders
+  ignore_errors: true
+
+- name: Set the fact if the folder exists
+  ansible.builtin.set_fact:
+    folder_uid: "{{ item.uid }}"
+  when: item.title == slo_customer_name
+  with_items:
+    - "{{ grafana_cloud_folders.json }}"
+
+- name: Create Folder in Grafana Cloud
+  ansible.builtin.uri:
+    url: "{{ slo_grafana_cloud_api }}/folders"
+    method: POST
+    body:
+      title: "{{ slo_customer_name }}"
+    body_format: json
+    headers:
+      Authorization: "Bearer {{ slo_grafana_token }}"
+    status_code: 200
+  register: grafana_cloud_folder
+  when: folder_uid is not defined
+
+- name: Get Secret from openshift-ingress
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    namespace: openshift-ingress
+    name: router-stats-default
+    wait: true
+  register: secrets
+
+- name: Create Secret for Remote Write
+  kubernetes.core.k8s:
+    namespace: "{{ slo_namespace }}"
+    name: credentials
+    definition:
+      apiVersion: v1
+      kind: Secret
+      data:
+        remote_password: "{{ slo_remote_write_password | b64encode }}"
+        remote_username: "{{ slo_remote_write_username | b64encode }}"
+        statsPassword: "{{ secrets.resources[0].data.statsPassword }}"
+        statsUsername: "{{ secrets.resources[0].data.statsUsername }}"
+        slo_remote_write_url: "{{ slo_remote_write_url | b64encode }}"
+    apply: true
+
+- name: Deploy Prometheus chart
+  kubernetes.core.helm:
+    name: "{{ slo_release_name }}"
+    chart_ref: oci://ghcr.io/stakater/saap-catalog/charts/prometheus
+    chart_version: 1.0.15
+    update_repo_cache: true
+    release_namespace: "{{ slo_namespace }}"
+    values: "{{ lookup('template', 'prometheus-values.yaml') | from_yaml }}"
+
+- name: Deploy Kuberhealthy chart
+  kubernetes.core.helm:
+    name: "{{ slo_release_name }}-kuberhealthy"
+    chart_ref: oci://ghcr.io/stakater/saap-catalog/charts/kuberhealthy
+    chart_version: 1.0.1
+    wait: false
+    update_repo_cache: true
+    release_namespace: "{{ slo_namespace }}"
+    values: "{{ lookup('template', 'kuberhealthy-values.yaml') | from_yaml }}"
+
+- name: Deploy Dashboard Chart
+  kubernetes.core.helm:
+    name: "{{ slo_release_name }}-dashboard"
+    chart_ref: oci://ghcr.io/stakater/charts/slo-observability
+    chart_version: 0.0.9
+    update_repo_cache: true
+    release_namespace: "{{ slo_namespace }}"
+    values: "{{ lookup('template', 'slo-observability-values.yaml') | from_yaml }}"
+
+
+- name: Get Dashboard JSON
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: ConfigMap
+    namespace: "{{ slo_namespace }}"
+    name: slo-observability-dashboard
+    wait: true
+  register: dashboard
+
+- name: Update Dashboard to Grafana Cloud
+  ansible.builtin.uri:
+    url: "{{ slo_grafana_cloud_api }}/dashboards/db"
+    method: POST
+    body: "{{ dashboard.resources[0].data['slo.json'] | from_json }}"
+    body_format: json
+    headers:
+      Authorization: "Bearer {{ slo_grafana_token }}"
+    status_code: 200
+  register: dashboard_uid
+
+- name: Create configmap for storing data
+  kubernetes.core.k8s:
+    namespace: "{{ slo_namespace }}"
+    name: slo-cm
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      data:
+        dashboard_uid: "{{ dashboard_uid.json.uid }}"
+        folder_uid: "{{ grafana_cloud_folder.json.uid | default(folder_uid) }}"
+        customer_name: "{{ slo_customer_name }}"
+        slo_customer_name: "{{ slo_customer_name }}"
+    apply: true

@@ -106,6 +106,14 @@
     namespace: "{{ cr_namespace }}"
   register: grafana_api_secret
 
+- name: Get Grafana API token from the secret
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: "{{ gco_cr.spec.sloDashboardAPIToken.secretName }}"
+    namespace: "{{ cr_namespace }}"
+  register: slo_dashboard_api_secret
+
 - name: Decode key
   ansible.builtin.set_fact:
     grafana_cloud_api_token: "{{ grafana_api_secret.resources[0].data[gco_cr.spec.grafanaAPIToken.key] | b64decode }}"

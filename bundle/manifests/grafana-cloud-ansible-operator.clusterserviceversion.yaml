@@ -23,6 +23,10 @@ metadata:
               "key": "api-token",
               "secretName": "grafana-api-token-secret"
             },
+            "sloDashboardAPIToken": {
+              "key": "api-token",
+              "secretName": "slo-Dashboard-api-token-secret"
+            },
             "provisionMode": "standalone"
           }
         }

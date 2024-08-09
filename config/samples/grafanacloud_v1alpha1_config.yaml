@@ -14,3 +14,6 @@ spec:
   grafanaAPIToken:
     secretName: grafana-api-token-secret
     key: api-token
+  sloDashboardAPIToken:
+    secretName: slo-dashboard-api-token-secret
+    key: api-token

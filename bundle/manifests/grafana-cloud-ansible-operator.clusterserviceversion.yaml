@@ -25,7 +25,7 @@ metadata:
             },
             "sloDashboardAPIToken": {
               "key": "api-token",
-              "secretName": "slo-Dashboard-api-token-secret"
+              "secretName": "slo-dashboard-api-token-secret"
             },
             "provisionMode": "standalone"
           }

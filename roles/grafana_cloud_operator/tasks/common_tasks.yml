@@ -110,7 +110,7 @@
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Secret
-    name: "{{ gco_cr.spec.sloDashboardAPIToken.secretName }}"
+    name: "slo-dashboard-api-token-secret"
     namespace: "{{ cr_namespace }}"
   register: slo_dashboard_api_secret
 

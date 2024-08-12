@@ -4,7 +4,7 @@
     method: GET
     body_format: json
     headers:
-      Authorization: "Bearer {{ grafana_cloud_operator_slo_grafana_token }}"
+      Authorization: "Bearer {{ slo_dashboard_api_token }}"
     status_code: 200
   register: grafana_cloud_folders
   ignore_errors: true
@@ -24,7 +24,7 @@
       title: "{{ grafana_cloud_operator_slo_customer_name }}"
     body_format: json
     headers:
-      Authorization: "Bearer {{ grafana_cloud_operator_slo_grafana_token }}"
+      Authorization: "Bearer {{ slo_dashboard_api_token }}"
     status_code: 200
   register: grafana_cloud_folder
   when: folder_uid is not defined
@@ -40,7 +40,7 @@
 
 - name: Create Secret for Remote Write
   kubernetes.core.k8s:
-    namespace: "{{ grafana_cloud_operator_slo_namespace }}"
+    namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
     name: credentials
     definition:
       apiVersion: v1
@@ -53,40 +53,20 @@
         grafana_cloud_operator_slo_remote_write_url: "{{ grafana_cloud_operator_slo_remote_write_url | b64encode }}"
     apply: true
 
-- name: Deploy Prometheus chart
-  kubernetes.core.helm:
-    name: "{{ grafana_cloud_operator_slo_release_name }}"
-    chart_ref: oci://ghcr.io/stakater/saap-catalog/charts/prometheus
-    chart_version: 1.0.15
-    update_repo_cache: true
-    release_namespace: "{{ grafana_cloud_operator_slo_namespace }}"
-    values: "{{ lookup('template', 'prometheus-values.yaml') | from_yaml }}"
-
-- name: Deploy Kuberhealthy chart
-  kubernetes.core.helm:
-    name: "{{ grafana_cloud_operator_slo_release_name }}-kuberhealthy"
-    chart_ref: oci://ghcr.io/stakater/saap-catalog/charts/kuberhealthy
-    chart_version: 1.0.1
-    wait: false
-    update_repo_cache: true
-    release_namespace: "{{ grafana_cloud_operator_slo_namespace }}"
-    values: "{{ lookup('template', 'kuberhealthy-values.yaml') | from_yaml }}"
-
 - name: Deploy Dashboard Chart
   kubernetes.core.helm:
     name: "{{ grafana_cloud_operator_slo_release_name }}-dashboard"
     chart_ref: oci://ghcr.io/stakater/charts/slo-observability
     chart_version: 0.0.9
     update_repo_cache: true
-    release_namespace: "{{ grafana_cloud_operator_slo_namespace }}"
+    release_namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
     values: "{{ lookup('template', 'slo-observability-values.yaml') | from_yaml }}"
-
 
 - name: Get Dashboard JSON
   kubernetes.core.k8s_info:
     api_version: v1
     kind: ConfigMap
-    namespace: "{{ grafana_cloud_operator_slo_namespace }}"
+    namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
     name: slo-observability-dashboard
     wait: true
   register: dashboard
@@ -98,13 +78,13 @@
     body: "{{ dashboard.resources[0].data['slo.json'] | from_json }}"
     body_format: json
     headers:
-      Authorization: "Bearer {{ grafana_cloud_operator_slo_grafana_token }}"
+      Authorization: "Bearer {{ slo_dashboard_api_token }}"
     status_code: 200
   register: dashboard_uid
 
 - name: Create configmap for storing data
   kubernetes.core.k8s:
-    namespace: "{{ grafana_cloud_operator_slo_namespace }}"
+    namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
     name: slo-cm
     definition:
       apiVersion: v1

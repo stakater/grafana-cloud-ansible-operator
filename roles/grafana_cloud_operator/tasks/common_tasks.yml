@@ -124,7 +124,7 @@
 
 - name: Debug at the start of hub spoke
   ansible.builtin.debug:
-    var: {{ slo_dashboard_api_token }}
+    var: "{{ slo_dashboard_api_token }}"
 
 - name: Fetch SlackId
   ansible.builtin.set_fact:

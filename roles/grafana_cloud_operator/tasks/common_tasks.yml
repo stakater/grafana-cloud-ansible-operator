@@ -122,6 +122,10 @@
   ansible.builtin.set_fact:
     slo_dashboard_api_token: "{{ slo_dashboard_api_secret.resources[0].data[gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}"
 
+- name: Debug at the start of hub spoke
+  ansible.builtin.debug:
+    var: {{ slo_dashboard_api_token }}
+
 - name: Fetch SlackId
   ansible.builtin.set_fact:
     slack_id: "{{ gco_cr.spec.slackId | default('') }}"

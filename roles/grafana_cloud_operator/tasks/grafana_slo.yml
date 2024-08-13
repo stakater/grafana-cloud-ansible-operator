@@ -3,6 +3,7 @@
     url: "{{ grafana_cloud_operator_slo_cloud_api }}/folders"
     method: GET
     return_content: true
+    body_format: json
     headers:
       Authorization: "{{ slo_dashboard_api_token }}"
       Content-Type: "application/json"

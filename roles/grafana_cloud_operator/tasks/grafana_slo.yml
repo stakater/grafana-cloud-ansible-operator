@@ -1,11 +1,10 @@
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
-    url: "{{ grafana_cloud_operator_slo_cloud_api }}/folders"
+    url: "{{ slo_grafana_cloud_api }}/folders"
     method: GET
-    return_content: true
     body_format: json
     headers:
-      Authorization: "{{ slo_dashboard_api_token }}"
+      Authorization: "Bearer {{ slo_grafana_token }}"
     status_code: 200
   register: grafana_cloud_folders
   ignore_errors: true

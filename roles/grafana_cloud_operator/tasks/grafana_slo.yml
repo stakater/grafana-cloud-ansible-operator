@@ -2,10 +2,10 @@
   ansible.builtin.uri:
     url: "{{ grafana_cloud_operator_slo_cloud_api }}/folders"
     method: GET
-    body_format: json
     headers:
       Authorization: "Bearer {{ slo_dashboard_api_token }}"
-    status_code: 200
+      Content-Type: "application/json"
+    return_content: true
   register: grafana_cloud_folders
 
 - name: Set the fact if the folder exists

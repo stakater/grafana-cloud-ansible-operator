@@ -2,13 +2,17 @@
   ansible.builtin.debug:
     msg: "API Token starts with: {{ slo_dashboard_api_token }}"
 
+- name: Encode Authorization header
+  set_fact:
+    auth_header: "{{ 'Bearer ' + slo_dashboard_api_token | b64encode }}"
+
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
     url: "{{ grafana_cloud_operator_slo_cloud_api }}/folders"
     method: GET
     body_format: json
     headers:
-      Authorization: "{{ 'Bearer ' + slo_dashboard_api_token }}"
+      Authorization: "{{ auth_header }}"
       Content-Type: "application/json"
     status_code: 200
     return_content: true

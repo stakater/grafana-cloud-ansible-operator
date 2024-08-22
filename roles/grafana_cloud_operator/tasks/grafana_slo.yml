@@ -1,3 +1,7 @@
+- name: Debug API token
+  debug:
+    msg: "API Token starts with: {{ slo_dashboard_api_token[:5] }}"
+
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
     url: "{{ grafana_cloud_operator_slo_cloud_api }}/folders"

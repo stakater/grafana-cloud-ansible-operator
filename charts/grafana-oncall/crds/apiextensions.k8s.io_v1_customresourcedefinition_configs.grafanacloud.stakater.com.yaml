@@ -76,6 +76,10 @@ spec:
                   secretName:
                     type: string
                 type: object
+              sloObservabilityVersion:
+                description: To choose the chart version for Slo Observability
+                format: int64
+                type: integer
               provisionMode:
                 description: Determines the provision type of the cluster on which
                   the operator is running

@@ -4,7 +4,7 @@
 
 - name: Encode Authorization header
   ansible.builtin.set_fact:
-    auth_header: "{{ 'Bearer ' + slo_dashboard_api_token | b64encode }}"
+    auth_header: "{{ 'Bearer ' + slo_dashboard_api_token }}"
 
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:

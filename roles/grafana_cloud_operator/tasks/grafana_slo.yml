@@ -3,7 +3,7 @@
     msg: "API Token starts with: {{ slo_dashboard_api_token }}"
 
 - name: Encode Authorization header
-  set_fact:
+  ansible.builtin.set_fact:
     auth_header: "{{ 'Bearer ' + slo_dashboard_api_token | b64encode }}"
 
 - name: Get all folders in Grafana Cloud

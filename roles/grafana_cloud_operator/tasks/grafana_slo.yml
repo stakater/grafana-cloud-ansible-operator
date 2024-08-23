@@ -27,12 +27,14 @@
   ansible.builtin.uri:
     url: "{{ grafana_cloud_operator_slo_cloud_api }}/folders"
     method: POST
+    return_content: true
     body:
       title: "{{ grafana_cloud_operator_slo_customer_name }}"
     body_format: json
     headers:
       Authorization: "{{ slo_api_token }}"
-    status_code: 200
+      Content-Type: "application/json"
+    status_code: [200, 201]
   register: grafana_cloud_folder
   when: folder_uid is not defined
 

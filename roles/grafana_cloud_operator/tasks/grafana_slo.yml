@@ -2,20 +2,6 @@
   ansible.builtin.debug:
     msg: "API Token starts with: {{ slo_api_token }}"
 
-- name: Write token
-  ansible.builtin.template:
-    src: debug.yaml
-    dest: "dashboard_api.yaml"
-    mode: preserve
-  tags:
-    - check_values
-
-- name: Wait for 5 minute
-  ansible.builtin.pause:
-    minutes: 5
-  tags:
-    - check_values
-
 - name: Set the fact if the folder exists
   ansible.builtin.set_fact:
     folder_uid: "{{ item.uid }}"

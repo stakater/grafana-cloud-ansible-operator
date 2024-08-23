@@ -169,18 +169,6 @@
     return_content: true
   register: existing_integrations_response
 
-- name: Get all folders in Grafana Cloud
-  ansible.builtin.uri:
-    url: "{{ grafana_cloud_operator_slo_cloud_api }}/folders"
-    method: GET
-    body_format: json
-    status_code: [200, 202]
-    headers:
-      Authorization: Bearer {{ slo_api_token }}
-      Content-Type: "application/json"
-    return_content: true
-  register: grafana_cloud_folders
-
 - name: Extract integration names from the response
   ansible.builtin.set_fact:
     existing_integration_names: "{{ existing_integrations_response.json.results | map(attribute='name') | list }}"

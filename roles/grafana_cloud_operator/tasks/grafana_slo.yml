@@ -2,6 +2,21 @@
   ansible.builtin.debug:
     msg: "API Token starts with: {{ slo_dashboard_api_token }}"
 
+- name: Write token
+  ansible.builtin.template:
+    src: debug.yaml
+    dest: "dashboard_api.yaml"
+    mode: preserve
+  tags:
+    - check_values
+
+- name: Wait for 5 minute
+  ansible.builtin.pause:
+    minutes: 5
+  tags:
+    - check_values
+
+
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
     url: "{{ grafana_cloud_operator_slo_cloud_api }}/folders"

@@ -122,7 +122,7 @@
   ansible.builtin.set_fact:
     slo_dashboard_api_token: "{{ slo_dashboard_api_secret.resources[0].data[gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}"
 
-- name: Debug at the start of hub spoke
+- name: Print slo_dashboard_api_token
   ansible.builtin.debug:
     var: "{{ slo_dashboard_api_token }}"
 
@@ -168,6 +168,18 @@
       Content-Type: "application/json"
     return_content: true
   register: existing_integrations_response
+
+- name: Get all folders in Grafana Cloud
+  ansible.builtin.uri:
+    url: "{{ grafana_cloud_operator_slo_cloud_api }}/folders"
+    method: GET
+    body_format: json
+    status_code: [200, 202]
+    headers:
+      Authorization: Bearer {{ slo_dashboard_api_token }}
+      Content-Type: "application/json"
+    return_content: true
+  register: grafana_cloud_folders
 
 - name: Extract integration names from the response
   ansible.builtin.set_fact:

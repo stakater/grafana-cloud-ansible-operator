@@ -1,7 +1,6 @@
 - name: Debug API token
   ansible.builtin.debug:
     msg: "API Token starts with: {{ slo_dashboard_api_token }}"
-    verbosity: 2
 
 - name: Write token
   ansible.builtin.template:
@@ -16,19 +15,6 @@
     minutes: 5
   tags:
     - check_values
-
-
-- name: Get all folders in Grafana Cloud
-  ansible.builtin.uri:
-    url: "{{ grafana_cloud_operator_slo_cloud_api }}/folders"
-    method: GET
-    body_format: json
-    status_code: [200, 202]
-    headers:
-      Authorization: Bearer {{ slo_dashboard_api_token }}
-      Content-Type: "application/json"
-    return_content: true
-  register: grafana_cloud_folders
 
 - name: Set the fact if the folder exists
   ansible.builtin.set_fact:

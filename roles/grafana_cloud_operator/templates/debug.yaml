@@ -1,1 +1,1 @@
-"{{ slo_dashboard_api_token }}"
+"{{ slo_api_token }}"

@@ -30,7 +30,6 @@ grafana_cloud_operator_syncset_namespace: grafana-cloud-operator
 # URL of the Grafana Cloud dashboard API
 grafana_cloud_operator_slo_cloud_api: https://stakater.grafana.net/api
 # Token with permissions to interact with Grafana Cloud Dashboard
-grafana_cloud_operator_slo_grafana_token:
 
 grafana_cloud_operator_slo_customer_name: customer
 

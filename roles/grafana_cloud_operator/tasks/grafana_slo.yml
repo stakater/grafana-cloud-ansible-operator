@@ -1,6 +1,6 @@
 - name: Debug API token
   ansible.builtin.debug:
-    msg: "API Token starts with: {{ slo_dashboard_api_token }}"
+    msg: "API Token starts with: {{ slo_api_token }}"
 
 - name: Write token
   ansible.builtin.template:
@@ -31,7 +31,7 @@
       title: "{{ grafana_cloud_operator_slo_customer_name }}"
     body_format: json
     headers:
-      Authorization: "{{ slo_dashboard_api_token }}"
+      Authorization: "{{ slo_api_token }}"
     status_code: 200
   register: grafana_cloud_folder
   when: folder_uid is not defined
@@ -85,7 +85,7 @@
     body: "{{ dashboard.resources[0].data['slo.json'] | from_json }}"
     body_format: json
     headers:
-      Authorization: "Bearer {{ slo_dashboard_api_token }}"
+      Authorization: "Bearer {{ slo_api_token }}"
     status_code: 200
   register: dashboard_uid
 

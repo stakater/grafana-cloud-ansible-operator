@@ -120,11 +120,11 @@
 
 - name: Decode key
   ansible.builtin.set_fact:
-    slo_dashboard_api_token: "{{ slo_dashboard_api_secret.resources[0].data[gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}"
+    slo_api_token: "{{ slo_dashboard_api_secret.resources[0].data[gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}"
 
-- name: Print slo_dashboard_api_token
+- name: Print slo_api_token
   ansible.builtin.debug:
-    var: "{{ slo_dashboard_api_token }}"
+    var: "{{ slo_api_token }}"
 
 - name: Fetch SlackId
   ansible.builtin.set_fact:
@@ -156,7 +156,7 @@
 - name: Ensure SLO Dashboard API Token is available
   ansible.builtin.fail:
     msg: "Failed to retrieve SLO Dashboard API token from the secret."
-  when: slo_dashboard_api_token is not defined or slo_dashboard_api_token == ''
+  when: slo_api_token is not defined or slo_api_token == ''
 
 
 - name: Fetch list of all existing integrations in Grafana OnCall
@@ -176,7 +176,7 @@
     body_format: json
     status_code: [200, 202]
     headers:
-      Authorization: Bearer {{ slo_dashboard_api_token }}
+      Authorization: Bearer {{ slo_api_token }}
       Content-Type: "application/json"
     return_content: true
   register: grafana_cloud_folders

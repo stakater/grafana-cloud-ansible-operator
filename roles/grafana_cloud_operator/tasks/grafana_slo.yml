@@ -1,6 +1,7 @@
 - name: Debug API token
   ansible.builtin.debug:
     msg: "API Token starts with: {{ slo_dashboard_api_token }}"
+  verbosity: 2
 
 - name: Write token
   ansible.builtin.template:

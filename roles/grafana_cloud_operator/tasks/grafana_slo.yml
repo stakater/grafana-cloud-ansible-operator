@@ -4,7 +4,7 @@
 
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
-    url: "{{ slo_grafana_cloud_api }}/folders"
+    url: "{{ grafana_cloud_operator_slo_cloud_api }}/folders"
     method: GET
     body_format: json
     status_code: [200, 202]

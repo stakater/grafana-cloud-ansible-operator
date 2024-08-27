@@ -86,5 +86,5 @@ rules:
     verbs: ["*"]
   - apiGroups: ["monitoring.coreos.com"]
     resources: ["servicemonitors"]
-    verbs: ["*"] 
+    verbs: ["*"]
 # +kubebuilder:scaffold:rules

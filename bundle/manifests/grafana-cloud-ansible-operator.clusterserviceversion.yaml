@@ -170,6 +170,12 @@ spec:
           verbs:
           - '*'
         - apiGroups:
+          - "monitoring.coreos.com"
+          resources:
+          - servicemonitors
+          verbs:
+          - '*'
+        - apiGroups:
           - authentication.k8s.io
           resources:
           - tokenreviews

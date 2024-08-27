@@ -64,7 +64,7 @@
   kubernetes.core.helm:
     name: "{{ grafana_cloud_operator_slo_release_name }}-dashboard"
     chart_ref: oci://ghcr.io/stakater/charts/slo-observability
-    chart_version: "{{ gco_cr.spec.sloObservabilityVersion | int }}|"
+    chart_version: "{{ gco_cr.spec.sloObservabilityVersion | int }}"
     release_namespace: "{{ grafana_cloud_operator_slo_dashboard_namespace }}"
     values: "{{ lookup('template', 'slo-observability-values.yaml') | from_yaml }}"
 

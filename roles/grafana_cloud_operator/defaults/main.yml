@@ -39,4 +39,5 @@ grafana_cloud_operator_slo_release_name: slo
 grafana_cloud_operator_slo_remote_write_url: https://prometheus-prod-39-prod-eu-north-0.grafana.net/api/prom/push
 
 # Username for authentication when sending data to the remote endpoint
-grafana_cloud_operator_slo_remote_write_username:
+grafana_cloud_operator_slo_remote_write_username: 1211596
+grafana_cloud_operator_slo_dashboard_namespace: stakater-monitoring

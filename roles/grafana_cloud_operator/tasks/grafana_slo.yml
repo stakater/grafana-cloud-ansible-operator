@@ -91,7 +91,7 @@
 
 - name: Create configmap for storing data
   kubernetes.core.k8s:
-    namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
+    namespace: "{{ grafana_cloud_operator_slo_dashboard_namespace }}"
     name: slo-cm
     definition:
       apiVersion: v1

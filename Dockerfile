@@ -4,6 +4,7 @@ USER root
 COPY requirements.yml ${HOME}/requirements.yml
 RUN ansible-galaxy collection install -r ${HOME}/requirements.yml \
  && chmod -R ug+rwx ${HOME}/.ansible
+RUN dnf update -y
 RUN dnf install helm -y
 
 COPY watches.yaml ${HOME}/watches.yaml

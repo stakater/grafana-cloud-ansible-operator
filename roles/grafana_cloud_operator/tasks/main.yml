@@ -7,7 +7,7 @@
   ansible.builtin.include_tasks: common_tasks.yml
 
 - name: Install SLO Dashboard
-  ansible.builtin.include_tasks: grafana_slo.yml
+  ansible.builtin.include_tasks: grafana_slo_standalone.yml
   when: gco_cr.spec.provisionMode == 'hubAndSpoke' and state != 'absent'
 
 - name: Execute tasks for hub and spoke topology

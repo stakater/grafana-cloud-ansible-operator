@@ -17,7 +17,7 @@
 - name: Set the fact if the folder exists
   ansible.builtin.set_fact:
     folder_uid: "{{ item.uid }}"
-  when: item.title == grafana_cloud_operator_slo_customer_name
+  when: item.title == cluster_name
   with_items:
     - "{{ grafana_cloud_folders.json }}"
 
@@ -27,7 +27,7 @@
     method: POST
     return_content: true
     body:
-      title: "{{ grafana_cloud_operator_slo_customer_name }}"
+      title: "{{ cluster_name }}"
     body_format: json
     headers:
       Authorization: Bearer {{ slo_api_token }}
@@ -98,6 +98,6 @@
       data:
         dashboard_uid: "{{ dashboard_uid.json.uid }}"
         folder_uid: "{{ grafana_cloud_folder.json.uid | default(folder_uid) }}"
-        customer_name: "{{ grafana_cloud_operator_slo_customer_name }}"
-        grafana_cloud_operator_slo_customer_name: "{{ grafana_cloud_operator_slo_customer_name }}"
+        customer_name: "{{ cluster_name }}"
+        slo_customer_name: "{{ cluster_name }}"
     apply: true

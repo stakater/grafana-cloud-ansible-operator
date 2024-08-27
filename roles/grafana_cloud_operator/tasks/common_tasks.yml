@@ -122,7 +122,7 @@
     namespace: "{{ grafana_cloud_operator_slo_dashboard_namespace }}"
   register: prom_api_secret
 
-- name: Decode grafana api key 
+- name: Decode grafana api key
   ansible.builtin.set_fact:
     grafana_cloud_api_token: "{{ grafana_api_secret.resources[0].data[gco_cr.spec.grafanaAPIToken.key] | b64decode }}"
 

@@ -187,7 +187,7 @@
                   status: 'True'
                   type: "Failed"
                   reason: "IntegrationCreationFailed"
-                  message: "Failed to create Grafana integration for {{ item.name }} ManagedClusters."
+                  message: "Failed to create Grafana integration for ManagedClusters."
           loop: "{{ grafana_integration_response.results }}"
           when: item.status not in [200, 201]
 

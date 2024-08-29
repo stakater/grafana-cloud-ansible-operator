@@ -81,10 +81,4 @@ rules:
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["*"]
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["*"]
-  - apiGroups: ["monitoring.coreos.com"]
-    resources: ["servicemonitors"]
-    verbs: ["*"]
 # +kubebuilder:scaffold:rules

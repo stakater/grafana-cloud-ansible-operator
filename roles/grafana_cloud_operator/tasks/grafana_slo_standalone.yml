@@ -46,27 +46,9 @@
   ansible.builtin.set_fact:
     folder_uid: "{{ grafana_cloud_folder.json.uid | default('default-folder-uid') }}"
 
-# - name: Store Dashboard URL with newlines
-#   ansible.builtin.set_fact:
-#     slo_dashboard_url: |-
-
-
-# - name: Remove newlines from Dashboard URL
-#   ansible.builtin.set_fact:
-#     slo_dashboard_url: "{{ slo_dashboard_url|split('\n')|join }}"
-
 - name: Download SLO Dashboard YAML
   ansible.builtin.get_url:
     url: "https://raw.githubusercontent.com/stakater/charts/slo-observability-{{ gco_cr.spec.sloObservabilityVersion }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml" # yamllint disable-line rule:line-length
-    dest: "/tmp/slo-dashboard-cm.yaml"
-    mode: '0644'
-
-- name: Download SLO Dashboard YAML
-  ansible.builtin.get_url:
-    url: >
-     https://raw.githubusercontent.com/stakater/charts/
-     slo-observability-{{ gco_cr.spec.sloObservabilityVersion }}/
-     slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml
     dest: "/tmp/slo-dashboard-cm.yaml"
     mode: '0644'
 
@@ -80,7 +62,7 @@
   ansible.builtin.replace:
     path: "/tmp/slo-dashboard-cm.yaml"
     regexp: "{{ '{{ .Values.cluster | title }}' }}"
-    replace: "{{ cluster_name }}"
+    replace: "{{ cluster_name | title }}"
 
 - name: Replace Helm Template for Folder UID
   ansible.builtin.replace:

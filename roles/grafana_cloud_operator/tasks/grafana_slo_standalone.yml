@@ -90,8 +90,10 @@
     url: "{{ grafana_cloud_operator_slo_cloud_api }}/dashboards/db"
     method: POST
     body: "{{ slo_dashboard_json }}"
+    return_content: true
     body_format: json
     headers:
       Authorization: "Bearer {{ slo_api_token }}"
-    status_code: 200
+      Content-Type: "application/json"
+    status_code: [200, 201]
   register: dashboard_uid

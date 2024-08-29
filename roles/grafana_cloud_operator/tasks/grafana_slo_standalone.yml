@@ -46,20 +46,18 @@
   ansible.builtin.set_fact:
     folder_uid: "{{ grafana_cloud_folder.json.uid | default('default-folder-uid') }}"
 
-- name: Store Dashboard URL with newlines
-  ansible.builtin.set_fact:
-    slo_dashboard_url: |-
-     https://raw.githubusercontent.com/stakater/charts/
-     slo-observability-{{ gco_cr.spec.sloObservabilityVersion }}/
-     slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml
+# - name: Store Dashboard URL with newlines
+#   ansible.builtin.set_fact:
+#     slo_dashboard_url: |-
 
-- name: Remove newlines from Dashboard URL
-  ansible.builtin.set_fact:
-    slo_dashboard_url: "{{ slo_dashboard_url|split('\n')|join }}"
+
+# - name: Remove newlines from Dashboard URL
+#   ansible.builtin.set_fact:
+#     slo_dashboard_url: "{{ slo_dashboard_url|split('\n')|join }}"
 
 - name: Download SLO Dashboard YAML
   ansible.builtin.get_url:
-    url: "{{ slo_dashboard_url }}"
+    url: "https://raw.githubusercontent.com/stakater/charts/slo-observability-{{ gco_cr.spec.sloObservabilityVersion }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml"
     dest: "/tmp/slo-dashboard-cm.yaml"
     mode: '0644'
 

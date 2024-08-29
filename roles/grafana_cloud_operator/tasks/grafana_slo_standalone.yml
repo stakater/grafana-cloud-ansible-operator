@@ -57,7 +57,7 @@
 
 - name: Download SLO Dashboard YAML
   ansible.builtin.get_url:
-    url: "https://raw.githubusercontent.com/stakater/charts/slo-observability-{{ gco_cr.spec.sloObservabilityVersion }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml"
+    url: "https://raw.githubusercontent.com/stakater/charts/slo-observability-{{ gco_cr.spec.sloObservabilityVersion }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml" # yamllint disable-line rule:line-length
     dest: "/tmp/slo-dashboard-cm.yaml"
     mode: '0644'
 

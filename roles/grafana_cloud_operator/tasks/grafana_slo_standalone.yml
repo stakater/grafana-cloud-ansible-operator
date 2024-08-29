@@ -1,3 +1,7 @@
+- name: Debug message at the start of slo dashboard for standalone mode
+  ansible.builtin.debug:
+    msg: "Strating creation of dashboard in standalone mode"
+
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
     url: "{{ grafana_cloud_operator_slo_cloud_api }}/folders"
@@ -95,6 +99,10 @@
     headers:
       Authorization: "Bearer {{ slo_api_token }}"
       Content-Type: "application/json"
-    status_code: [200, 201]
+    status_code: [200, 201, 400]
   register: dashboard_uid
-  when: dashboard_uid is not defined
+
+- name: Skip dashboard creation if it already exists
+  ansible.builtin.debug:
+    msg: "Dashboard already exists, skipping creation."
+  when: dashboard_uid.status == 400

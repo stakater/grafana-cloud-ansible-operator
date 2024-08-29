@@ -64,8 +64,12 @@
 
 - name: Download SLO Dashboard YAML
   ansible.builtin.get_url:
-    url: "https://raw.githubusercontent.com/stakater/charts/slo-observability-{{gco_cr.spec.sloObservabilityVersion}}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml"
+    url: >-
+      https://raw.githubusercontent.com/stakater/charts/
+      slo-observability-{{ gco_cr.spec.sloObservabilityVersion }}/
+      slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml
     dest: "/tmp/slo-dashboard-cm.yaml"
+    mode: '0644'
 
 - name: Replace Helm Template for Cluster
   ansible.builtin.replace:
@@ -97,7 +101,7 @@
     name: dashboard_data
 
 - name: Extract SLO Dashboard JSON
-  set_fact:
+  ansible.builtin.set_fact:
     slo_dashboard_json: "{{ dashboard_data.data['slo.json'] | from_json }}"
 
 - name: Deploy SLO Dashboard to Grafana Cloud

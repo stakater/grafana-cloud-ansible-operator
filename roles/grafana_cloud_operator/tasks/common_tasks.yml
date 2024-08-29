@@ -15,16 +15,6 @@
     namespace: "{{ grafana_cloud_operator_operator_namespace }}"
   register: all_gco_crs
 
-- name: Get the Cluster's name
-  kubernetes.core.k8s_info:
-    kind: IngressController
-    api_version: operator.openshift.io/v1
-  register: ingress_controller_info
-
-- name: Update hostname
-  ansible.builtin.set_fact:
-    cluster_name: "{{ ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+(?=\\.)') }}"
-
 - name: Fail if there's more than one CR
   ansible.builtin.fail:
     msg: "There are multiple Config CRs in the {{ grafana_cloud_operator_operator_namespace }} namespace. Only one is expected"

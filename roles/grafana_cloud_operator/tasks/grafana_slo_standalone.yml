@@ -1,6 +1,18 @@
-- name: Debug API token
-  ansible.builtin.debug:
-    msg: "API Token starts with: {{ slo_api_token }}"
+- name: Get SLO Dashboard API token from the secret
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: "slo-dashboard-api-token-secret"
+    namespace: "{{ cr_namespace }}"
+  register: slo_dashboard_api_secret
+
+- name: Get Grafana API token from the secret
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: "{{ gco_cr.spec.grafanaAPIToken.secretName }}"
+    namespace: "{{ cr_namespace }}"
+  register: grafana_api_secret
 
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
@@ -9,10 +21,20 @@
     body_format: json
     status_code: [200, 202]
     headers:
-      Authorization: Bearer {{ slo_api_token }}
+      Authorization: Bearer {{ slo_dashboard_api_token }}
       Content-Type: "application/json"
     return_content: true
   register: grafana_cloud_folders
+
+- name: Get the Cluster's name
+  kubernetes.core.k8s_info:
+    kind: IngressController
+    api_version: operator.openshift.io/v1
+  register: ingress_controller_info
+
+- name: Update hostname
+  ansible.builtin.set_fact:
+    cluster_name: "{{ ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+(?=\\.)') }}"
 
 - name: Set the fact if the folder exists
   ansible.builtin.set_fact:
@@ -30,74 +52,61 @@
       title: "{{ cluster_name }}"
     body_format: json
     headers:
-      Authorization: Bearer {{ slo_api_token }}
+      Authorization: Bearer {{ slo_dashboard_api_token }}
       Content-Type: "application/json"
     status_code: [200, 201]
   register: grafana_cloud_folder
   when: folder_uid is not defined
 
-- name: Get Secret from openshift-ingress
-  kubernetes.core.k8s_info:
-    api_version: v1
-    kind: Secret
-    namespace: openshift-ingress
-    name: router-stats-default
-    wait: true
-  register: secrets
+- name: Store the folder UID
+  ansible.builtin.set_fact:
+    folder_uid: "{{ grafana_cloud_folder.json.uid | default('default-folder-uid') }}"
 
-- name: Create Secret for Remote Write
-  kubernetes.core.k8s:
-    namespace: "{{ grafana_cloud_operator_slo_dashboard_namespace }}"
-    name: credentials
-    definition:
-      apiVersion: v1
-      kind: Secret
-      data:
-        remote_password: "{{ prom_api_token | b64encode }}"
-        remote_username: "{{ grafana_cloud_operator_slo_remote_write_username | b64encode }}"
-        statsPassword: "{{ secrets.resources[0].data.statsPassword }}"
-        statsUsername: "{{ secrets.resources[0].data.statsUsername }}"
-        grafana_cloud_operator_slo_remote_write_url: "{{ grafana_cloud_operator_slo_remote_write_url | b64encode }}"
-    apply: true
+- name: Download SLO Dashboard YAML
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/stakater/charts/slo-observability-{{gco_cr.spec.sloObservabilityVersion}}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml"
+    dest: "/tmp/slo-dashboard-cm.yaml"
 
-- name: Deploy Dashboard Chart
-  kubernetes.core.helm:
-    name: "{{ grafana_cloud_operator_slo_release_name }}-dashboard"
-    chart_ref: oci://ghcr.io/stakater/charts/slo-observability
-    chart_version: "{{ gco_cr.spec.sloObservabilityVersion }}"
-    release_namespace: "{{ grafana_cloud_operator_slo_dashboard_namespace }}"
-    values: "{{ lookup('template', 'slo-observability-values.yaml') | from_yaml }}"
+- name: Replace Helm Template for Cluster
+  ansible.builtin.replace:
+    path: "/tmp/slo-dashboard-cm.yaml"
+    regexp: "{{ '{{ .Values.cluster }}' }}"
+    replace: "{{ cluster_name }}"
 
-- name: Get Dashboard JSON
-  kubernetes.core.k8s_info:
-    api_version: v1
-    kind: ConfigMap
-    namespace: "{{ grafana_cloud_operator_slo_dashboard_namespace }}"
-    name: slo-observability-dashboard
-    wait: true
-  register: dashboard
+- name: Replace Helm Template for Cluster title
+  ansible.builtin.replace:
+    path: "/tmp/slo-dashboard-cm.yaml"
+    regexp: "{{ '{{ .Values.cluster | title }}' }}"
+    replace: "{{ cluster_name }}"
 
-- name: Update Dashboard to Grafana Cloud
+- name: Replace Helm Template for Folder UID
+  ansible.builtin.replace:
+    path: "/tmp/slo-dashboard-cm.yaml"
+    regexp: "{{ '{{ .Values.folderUid }}' }}"
+    replace: "{{ folder_uid }}"
+
+- name: Replace Helm Template for Namespace
+  ansible.builtin.replace:
+    path: "/tmp/slo-dashboard-cm.yaml"
+    regexp: '\{\{ include "slo-observability.namespace" \. \}\}'
+    replace: "{{ grafana_cloud_operator_slo_dashboard_namespace }}"
+
+- name: Load Dashboard YAML into a variable
+  ansible.builtin.include_vars:
+    file: "/tmp/slo-dashboard-cm.yaml"
+    name: dashboard_data
+
+- name: Extract SLO Dashboard JSON
+  set_fact:
+    slo_dashboard_json: "{{ dashboard_data.data['slo.json'] | from_json }}"
+
+- name: Deploy SLO Dashboard to Grafana Cloud
   ansible.builtin.uri:
     url: "{{ grafana_cloud_operator_slo_cloud_api }}/dashboards/db"
     method: POST
-    body: "{{ dashboard.resources[0].data['slo.json'] | from_json }}"
+    body: "{{ slo_dashboard_json }}"
     body_format: json
     headers:
-      Authorization: Bearer {{ slo_api_token }}
+      Authorization: "Bearer {{ slo_dashboard_api_token }}"
     status_code: 200
   register: dashboard_uid
-
-- name: Create configmap for storing data
-  kubernetes.core.k8s:
-    namespace: "{{ grafana_cloud_operator_slo_dashboard_namespace }}"
-    name: slo-cm
-    definition:
-      apiVersion: v1
-      kind: ConfigMap
-      data:
-        dashboard_uid: "{{ dashboard_uid.json.uid }}"
-        folder_uid: "{{ grafana_cloud_folder.json.uid | default(folder_uid) }}"
-        customer_name: "{{ cluster_name }}"
-        slo_customer_name: "{{ cluster_name }}"
-    apply: true

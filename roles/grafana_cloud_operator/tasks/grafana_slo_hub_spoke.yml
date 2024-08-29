@@ -9,25 +9,28 @@
     body_format: json
     status_code: [200, 202]
     headers:
-      Authorization: Bearer {{ slo_api_token }}
+      Authorization: Bearer {{ slo_dashboard_api_token }}
       Content-Type: "application/json"
     return_content: true
   register: grafana_cloud_folders
 
-- name: Get the Cluster's name
-  kubernetes.core.k8s_info:
-    kind: IngressController
-    api_version: operator.openshift.io/v1
-  register: ingress_controller_info
+- name: Debug grafana_cloud_folders
+  ansible.builtin.debug:
+    msg: "{{ grafana_cloud_folders }}"
 
-- name: Update hostname
+- name: Define existing folders for managed clusters
   ansible.builtin.set_fact:
-    cluster_name: "{{ ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+(?=\\.)') }}"
+    existing_folders: "{{ grafana_cloud_folders.json | selectattr('title', 'in', current_managed_clusters) | map(attribute='title') | list }}"
+
+- name: Define missing clusters
+  ansible.builtin.set_fact:
+    missing_clusters: "{{ current_managed_clusters | difference(existing_folders) }}"
+
 
 - name: Set the fact if the folder exists
   ansible.builtin.set_fact:
     folder_uid: "{{ item.uid }}"
-  when: item.title == cluster_name
+  when: item.title == missing_clusters
   with_items:
     - "{{ grafana_cloud_folders.json }}"
 
@@ -37,53 +40,78 @@
     method: POST
     return_content: true
     body:
-      title: "{{ cluster_name }}"
+      title: "{{ item }}"
     body_format: json
     headers:
-      Authorization: Bearer {{ slo_api_token }}
+      Authorization: "Bearer {{ slo_dashboard_api_token }}"
       Content-Type: "application/json"
     status_code: [200, 201]
   register: grafana_cloud_folder
   when: folder_uid is not defined
+  loop: "{{ missing_clusters }}"
+  loop_control:
+    loop_var: item
 
-- name: Store the folder UID
+- name: Store the folder UID for each managed cluster
   ansible.builtin.set_fact:
-    folder_uid: "{{ grafana_cloud_folder.json.uid | default('default-folder-uid') }}"
+    folder_uids: "{{ folder_uids | default({}) | combine({item: (grafana_cloud_folder.results | selectattr('item', 'equalto', item) | map(attribute='json') | first | default({})).uid }) }}"
+  loop: "{{ missing_clusters }}"
+  loop_control:
+    loop_var: item
 
 - name: Download SLO Dashboard YAML
   ansible.builtin.get_url:
-    url: "https://raw.githubusercontent.com/stakater/charts/slo-observability-{{ gco_cr.spec.sloObservabilityVersion }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml" # yamllint disable-line rule:line-length
-    dest: "/tmp/slo-dashboard-cm.yaml"
+    url: "https://raw.githubusercontent.com/stakater/charts/slo-observability-{{ gco_cr.spec.sloObservabilityVersion }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml"
+    dest: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     mode: '0644'
+    force: yes
+  loop: "{{ missing_clusters }}"
+  loop_control:
+    loop_var: item
 
 - name: Replace Helm Template for Cluster
   ansible.builtin.replace:
-    path: "/tmp/slo-dashboard-cm.yaml"
+    path: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     regexp: "{{ '{{ .Values.cluster }}' }}"
-    replace: "{{ cluster_name }}"
+    replace: "{{ item }}"
+  loop: "{{ missing_clusters }}"
+  loop_control:
+    loop_var: item
 
 - name: Replace Helm Template for Cluster title
   ansible.builtin.replace:
-    path: "/tmp/slo-dashboard-cm.yaml"
+    path: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     regexp: "{{ '{{ .Values.cluster | title }}' }}"
-    replace: "{{ cluster_name | title }}"
+    replace: "{{ item }}"
+  loop: "{{ missing_clusters }}"
+  loop_control:
+    loop_var: item
 
 - name: Replace Helm Template for Folder UID
   ansible.builtin.replace:
-    path: "/tmp/slo-dashboard-cm.yaml"
+    path: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     regexp: "{{ '{{ .Values.folderUid }}' }}"
-    replace: "{{ folder_uid }}"
+    replace: "{{ folder_uids[item] }}"
+  loop: "{{ missing_clusters }}"
+  loop_control:
+    loop_var: item
 
 - name: Replace Helm Template for Namespace
   ansible.builtin.replace:
-    path: "/tmp/slo-dashboard-cm.yaml"
+    path: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     regexp: '\{\{ include "slo-observability.namespace" \. \}\}'
     replace: "{{ grafana_cloud_operator_slo_dashboard_namespace }}"
+  loop: "{{ missing_clusters }}"
+  loop_control:
+    loop_var: item
 
 - name: Load Dashboard YAML into a variable
   ansible.builtin.include_vars:
-    file: "/tmp/slo-dashboard-cm.yaml"
-    name: dashboard_data
+    file: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
+    name: "dashboard_data_{{ item }}"
+  loop: "{{ missing_clusters }}"
+  loop_control:
+    loop_var: item
 
 - name: Extract SLO Dashboard JSON
   ansible.builtin.set_fact:

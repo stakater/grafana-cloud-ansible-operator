@@ -62,7 +62,6 @@
     url: "{{ slo_dashboard_url }}"
     dest: "/tmp/slo-dashboard-cm.yaml"
     mode: '0644'
-    force: yes
 
 - name: Download SLO Dashboard YAML
   ansible.builtin.get_url:

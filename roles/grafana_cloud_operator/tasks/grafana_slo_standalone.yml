@@ -1,6 +1,14 @@
-- name: Debug message at the start of slo dashboard for standalone mode
-  ansible.builtin.debug:
-    msg: "Strating creation of dashboard in standalone mode"
+- name: Update CR status to start of slo dashboard for standalone mode
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ cr_name }}"
+    namespace: "{{ cr_namespace }}"
+    status:
+      lastUpdated: "{{ ansible_date_time.iso8601 }}"
+      phase: "Initiated"
+      reason: "OperationStarted"
+      message: "Starting creation of SLO dashboard in standalone mode"
 
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
@@ -106,3 +114,16 @@
   ansible.builtin.debug:
     msg: "Dashboard already exists, skipping creation."
   when: dashboard_uid.status == 400
+
+- name: Update CR status to successful creation of SLO Dashboard
+  operator_sdk.util.k8s_status:
+    api_version: grafanacloud.stakater.com/v1alpha1
+    kind: Config
+    name: "{{ gco_cr.metadata.name }}"
+    namespace: "{{ gco_cr.metadata.namespace }}"
+    status:
+      lastUpdated: "{{ ansible_date_time.iso8601 }}"
+      phase: "Successful"
+      reason: "Completed"
+      message: "SLO Dashboard have been created"
+  when: dashboard_uid.status == 200

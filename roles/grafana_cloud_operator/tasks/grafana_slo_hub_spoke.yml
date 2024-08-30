@@ -154,6 +154,6 @@
     status:
       lastUpdated: "{{ ansible_date_time.iso8601 }}"
       phase: "Successful"
-      reason: "Completed"
+      reason: "ConfigUpdated"
       message: "SLO Dashboards have been created"
   when: missing_dashboards is defined

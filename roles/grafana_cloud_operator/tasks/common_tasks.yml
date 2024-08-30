@@ -126,7 +126,7 @@
   ansible.builtin.set_fact:
     grafana_cloud_api_token: "{{ grafana_api_secret.resources[0].data[gco_cr.spec.grafanaAPIToken.key] | b64decode }}"
 
-- name: Decode slo api key
+- name: Decode SLO api key
   ansible.builtin.set_fact:
     slo_api_token: "{{ slo_dashboard_api_secret.resources[0].data[gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}"
 

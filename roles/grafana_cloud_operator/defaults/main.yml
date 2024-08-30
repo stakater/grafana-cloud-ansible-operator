@@ -15,7 +15,6 @@ grafana_cloud_operator_probe_period: 10
 
 # Grafana Cloud API details
 grafana_cloud_operator_grafana_cloud_integrations_api_url: "https://oncall-prod-eu-west-0.grafana.net/oncall/api/v1/integrations/"
-# grafana_cloud_api_token: "2aa40ff78868d8c47470c1db8efe60b31c845bb32a77b77b58229b0cbbbf74a6" # Note: Store securely or use Ansible Vault
 
 # Alertmanager details
 grafana_cloud_operator_alertmanager_namespace: openshift-monitoring

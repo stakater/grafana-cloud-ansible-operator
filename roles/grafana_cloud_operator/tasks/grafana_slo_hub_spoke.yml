@@ -30,7 +30,7 @@
   ansible.builtin.set_fact:
     existing_folders: "{{ grafana_cloud_folders.json | selectattr('title', 'in', current_managed_clusters) | map(attribute='title') | list }}"
 
-- name: Define missing clusters
+- name: Define missing dashboards
   ansible.builtin.set_fact:
     missing_dashboards: "{{ current_managed_clusters | difference(existing_folders) }}"
 

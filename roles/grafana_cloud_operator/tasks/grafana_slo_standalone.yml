@@ -1,4 +1,4 @@
-- name: Update CR status to start of slo dashboard for standalone mode
+- name: Update CR status to start of SLO dashboard for standalone mode
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config

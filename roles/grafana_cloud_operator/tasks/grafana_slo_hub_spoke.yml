@@ -1,4 +1,4 @@
-- name: Update CR status to start of slo dashboard for hubAndSpoke mode
+- name: Update CR status to start of SLO dashboard for hubAndSpoke mode
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
@@ -20,11 +20,7 @@
       Authorization: Bearer {{ slo_api_token }}
       Content-Type: "application/json"
     return_content: true
-  register: grafana_cloud_folders
-
-- name: Debug grafana_cloud_folders
-  ansible.builtin.debug:
-    msg: "{{ grafana_cloud_folders }}"
+  register: grafana_cloud_folders 
 
 - name: Define existing folders for managed clusters
   ansible.builtin.set_fact:
@@ -33,7 +29,6 @@
 - name: Define missing dashboards
   ansible.builtin.set_fact:
     missing_dashboards: "{{ current_managed_clusters | difference(existing_folders) }}"
-
 
 - name: Set the fact if the folder exists
   ansible.builtin.set_fact:

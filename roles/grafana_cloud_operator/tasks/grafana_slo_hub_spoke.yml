@@ -9,7 +9,7 @@
     body_format: json
     status_code: [200, 202]
     headers:
-      Authorization: Bearer {{ slo_dashboard_api_token }}
+      Authorization: Bearer {{ slo_api_token }}
       Content-Type: "application/json"
     return_content: true
   register: grafana_cloud_folders
@@ -43,7 +43,7 @@
       title: "{{ item }}"
     body_format: json
     headers:
-      Authorization: "Bearer {{ slo_dashboard_api_token }}"
+      Authorization: "Bearer {{ slo_api_token }}"
       Content-Type: "application/json"
     status_code: [200, 201]
   register: grafana_cloud_folder
@@ -54,17 +54,16 @@
 
 - name: Store the folder UID for each managed cluster
   ansible.builtin.set_fact:
-    folder_uids: "{{ folder_uids | default({}) | combine({item: (grafana_cloud_folder.results | selectattr('item', 'equalto', item) | map(attribute='json') | first | default({})).uid }) }}"
+    folder_uids: "{{ folder_uids | default({}) | combine({item: (grafana_cloud_folder.results | selectattr('item', 'equalto', item) | map(attribute='json') | first | default({})).uid }) }}" # yamllint disable-line rule:line-length
   loop: "{{ missing_clusters }}"
   loop_control:
     loop_var: item
 
 - name: Download SLO Dashboard YAML
   ansible.builtin.get_url:
-    url: "https://raw.githubusercontent.com/stakater/charts/slo-observability-{{ gco_cr.spec.sloObservabilityVersion }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml"
+    url: "https://raw.githubusercontent.com/stakater/charts/slo-observability-{{ gco_cr.spec.sloObservabilityVersion }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml" # yamllint disable-line rule:line-length
     dest: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     mode: '0644'
-    force: yes
   loop: "{{ missing_clusters }}"
   loop_control:
     loop_var: item
@@ -108,20 +107,24 @@
 - name: Load Dashboard YAML into a variable
   ansible.builtin.include_vars:
     file: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
-    name: "dashboard_data_{{ item }}"
+    name: dashboard_data_{{ item }}
   loop: "{{ missing_clusters }}"
   loop_control:
     loop_var: item
 
-- name: Extract SLO Dashboard JSON
-  ansible.builtin.set_fact:
-    slo_dashboard_json: "{{ dashboard_data.data['slo.json'] | from_json }}"
+- name: Extract SLO Dashboard JSON for each cluster and write to file
+  ansible.builtin.copy:
+    content: "{{ lookup('vars', 'dashboard_data_' + item).data['slo.json'] | from_json | to_nice_json }}"
+    dest: "/tmp/slo-dashboard-{{ item }}.json"
+  loop: "{{ missing_clusters }}"
+  loop_control:
+    loop_var: item
 
-- name: Deploy SLO Dashboard to Grafana Cloud
+- name: Deploy SLO Dashboard to Grafana Cloud for each cluster
   ansible.builtin.uri:
     url: "{{ grafana_cloud_operator_slo_cloud_api }}/dashboards/db"
     method: POST
-    body: "{{ slo_dashboard_json }}"
+    body: "{{ lookup('file', '/tmp/slo-dashboard-' + item + '.json') }}"
     return_content: true
     body_format: json
     headers:
@@ -129,6 +132,9 @@
       Content-Type: "application/json"
     status_code: [200, 201, 400]
   register: dashboard_uid
+  loop: "{{ missing_clusters }}"
+  loop_control:
+    loop_var: item
 
 - name: Skip dashboard creation if it already exists
   ansible.builtin.debug:

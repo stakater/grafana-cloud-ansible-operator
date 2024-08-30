@@ -299,6 +299,10 @@ Here's a step-by-step guide on understanding and applying this configuration:
       namespace: grafana-cloud-operator  # Namespace where the operator is installed
     spec:
       enabled: true
+      sloObservabilityVersion: 0.0.9 # Version of SLO Dashboard that needs to be used
+      sloDashboardAPIToken:
+        key: api-token  # The key field within the secret holding the SLO Dashboard API token
+        secretName: slo-dashboard-api-token-secret 
       grafanaAPIToken:
         key: api-token  # The key field within the secret holding the Grafana OnCall API token
         secretName: grafana-api-token-secret  # The name of the Kubernetes secret storing the Grafana OnCall API token
@@ -310,12 +314,14 @@ Here's a step-by-step guide on understanding and applying this configuration:
     - `metadata`: Contains general information about the custom resource that you are creating, such as its name and the namespace it resides in.
     - `spec`: This is where the bulk of the configuration goes. It's broken down further below:
       - `enabled`: Currently does nothing. But the idea is to use the flag to support removal of Grafana Integration in the future.
+      - `sloObservabilityVersion`: You can use this field to use any available release for the SLO Dashboards
+      - `sloDashboardAPIToken`: Since the operator needs to interact with Grafana Dashboards's API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.
       - `grafanaAPIToken`: Since the operator needs to interact with Grafana OnCall's API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.
       - `provisionMode`: Indicates how the operator should function. It could be in a 'hubAndSpoke' mode where it manages multiple clusters or 'standaloneCluster' for managing a single cluster.
       - `slackId`: For `standalone` provision mode populate this field to connect Slack Channel to Grafana OnCall Integration.
       - `slack`: This is toggle for slack alerts to channel. It accepts boolean. By default, it set to true.
 
-1. Applying the Custom Resource:
+2. Applying the Custom Resource:
 
     Once your custom resource is ready and tailored for your specific use case, you need to apply it within your OpenShift environment. This action tells the operator what it should do.
 
@@ -323,7 +329,7 @@ Here's a step-by-step guide on understanding and applying this configuration:
     oc apply -f your-config-file.yaml
     ```
 
-1. Modes of Operation:
+3. Modes of Operation:
 
     The `provisionMode` in the spec can be one of the following two values:
 

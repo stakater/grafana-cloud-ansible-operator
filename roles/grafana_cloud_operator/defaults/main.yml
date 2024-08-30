@@ -29,11 +29,6 @@ grafana_cloud_operator_syncset_namespace: grafana-cloud-operator
 
 # URL of the Grafana Cloud dashboard API
 grafana_cloud_operator_slo_cloud_api: https://stakater.grafana.net/api
-# Token with permissions to interact with Grafana Cloud Dashboard
-
-grafana_cloud_operator_slo_customer_name: customer
-
-grafana_cloud_operator_slo_release_name: slo
 
 # The URL of the endpoint to send samples to
 grafana_cloud_operator_slo_remote_write_url: https://prometheus-prod-39-prod-eu-north-0.grafana.net/api/prom/push

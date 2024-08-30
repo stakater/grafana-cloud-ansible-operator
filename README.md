@@ -301,8 +301,8 @@ Here's a step-by-step guide on understanding and applying this configuration:
       enabled: true
       sloObservabilityVersion: 0.0.9 # Version of SLO Dashboard that needs to be used
       sloDashboardAPIToken:
-        key: api-token  # The key field within the secret holding the SLO Dashboard API token
-        secretName: slo-dashboard-api-token-secret 
+        key: api-token  # The key field within the secret holding the Dashboard API token
+        secretName: slo-dashboard-api-token-secret # The name of the Kubernetes secret storing the Dashboard API token
       grafanaAPIToken:
         key: api-token  # The key field within the secret holding the Grafana OnCall API token
         secretName: grafana-api-token-secret  # The name of the Kubernetes secret storing the Grafana OnCall API token

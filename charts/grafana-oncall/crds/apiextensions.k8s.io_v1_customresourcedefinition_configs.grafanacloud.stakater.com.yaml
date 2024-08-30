@@ -76,8 +76,11 @@ spec:
                   secretName:
                     type: string
                 type: object
-              sloObservabilityVersion:
-                description: To choose the chart version for Slo Observability
+              sloObservabilityURL:
+                description: Add URL for SLO Observability
+                type: string
+              sloCloudAPI:
+                description: SLO Cloud Api
                 type: string
               provisionMode:
                 description: Determines the provision type of the cluster on which

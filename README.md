@@ -299,7 +299,8 @@ Here's a step-by-step guide on understanding and applying this configuration:
       namespace: grafana-cloud-operator  # Namespace where the operator is installed
     spec:
       enabled: true
-      sloObservabilityVersion: 0.0.9 # Version of SLO Dashboard that needs to be used
+      sloObservabilityURL: https://raw.githubusercontent.com/stakater/charts/slo-observability-0.0.9 # URL of SLO Dashboard that needs to be used
+      sloCloudAPI: https://grafana.net/api # Api URL for SLO Dashboards
       sloDashboardAPIToken:
         key: api-token  # The key field within the secret holding the Dashboard API token
         secretName: slo-dashboard-api-token-secret # The name of the Kubernetes secret storing the Dashboard API token

@@ -22,16 +22,3 @@ grafana_cloud_operator_alertmanager_secret_name: alertmanager-main
 
 # SyncSet details
 grafana_cloud_operator_syncset_namespace: grafana-cloud-operator
-
-
-## SLO Dashboard
-
-# URL of the Grafana Cloud dashboard API
-grafana_cloud_operator_slo_cloud_api: https://stakater.grafana.net/api
-
-# The URL of the endpoint to send samples to
-grafana_cloud_operator_slo_remote_write_url: https://prometheus-prod-39-prod-eu-north-0.grafana.net/api/prom/push
-
-# Username for authentication when sending data to the remote endpoint
-grafana_cloud_operator_slo_remote_write_username: 1211596
-grafana_cloud_operator_slo_dashboard_namespace: stakater-monitoring

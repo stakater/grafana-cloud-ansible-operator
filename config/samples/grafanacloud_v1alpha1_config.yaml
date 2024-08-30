@@ -10,7 +10,7 @@ metadata:
   name: config-sample
 spec:
   enabled: true
-  sloObservabilityVersion: 0.0.9
+  sloObservabilityURL: https://raw.githubusercontent.com/stakater/charts/slo-observability-0.0.9
   provisionMode: standalone # or hubAndSpoke
   grafanaAPIToken:
     secretName: grafana-api-token-secret

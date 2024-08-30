@@ -315,6 +315,7 @@ Here's a step-by-step guide on understanding and applying this configuration:
     - `metadata`: Contains general information about the custom resource that you are creating, such as its name and the namespace it resides in.
     - `spec`: This is where the bulk of the configuration goes. It's broken down further below:
       - `enabled`: Currently does nothing. But the idea is to use the flag to support removal of Grafana Integration in the future.
+      - `sloCloudAPI`: API for Grafana Dashboard
       - `sloObservabilityVersion`: You can use this field to use any available release for the SLO Dashboards
       - `sloDashboardAPIToken`: Since the operator needs to interact with Grafana Dashboards API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.
       - `grafanaAPIToken`: Since the operator needs to interact with Grafana OnCall's API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.

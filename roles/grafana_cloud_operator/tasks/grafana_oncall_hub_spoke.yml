@@ -214,7 +214,7 @@
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"
 
-- name: Update CR status for SyncSet creation
+- name: Update CR status for ManifestWork creation
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
@@ -225,15 +225,14 @@
         - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
           status: 'True'
           type: "Successful"
-          reason: "SyncSetsCreated"
-          message: "SyncSets created for all ManagedClusters"
+          reason: "ManifestWorksCreated"
+          message: "ManifestWorks created for all ManagedClusters"
   when: >
-    manifestwork_creation_results |
+    (manifestwork_creation_results |
     rejectattr('failed', 'equalto', true) |
-    list | length) == mapped_integrations |
-    length
+    list | length) == (mapped_integrations | length)
 
-- name: Update CR status for SyncSet creation failure
+- name: Update CR status for ManifestWork creation failure
   kubernetes.core.k8s:
     state: present
     definition:
@@ -245,8 +244,8 @@
       status:
         lastUpdated: "{{ ansible_date_time.iso8601 }}"
         phase: "Failed"
-        reason: "SyncSetCreationFailed"
-        message: "Failed to create SyncSet for one or more ManagedClusters"
+        reason: "ManifestWorkCreationFailed"
+        message: "Failed to create ManifestWork for one or more ManagedClusters"
     when: >
       manifestwork_creation_results |
       rejectattr('failed', 'equalto', false) | list | length > 0

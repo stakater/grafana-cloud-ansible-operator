@@ -50,6 +50,10 @@
   loop_control:
     loop_var: item
 
+- name: Remove duplicate entries from managed_clusters
+  ansible.builtin.set_fact:
+    managed_clusters: "{{ managed_clusters | unique(attribute='name') }}"
+
 - name: Determine which ManagedCluster CRs don't have integrations
   ansible.builtin.set_fact:
     create_integration_for: "{{ managed_clusters | rejectattr('name', 'in', existing_integration_names) | list }}"

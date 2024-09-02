@@ -227,10 +227,7 @@
           type: "Successful"
           reason: "ManifestWorksCreated"
           message: "ManifestWorks created for all ManagedClusters"
-  when: >
-    (manifestwork_creation_results |
-    rejectattr('failed', 'equalto', true) |
-    list | length) == (mapped_integrations | length)
+  when: not manifestwork_creation_results.failed
 
 - name: Update CR status for ManifestWork creation failure
   kubernetes.core.k8s:
@@ -246,6 +243,4 @@
         phase: "Failed"
         reason: "ManifestWorkCreationFailed"
         message: "Failed to create ManifestWork for one or more ManagedClusters"
-    when: >
-      manifestwork_creation_results |
-      rejectattr('failed', 'equalto', false) | list | length > 0
+  when: manifestwork_creation_results.failed

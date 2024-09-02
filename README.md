@@ -299,6 +299,11 @@ Here's a step-by-step guide on understanding and applying this configuration:
       namespace: grafana-cloud-operator  # Namespace where the operator is installed
     spec:
       enabled: true
+      sloObservabilityURL: https://raw.githubusercontent.com/stakater/charts/slo-observability-0.0.9 # URL of SLO Dashboard that needs to be used
+      sloCloudAPI: https://grafana.net/api # Api URL for SLO Dashboards
+      sloDashboardAPIToken:
+        key: api-token  # The key field within the secret holding the Dashboard API token
+        secretName: slo-dashboard-api-token-secret # The name of the Kubernetes secret storing the Dashboard API token
       grafanaAPIToken:
         key: api-token  # The key field within the secret holding the Grafana OnCall API token
         secretName: grafana-api-token-secret  # The name of the Kubernetes secret storing the Grafana OnCall API token
@@ -310,6 +315,9 @@ Here's a step-by-step guide on understanding and applying this configuration:
     - `metadata`: Contains general information about the custom resource that you are creating, such as its name and the namespace it resides in.
     - `spec`: This is where the bulk of the configuration goes. It's broken down further below:
       - `enabled`: Currently does nothing. But the idea is to use the flag to support removal of Grafana Integration in the future.
+      - `sloCloudAPI`: API for Grafana Dashboard
+      - `sloObservabilityVersion`: You can use this field to use any available release for the SLO Dashboards
+      - `sloDashboardAPIToken`: Since the operator needs to interact with Grafana Dashboards API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.
       - `grafanaAPIToken`: Since the operator needs to interact with Grafana OnCall's API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.
       - `provisionMode`: Indicates how the operator should function. It could be in a 'hubAndSpoke' mode where it manages multiple clusters or 'standaloneCluster' for managing a single cluster.
       - `slackId`: For `standalone` provision mode populate this field to connect Slack Channel to Grafana OnCall Integration.

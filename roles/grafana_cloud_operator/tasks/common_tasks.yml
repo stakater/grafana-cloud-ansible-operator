@@ -106,9 +106,21 @@
     namespace: "{{ cr_namespace }}"
   register: grafana_api_secret
 
-- name: Decode key
+- name: Get SLO Dashboard API token from the secret
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: "slo-dashboard-api-token-secret"
+    namespace: "{{ cr_namespace }}"
+  register: slo_dashboard_api_secret
+
+- name: Decode grafana api key
   ansible.builtin.set_fact:
     grafana_cloud_api_token: "{{ grafana_api_secret.resources[0].data[gco_cr.spec.grafanaAPIToken.key] | b64decode }}"
+
+- name: Decode SLO api key
+  ansible.builtin.set_fact:
+    slo_api_token: "{{ slo_dashboard_api_secret.resources[0].data[gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}"
 
 - name: Fetch SlackId
   ansible.builtin.set_fact:
@@ -136,6 +148,12 @@
   ansible.builtin.fail:
     msg: "Failed to retrieve Grafana API token from the secret."
   when: grafana_cloud_api_token is not defined or grafana_cloud_api_token == ''
+
+- name: Ensure SLO Dashboard API Token is available
+  ansible.builtin.fail:
+    msg: "Failed to retrieve SLO Dashboard API token from the secret."
+  when: slo_api_token is not defined or slo_api_token == ''
+
 
 - name: Fetch list of all existing integrations in Grafana OnCall
   ansible.builtin.uri:

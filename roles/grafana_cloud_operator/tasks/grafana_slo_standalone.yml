@@ -86,7 +86,7 @@
   ansible.builtin.replace:
     path: "/tmp/slo-dashboard-cm.yaml"
     regexp: '\{\{ include "slo-observability.namespace" \. \}\}'
-    replace: "{{ grafana_cloud_operator_slo_dashboard_namespace }}"
+    replace: "{{ cr_namespace }}"
 
 - name: Load Dashboard YAML into a variable
   ansible.builtin.include_vars:

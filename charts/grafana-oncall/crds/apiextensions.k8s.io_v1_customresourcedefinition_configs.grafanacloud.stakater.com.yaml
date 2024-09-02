@@ -67,21 +67,6 @@ spec:
                   secretName:
                     type: string
                 type: object
-              sloDashboardAPIToken:
-                description: Secret reference to the SLO Dashboard API token. Avoid putting
-                  the token directly.
-                properties:
-                  key:
-                    type: string
-                  secretName:
-                    type: string
-                type: object
-              sloObservabilityURL:
-                description: Add URL for SLO Observability
-                type: string
-              sloCloudAPI:
-                description: SLO Cloud Api
-                type: string
               provisionMode:
                 description: Determines the provision type of the cluster on which
                   the operator is running

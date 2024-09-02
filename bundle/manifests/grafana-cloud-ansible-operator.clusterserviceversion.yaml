@@ -23,19 +23,21 @@ metadata:
               "key": "api-token",
               "secretName": "grafana-api-token-secret"
             },
+            "provisionMode": "standalone",
+            "sloCloudAPI": "https://grafana.net/api",
             "sloDashboardAPIToken": {
               "key": "api-token",
               "secretName": "slo-dashboard-api-token-secret"
             },
-            "provisionMode": "standalone"
+            "sloObservabilityURL": "https://raw.githubusercontent.com/stakater/charts/slo-observability-0.0.9"
           }
         }
       ]
     capabilities: Basic Install
-    createdAt: "2024-08-28T08:06:08Z"
+    createdAt: "2024-09-02T10:21:41Z"
     operators.operatorframework.io/builder: operator-sdk-v1.31.0
     operators.operatorframework.io/project_layout: ansible.sdk.operatorframework.io/v1
-  name: grafana-cloud-ansible-operator.v0.0.100
+  name: grafana-cloud-ansible-operator.v0.0.101
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -253,7 +255,7 @@ spec:
                 env:
                 - name: ANSIBLE_GATHERING
                   value: explicit
-                image: ghcr.io/stakater/grafana-cloud-ansible-operator:v0.0.100
+                image: ghcr.io/stakater/grafana-cloud-ansible-operator:v0.0.101
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -346,4 +348,4 @@ spec:
   provider:
     name: Stakater
     url: www.stakater.com
-  version: 0.0.100
+  version: 0.0.101

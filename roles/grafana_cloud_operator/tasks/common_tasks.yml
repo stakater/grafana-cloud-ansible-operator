@@ -114,14 +114,6 @@
     namespace: "{{ cr_namespace }}"
   register: slo_dashboard_api_secret
 
-- name: Get Prometheus API token from the secret
-  kubernetes.core.k8s_info:
-    api_version: v1
-    kind: Secret
-    name: "prometheus-remote-write-password"
-    namespace: "{{ grafana_cloud_operator_slo_dashboard_namespace }}"
-  register: prom_api_secret
-
 - name: Decode grafana api key
   ansible.builtin.set_fact:
     grafana_cloud_api_token: "{{ grafana_api_secret.resources[0].data[gco_cr.spec.grafanaAPIToken.key] | b64decode }}"
@@ -129,10 +121,6 @@
 - name: Decode SLO api key
   ansible.builtin.set_fact:
     slo_api_token: "{{ slo_dashboard_api_secret.resources[0].data[gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}"
-
-- name: Decode prometheus api key
-  ansible.builtin.set_fact:
-    prom_api_token: "{{ prom_api_secret.resources[0].data.token | b64decode }}"
 
 - name: Fetch SlackId
   ansible.builtin.set_fact:

@@ -98,7 +98,7 @@
 
 - name: Set the UIDs of the folders to delete
   ansible.builtin.set_fact:
-    folder_uid_to_delete: "{{ folder_uid_to_delete | default([]) + (grafana_cloud_folders.json | selectattr('title', 'equalto', item) | map(attribute='uid') | list) }}"
+    folder_uid_to_delete: "{{ folder_uid_to_delete | default([]) + (grafana_cloud_folders.json | selectattr('title', 'equalto', item) | map(attribute='uid') | list) }}" # yamllint disable-line rule:line-length
   loop: "{{ delete_integration_for }}"
   loop_control:
     loop_var: item

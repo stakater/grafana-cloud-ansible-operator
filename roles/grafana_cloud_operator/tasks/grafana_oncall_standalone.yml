@@ -22,10 +22,12 @@
     name: "{{ cr_name }}"
     namespace: "{{ cr_namespace }}"
     status:
-      lastUpdated: "{{ ansible_date_time.iso8601 }}"
-      phase: "Initiated"
-      reason: "OperationStarted"
-      message: "Operation to integrate Grafana OnCall started"
+      conditions:
+       - lastTransitionTime:  "{{ ansible_date_time.iso8601 }}"
+         status: 'True'
+         phase: "Initiated"
+         reason: "OperationStarted"
+         message: "Operation to integrate Grafana OnCall started"
 
 - name: Get the Cluster's name
   kubernetes.core.k8s_info:
@@ -91,10 +93,12 @@
     name: "{{ cr_name }}"
     namespace: "{{ cr_namespace }}"
     status:
-      lastUpdated: "{{ ansible_date_time.iso8601 }}"
-      phase: "IntegrationCreated"
-      reason: "GrafanaIntegrationSuccess"
-      message: "Grafana integration created successfully"
+      conditions:
+       - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+         status: 'True'
+         type: "IntegrationCreated"
+         reason: "GrafanaIntegrationSuccess"
+         message: "Grafana integration created successfully"
 
 - name: Modify Alertmanager secret
   ansible.builtin.include_tasks: modify_alertmanager_secret.yml
@@ -128,8 +132,10 @@
     name: "{{ gco_cr.metadata.name }}"
     namespace: "{{ gco_cr.metadata.namespace }}"
     status:
-      lastUpdated: "{{ ansible_date_time.iso8601 }}"
-      phase: "Successful"
-      reason: "ConfigUpdated"
-      message: "Alertmanager configuration updated successfully for the cluster {{ cluster_name }}"
+      conditions:
+       - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+         status: 'True'
+         type: "Successful"
+         reason: "ConfigUpdated"
+         message: "Alertmanager configuration updated successfully for the cluster {{ cluster_name }}"
   when: not integration_exists_for_cluster

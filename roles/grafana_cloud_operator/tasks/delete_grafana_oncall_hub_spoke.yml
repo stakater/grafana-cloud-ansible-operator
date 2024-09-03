@@ -16,6 +16,18 @@
           reason: "OperationStarted"
           message: "Operation to delete Grafana OnCall integration for hubAndSpoke started"
 
+- name: Get all folders in Grafana Cloud
+  ansible.builtin.uri:
+    url: "{{ gco_cr.spec.sloCloudAPI }}/folders"
+    method: GET
+    body_format: json
+    status_code: [200, 202]
+    headers:
+      Authorization: Bearer {{ slo_api_token }}
+      Content-Type: "application/json"
+    return_content: true
+  register: grafana_cloud_folders
+
 - name: Fetch ManagedCluster CRs
   kubernetes.core.k8s_info:
     api_version: cluster.open-cluster-management.io/v1
@@ -83,6 +95,27 @@
   delay: 6
   when: delete_integration_for
   failed_when: false
+
+- name: Set the UIDs of the folders to delete
+  ansible.builtin.set_fact:
+    folder_uid_to_delete: "{{ folder_uid_to_delete | default([]) + (grafana_cloud_folders.json | selectattr('title', 'equalto', item) | map(attribute='uid') | list) }}"
+  loop: "{{ delete_integration_for }}"
+  loop_control:
+    loop_var: item
+
+- name: Delete Dashboard
+  ansible.builtin.uri:
+    url: "{{ gco_cr.spec.sloCloudAPI }}/folders/{{ item }}"
+    method: DELETE
+    body_format: json
+    return_content: true
+    headers:
+      Authorization: Bearer {{ slo_api_token }}
+      Content-Type: "application/json"
+    status_code: 200
+  loop: "{{ grafana_cloud_folders.json | selectattr('title', 'in', delete_integration_for) | map(attribute='uid') | list }}"
+  loop_control:
+    loop_var: item
 
 - name: Update CR status for IntegrationsDeleted
   operator_sdk.util.k8s_status:

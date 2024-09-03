@@ -5,10 +5,12 @@
     name: "{{ cr_name }}"
     namespace: "{{ cr_namespace }}"
     status:
-      lastUpdated: "{{ ansible_date_time.iso8601 }}"
-      phase: "Initiated"
-      reason: "OperationStarted"
-      message: "Starting creation of SLO dashboard in hubAndSpoke mode"
+      conditions:
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          status: 'True'
+          type: "Initiated"
+          reason: "OperationStarted"
+          message: "Starting creation of SLO dashboard in hubAndSpoke mode"
 
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
@@ -147,8 +149,10 @@
     name: "{{ gco_cr.metadata.name }}"
     namespace: "{{ gco_cr.metadata.namespace }}"
     status:
-      lastUpdated: "{{ ansible_date_time.iso8601 }}"
-      phase: "Successful"
-      reason: "ConfigUpdated"
-      message: "SLO Dashboards have been created"
+      conditions:
+       - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+         status: 'True'
+         type: "Successful"
+         reason: "ConfigUpdated"
+         message: "SLO Dashboards have been created"
   when: missing_dashboards is defined

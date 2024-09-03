@@ -80,12 +80,9 @@
   register: grafana_integration_response
   failed_when: false
 
-- name: Set the UIDs of the folders to delete
+- name: Set the UID of the folder to delete
   ansible.builtin.set_fact:
-    folder_uid_to_delete: "{{ folder_uid_to_delete | default([]) + (grafana_cloud_folders.json | selectattr('title', 'equalto', item) | map(attribute='uid') | list) }}"
-  loop: "{{ integration_exists_for_cluster }}"
-  loop_control:
-    loop_var: item
+    folder_uid_to_delete: "{{ grafana_cloud_folders.json | selectattr('title', 'equalto', cluster_name) | map(attribute='uid') | list }}"
 
 - name: Delete Dashboard
   ansible.builtin.uri:
@@ -97,7 +94,7 @@
       Authorization: Bearer {{ slo_api_token }}
       Content-Type: "application/json"
     status_code: 200
-  loop: "{{ grafana_cloud_folders.json | selectattr('title', 'in', delete_integration_for) | map(attribute='uid') | list }}"
+  loop: "{{ folder_uid_to_delete }}"
   loop_control:
     loop_var: item
 

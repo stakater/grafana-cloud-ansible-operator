@@ -50,6 +50,10 @@
   loop_control:
     loop_var: item
 
+- name: Remove duplicate entries from managed_clusters
+  ansible.builtin.set_fact:
+    managed_clusters: "{{ managed_clusters | unique(attribute='name') }}"
+
 - name: Determine which ManagedCluster CRs don't have integrations
   ansible.builtin.set_fact:
     create_integration_for: "{{ managed_clusters | rejectattr('name', 'in', existing_integration_names) | list }}"
@@ -210,7 +214,7 @@
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"
 
-- name: Update CR status for SyncSet creation
+- name: Update CR status for ManifestWork creation
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
@@ -221,15 +225,11 @@
         - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
           status: 'True'
           type: "Successful"
-          reason: "SyncSetsCreated"
-          message: "SyncSets created for all ManagedClusters"
-  when: >
-    manifestwork_creation_results |
-    rejectattr('failed', 'equalto', true) |
-    list | length) == mapped_integrations |
-    length
+          reason: "ManifestWorksCreated"
+          message: "ManifestWorks created for all ManagedClusters"
+  when: not manifestwork_creation_results.failed
 
-- name: Update CR status for SyncSet creation failure
+- name: Update CR status for ManifestWork creation failure
   kubernetes.core.k8s:
     state: present
     definition:
@@ -241,8 +241,6 @@
       status:
         lastUpdated: "{{ ansible_date_time.iso8601 }}"
         phase: "Failed"
-        reason: "SyncSetCreationFailed"
-        message: "Failed to create SyncSet for one or more ManagedClusters"
-    when: >
-      manifestwork_creation_results |
-      rejectattr('failed', 'equalto', false) | list | length > 0
+        reason: "ManifestWorkCreationFailed"
+        message: "Failed to create ManifestWork for one or more ManagedClusters"
+  when: manifestwork_creation_results.failed

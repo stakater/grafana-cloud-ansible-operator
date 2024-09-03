@@ -6,11 +6,11 @@
     namespace: "{{ cr_namespace }}"
     status:
       conditions:
-       - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
-         status: 'True'
-         type: "Initiated"
-         reason: "OperationStarted"
-         message: "Starting creation of SLO dashboard in standalone mode"
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          status: 'True'
+          type: "Initiated"
+          reason: "OperationStarted"
+          message: "Starting creation of SLO dashboard in standalone mode"
 
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
@@ -125,9 +125,9 @@
     namespace: "{{ gco_cr.metadata.namespace }}"
     status:
       conditions:
-       - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
-         status: 'True'
-         type: "Successful"
-         reason: "ConfigUpdated"
-         message: "SLO Dashboard have been created"
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          status: 'True'
+          type: "Successful"
+          reason: "ConfigUpdated"
+          message: "SLO Dashboard have been created"
   when: dashboard_uid.status == 200

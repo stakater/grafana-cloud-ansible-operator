@@ -55,7 +55,7 @@
 
 - name: Set current ManagedCluster status
   ansible.builtin.set_fact:
-    previous_managed_clusters: "{{ config_cr.resources[0].status.managed_clusters | default([]) }}"
+    previous_managed_clusters: "{{ config_cr.resources[0].status.managedClusters | default([]) }}"
 
 - name: Extract current ManagedCluster names
   ansible.builtin.set_fact:
@@ -124,7 +124,7 @@
     name: "{{ cr_name }}"
     namespace: "{{ cr_namespace }}"
     status:
-      managed_clusters: "{{ current_managed_clusters }}"
+      managedClusters: "{{ current_managed_clusters }}"
       conditions:
         - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
           status: "True"

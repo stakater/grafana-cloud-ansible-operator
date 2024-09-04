@@ -85,8 +85,8 @@
     name: "{{ cr_name }}"
     namespace: "{{ cr_namespace }}"
     status:
-      managed_clusters: "{{ current_managed_clusters }}"
-  when: "'managed_clusters' not in current_config_cr.resources[0].status"
+      managedClusters: "{{ current_managed_clusters }}"
+  when: "'managedClusters' not in current_config_cr.resources[0].status"
 
 - name: Ensure required CR fields are set
   ansible.builtin.fail:

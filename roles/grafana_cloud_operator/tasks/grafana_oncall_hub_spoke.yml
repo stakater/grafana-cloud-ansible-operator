@@ -133,14 +133,14 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
         status:
-          managed_clusters: []
+          managedClusters: []
       when:
-        - "'managed_clusters' not in current_config_cr.resources[0].status"
+        - "'managedClusters' not in current_config_cr.resources[0].status"
         - create_integration_for | length == grafana_integration_response.results | length
 
     - name: Extract existing ManagedCluster names from current status
       ansible.builtin.set_fact:
-        existing_managed_cluster_names: "{{ current_config_cr.resources[0].status.managed_clusters | list | default([]) }}"
+        existing_managed_cluster_names: "{{ current_config_cr.resources[0].status.managedClusters | list | default([]) }}"
       when: create_integration_for | length == grafana_integration_response.results | length
 
     - name: Set fact for list of ManagedCluster names
@@ -163,7 +163,7 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
         status:
-          managed_clusters: "{{ updated_managed_cluster_names }}"
+          managedClusters: "{{ updated_managed_cluster_names }}"
           conditions:
             - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
               status: "True"

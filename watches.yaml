@@ -3,7 +3,7 @@
   group: grafanacloud.stakater.com
   kind: Config
   role: grafana_cloud_operator
-  reconcilePeriod: 5m
+  reconcilePeriod: 30m
   manageStatus: false
   finalizer:
     name: grafanacloud.stakater.com/config

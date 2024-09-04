@@ -9,10 +9,24 @@
     name: "{{ cr_name }}"
     namespace: "{{ cr_namespace }}"
     status:
-      lastUpdated: "{{ ansible_date_time.iso8601 }}"
-      phase: "DeletionInitiated"
-      reason: "OperationStarted"
-      message: "Operation to delete Grafana OnCall integration started"
+      conditions:
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          status: "True"
+          type: "DeletionInitiated"
+          reason: "OperationStarted"
+          message: "Operation to delete Grafana OnCall integration started"
+
+- name: Get all folders in Grafana Cloud
+  ansible.builtin.uri:
+    url: "{{ gco_cr.spec.sloCloudAPI }}/folders"
+    method: GET
+    body_format: json
+    status_code: [200, 202]
+    headers:
+      Authorization: Bearer {{ slo_api_token }}
+      Content-Type: "application/json"
+    return_content: true
+  register: grafana_cloud_folders
 
 - name: Get the Cluster's name
   kubernetes.core.k8s_info:
@@ -66,6 +80,24 @@
   register: grafana_integration_response
   failed_when: false
 
+- name: Set the UID of the folder to delete
+  ansible.builtin.set_fact:
+    folder_uid_to_delete: "{{ grafana_cloud_folders.json | selectattr('title', 'equalto', cluster_name) | map(attribute='uid') | list }}"
+
+- name: Delete Dashboard
+  ansible.builtin.uri:
+    url: "{{ gco_cr.spec.sloCloudAPI }}/folders/{{ item }}"
+    method: DELETE
+    body_format: json
+    return_content: true
+    headers:
+      Authorization: Bearer {{ slo_api_token }}
+      Content-Type: "application/json"
+    status_code: 200
+  loop: "{{ folder_uid_to_delete }}"
+  loop_control:
+    loop_var: item
+
 - name: Decode and modify alertmanager secret configuration
   ansible.builtin.set_fact:
     modified_alertmanager_secret_content: "{{ {} | to_nice_yaml | b64encode }}"
@@ -91,7 +123,9 @@
     name: "{{ cr_name }}"
     namespace: "{{ cr_namespace }}"
     status:
-      lastUpdated: "{{ ansible_date_time.iso8601 }}"
-      phase: "Successful"
-      reason: "IntegrationDeleted"
-      message: "Deleted integration for cluster {{ cluster_name }}"
+      conditions:
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          status: "True"
+          type: "Successful"
+          reason: "IntegrationDeleted"
+          message: "Deleted integration for cluster {{ cluster_name }}"

@@ -28,7 +28,7 @@ jobs:
         id: generate_tag
         uses: anothrNick/github-tag-action@1.70.0
         env:
-          GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
           WITH_V: false
           DEFAULT_BUMP: patch
           RELEASE_BRANCHES: main
@@ -62,7 +62,7 @@ jobs:
         with:
           registry: ghcr.io/stakater
           username: ${{ secrets.STAKATER_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          password: ${{ secrets.PUBLISH_TOKEN }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -92,7 +92,6 @@ jobs:
           IMAGE_DIGEST: ${{ steps.build_and_push.outputs.digest }}
           VERSION: ${{ steps.generate_tag.outputs.new_tag }}
 
-
       # Publish helm chart
       - name: Publish Helm chart
         run: |
@@ -114,13 +113,13 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          github_token: ${{ secrets.PUBLISH_TOKEN }}
           branch: main
 
       - name: Push Latest Tag
         uses: anothrNick/github-tag-action@1.70.0
         env:
-          GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
           DEFAULT_BUMP: patch
           RELEASE_BRANCHES: main
           WITH_V: true
@@ -141,7 +140,7 @@ jobs:
         uses: mshick/add-pr-comment@v2
         if: always()
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
         with:
           message-success: "@${{ github.actor }} Image is available for testing. `docker pull ${{ needs.push-operator.outputs.image_repository }}:v${{ needs.push-operator.outputs.version }}`"
           message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
@@ -167,7 +166,7 @@ jobs:
     - name: Comment on PR
       uses: mshick/add-pr-comment@v2
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
       with:
         message: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
         allow-repeats: true

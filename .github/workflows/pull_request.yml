@@ -49,7 +49,7 @@ jobs:
         with:
           registry: ghcr.io/stakater
           username: ${{ secrets.STAKATER_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          password: ${{ secrets.PUBLISH_TOKEN }}
 
       - name: Generate image repository path
         run: |
@@ -93,7 +93,7 @@ jobs:
         uses: mshick/add-pr-comment@v2
         if: always()
         env:
-          GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
         with:
           message-success: "@${{ github.actor }} Image is available for testing. `docker pull ${{ env.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG}}`"
           message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'

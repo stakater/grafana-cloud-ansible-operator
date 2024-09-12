@@ -140,7 +140,7 @@ jobs:
         uses: mshick/add-pr-comment@v2
         if: always()
         env:
-          GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           message-success: "@${{ github.actor }} Image is available for testing. `docker pull ${{ needs.push-operator.outputs.image_repository }}:v${{ needs.push-operator.outputs.version }}`"
           message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
@@ -166,7 +166,7 @@ jobs:
     - name: Comment on PR
       uses: mshick/add-pr-comment@v2
       env:
-        GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         message: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
         allow-repeats: true

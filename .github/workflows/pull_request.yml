@@ -49,7 +49,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io/stakater
-          username: ${{ secrets.GHCR_USERNAME }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Generate image repository path

@@ -7,7 +7,7 @@ on:
 
 jobs:
   qa:
-    uses: stakater/.github/.github/workflows/pull_request_doc_qa.yaml@v0.0.90
+    uses: stakater/.github/.github/workflows/pull_request_doc_qa.yaml@v0.0.92
     with:
       MD_CONFIG: .github/md_config.json
       DOC_SRC: README.md
@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       # Run Tests
       # - name: Test
@@ -48,8 +49,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io/stakater
-          username: ${{ secrets.STAKATER_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Generate image repository path
         run: |
@@ -93,7 +94,7 @@ jobs:
         uses: mshick/add-pr-comment@v2
         if: always()
         env:
-          GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
         with:
           message-success: "@${{ github.actor }} Image is available for testing. `docker pull ${{ env.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG}}`"
           message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'

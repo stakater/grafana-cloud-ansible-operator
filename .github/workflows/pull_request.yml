@@ -23,12 +23,6 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # Run Tests
-      # - name: Test
-      #   env:
-      #     SKIP_INTEGRATION_TEST: "true"
-      #   run: make test
-
       - name: Run ansible-lint
         uses: ansible/ansible-lint@v24.7.0
 

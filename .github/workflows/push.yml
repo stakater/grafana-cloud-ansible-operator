@@ -18,17 +18,11 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # Run Tests
-      # - name: Test
-      #   env:
-      #     SKIP_INTEGRATION_TEST: "true"
-      #   run: make test
-
       - name: Generate Tag
         id: generate_tag
         uses: anothrNick/github-tag-action@1.70.0
         env:
-          GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
           WITH_V: false
           DEFAULT_BUMP: patch
           RELEASE_BRANCHES: main
@@ -61,8 +55,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io/stakater
-          username: ${{ secrets.STAKATER_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -92,7 +86,6 @@ jobs:
           IMAGE_DIGEST: ${{ steps.build_and_push.outputs.digest }}
           VERSION: ${{ steps.generate_tag.outputs.new_tag }}
 
-
       # Publish helm chart
       - name: Publish Helm chart
         run: |
@@ -114,13 +107,13 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          github_token: ${{ secrets.PUBLISH_TOKEN }}
           branch: main
 
       - name: Push Latest Tag
         uses: anothrNick/github-tag-action@1.70.0
         env:
-          GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
           DEFAULT_BUMP: patch
           RELEASE_BRANCHES: main
           WITH_V: true

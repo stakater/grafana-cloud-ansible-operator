@@ -172,3 +172,6 @@
       when:
         - delete_integration_for | length > 0
       register: manifestwork_deletion_results
+
+- name: End play if any integrations failed or were skipped
+  ansible.builtin.meta: end_play

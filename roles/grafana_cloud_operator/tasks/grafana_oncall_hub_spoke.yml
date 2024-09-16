@@ -198,9 +198,6 @@
         - name: Start deletion for hubAndSpoke mode
           ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml
 
-        - name: End play if any integrations failed or were skipped
-          ansible.builtin.meta: end_play
-
     - name: Associate Grafana integration details with ManagedClusters
       ansible.builtin.set_fact:
         mapped_integrations: "{{ mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"

@@ -152,36 +152,6 @@
               message: "Deleted the integrations {{ delete_integration_for }}"
       when: delete_integration_for
 
-    - name: Decode and modify alertmanager secret configuration
-      ansible.builtin.set_fact:
-        encoded_alertmanager_secret_content: "{{ {} | to_nice_yaml | b64encode }}"
-
-    - name: Update ManifestWork for each cluster to patch empty alertmanager-main secret
-      kubernetes.core.k8s:
-        state: present
-        definition:
-          apiVersion: work.open-cluster-management.io/v1
-          kind: ManifestWork
-          metadata:
-            name: "{{ item.name }}-manifestwork-grafana-oncall"
-            namespace: "{{ item.name }}"
-          spec:
-            workload:
-              manifests:
-                - apiVersion: v1
-                  kind: Secret
-                  metadata:
-                    name: alertmanager-main
-                    namespace: openshift-monitoring
-                  data:
-                    alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
-      loop: "{{ integrations_to_delete }}"
-      loop_control:
-        label: "{{ item }}"
-      when:
-        - delete_integration_for | length > 0
-      register: manifestwork_deletion_results
-
     - name: Remove ManifestWork CR from cluster
       kubernetes.core.k8s:
         state: absent

@@ -1,7 +1,3 @@
-- name: Delete resources for hub and spoke topology
-  ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml
-  when: gco_cr.spec.provisionMode == 'hubAndSpoke'
-
 - name: Delete resources for standalone topology
   ansible.builtin.include_tasks: delete_grafana_oncall_standalone.yml
   when: gco_cr.spec.provisionMode == 'standalone'

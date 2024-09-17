@@ -65,121 +65,113 @@
   ansible.builtin.set_fact:
     delete_integration_for: "{{ previous_managed_clusters | difference(current_managed_clusters) }}"
 
-- name: Extract integration details from the response
-  ansible.builtin.set_fact:
-    grafana_integrations: "{{ existing_integrations_response.json.results }}"
+- name: Delete integrations and dashboards when there are integrations to delete
+  when: delete_integration_for | length > 0
+  block:
+    - name: Extract integration details from the response
+      ansible.builtin.set_fact:
+        grafana_integrations: "{{ existing_integrations_response.json.results }}"
 
-- name: Find Grafana Integration IDs for the Integrations to Delete
-  ansible.builtin.set_fact:
-    integrations_to_delete: "{{ integrations_to_delete | default([]) + [{'name': item, 'integration_id': integration_id}] }}"
-  loop: "{{ delete_integration_for }}"
-  vars:
-    integration_id: >-
-      {{
-        grafana_integrations | selectattr('name', 'eq', item) | map(attribute='id') | first | default(None)
-      }}
-  when: integration_id is not none
+    - name: Find Grafana Integration IDs for the Integrations to Delete
+      ansible.builtin.set_fact:
+        integrations_to_delete: "{{ integrations_to_delete | default([]) + [{'name': item, 'integration_id': integration_id}] }}"
+      loop: "{{ delete_integration_for }}"
+      vars:
+        integration_id: >-
+          {{
+            grafana_integrations | selectattr('name', 'eq', item) | map(attribute='id') | first | default(None)
+          }}
+      when: integration_id is not none
 
-- name: Delete integrations from Grafana Cloud for deleted ManagedClusters
-  ansible.builtin.uri:
-    url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}{{ item.integration_id }}"
-    method: DELETE
-    headers:
-      Authorization: "{{ grafana_cloud_api_token }}"
-      Content-Type: "application/json"
-    status_code: [200, 201]
-  loop: "{{ integrations_to_delete }}"
-  loop_control:
-    label: "{{ item }}"
-  retries: 5
-  delay: 6
-  when: delete_integration_for
-  failed_when: false
+    - name: Delete integrations from Grafana Cloud for deleted ManagedClusters
+      ansible.builtin.uri:
+        url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}{{ item.integration_id }}"
+        method: DELETE
+        headers:
+          Authorization: "{{ grafana_cloud_api_token }}"
+          Content-Type: "application/json"
+        status_code: [200, 201]
+      loop: "{{ integrations_to_delete }}"
+      loop_control:
+        label: "{{ item }}"
+      retries: 5
+      delay: 6
+      when: delete_integration_for
+      failed_when: false
 
-- name: Set the UIDs of the folders to delete
-  ansible.builtin.set_fact:
-    folder_uid_to_delete: "{{ folder_uid_to_delete | default([]) + (grafana_cloud_folders.json | selectattr('title', 'equalto', item) | map(attribute='uid') | list) }}" # yamllint disable-line rule:line-length
-  loop: "{{ delete_integration_for }}"
-  loop_control:
-    loop_var: item
+    - name: Set the UIDs of the folders to delete
+      ansible.builtin.set_fact:
+        folder_uid_to_delete: "{{ folder_uid_to_delete | default([]) + (grafana_cloud_folders.json | selectattr('title', 'equalto', item) | map(attribute='uid') | list) }}" # yamllint disable-line rule:line-length
+      loop: "{{ delete_integration_for }}"
+      loop_control:
+        loop_var: item
 
-- name: Delete Dashboard
-  ansible.builtin.uri:
-    url: "{{ gco_cr.spec.sloCloudAPI }}/folders/{{ item }}"
-    method: DELETE
-    body_format: json
-    return_content: true
-    headers:
-      Authorization: Bearer {{ slo_api_token }}
-      Content-Type: "application/json"
-    status_code: 200
-  loop: "{{ folder_uid_to_delete }}"
-  loop_control:
-    loop_var: item
+    - name: Delete Dashboard
+      ansible.builtin.uri:
+        url: "{{ gco_cr.spec.sloCloudAPI }}/folders/{{ item }}"
+        method: DELETE
+        body_format: json
+        return_content: true
+        headers:
+          Authorization: Bearer {{ slo_api_token }}
+          Content-Type: "application/json"
+        status_code: 200
+      loop: "{{ folder_uid_to_delete }}"
+      loop_control:
+        loop_var: item
 
-- name: Update CR status for IntegrationsDeleted
-  operator_sdk.util.k8s_status:
-    api_version: grafanacloud.stakater.com/v1alpha1
-    kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
-    status:
-      managedClusters: "{{ current_managed_clusters }}"
-      conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
-          status: "True"
-          type: "DeletionCompleted"
-          reason: "OperationDone"
-          message: "Deleted the integrations {{ delete_integration_for }}"
-  when: delete_integration_for
+    - name: Removing old ManagedCluster List
+      operator_sdk.util.k8s_status:
+        api_version: grafanacloud.stakater.com/v1alpha1
+        kind: Config
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+        status:
+          managedClusters: []
+          conditions:
+            - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+              status: "True"
+              type: "EmptyList"
+              reason: "OperationDone"
+              message: "Clears old managed clusters"
+      when: delete_integration_for
 
-- name: Decode and modify alertmanager secret configuration
-  ansible.builtin.set_fact:
-    encoded_alertmanager_secret_content: "{{ {} | to_nice_yaml | b64encode }}"
+    - name: Update CR status for IntegrationsDeleted
+      operator_sdk.util.k8s_status:
+        api_version: grafanacloud.stakater.com/v1alpha1
+        kind: Config
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+        status:
+          managedClusters: "{{ current_managed_clusters }}"
+          conditions:
+            - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+              status: "True"
+              type: "DeletionCompleted"
+              reason: "OperationDone"
+              message: "Deleted the integrations {{ delete_integration_for }}"
+      when: delete_integration_for
 
-- name: Update ManifestWork for each cluster to patch empty alertmanager-main secret
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: work.open-cluster-management.io/v1
-      kind: ManifestWork
-      metadata:
-        name: "{{ item.name }}-manifestwork-grafana-oncall"
-        namespace: "{{ item.name }}"
-      spec:
-        workload:
-          manifests:
-            - apiVersion: v1
-              kind: Secret
-              metadata:
-                name: alertmanager-main
-                namespace: openshift-monitoring
-              data:
-                alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
-  loop: "{{ integrations_to_delete }}"
-  loop_control:
-    label: "{{ item }}"
-  when:
-    - delete_integration_for | length > 0
-  register: manifestwork_deletion_results
+    - name: Remove ManifestWork CR from cluster
+      kubernetes.core.k8s:
+        state: absent
+        definition:
+          apiVersion: work.open-cluster-management.io/v1
+          kind: ManifestWork
+          metadata:
+            name: "{{ item.name }}-manifestwork-grafana-oncall"
+            namespace: "{{ item.name }}"
+          spec:
+            workload:
+              manifests:
+                - apiVersion: v1
+                  kind: Secret
+                  metadata:
+                    name: alertmanager-main
+                    namespace: openshift-monitoring
+      when:
+        - delete_integration_for | length > 0
+      register: manifestwork_deletion_results
 
-- name: Remove ManifestWork CR from cluster
-  kubernetes.core.k8s:
-    state: absent
-    definition:
-      apiVersion: work.open-cluster-management.io/v1
-      kind: ManifestWork
-      metadata:
-        name: "{{ item.name }}-manifestwork-grafana-oncall"
-        namespace: "{{ item.name }}"
-      spec:
-        workload:
-          manifests:
-            - apiVersion: v1
-              kind: Secret
-              metadata:
-                name: alertmanager-main
-                namespace: openshift-monitoring
-  when:
-    - delete_integration_for | length > 0
-  register: manifestwork_deletion_results
+- name: End play if any integrations failed or were skipped
+  ansible.builtin.meta: end_play

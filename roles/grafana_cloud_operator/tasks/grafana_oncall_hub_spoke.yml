@@ -239,8 +239,9 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
       status:
-        lastUpdated: "{{ ansible_date_time.iso8601 }}"
-        phase: "Failed"
-        reason: "ManifestWorkCreationFailed"
-        message: "Failed to create ManifestWork for one or more ManagedClusters"
+        conditions:
+        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+          type: "Failed"
+          reason: "ManifestWorkCreationFailed"
+          message: "Failed to create ManifestWork for one or more ManagedClusters"
   when: manifestwork_creation_results.failed

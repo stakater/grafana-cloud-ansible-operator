@@ -169,6 +169,9 @@
                   metadata:
                     name: alertmanager-main
                     namespace: openshift-monitoring
+      loop: "{{ integrations_to_delete }}"   # Ensure you have a loop here
+      loop_control:
+        label: "{{ item.name }}"
       when:
         - delete_integration_for | length > 0
       register: manifestwork_deletion_results

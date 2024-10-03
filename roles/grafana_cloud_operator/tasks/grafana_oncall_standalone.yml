@@ -35,9 +35,9 @@
     api_version: operator.openshift.io/v1
   register: ingress_controller_info
 
-- name: Update hostname
+- name: Update hostname with cluster name and ID
   ansible.builtin.set_fact:
-    cluster_name: "{{ ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+(?=\\.)') }}"
+    cluster_name: "{{ ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+\\.[^.]+(?=\\.)') }}"
 
 - name: Determine if integration exists for the cluster
   ansible.builtin.set_fact:

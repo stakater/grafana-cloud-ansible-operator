@@ -8,10 +8,10 @@ sources:
   - https://github.com/stakater/grafana-cloud-ansible-operator
 
 # Helm chart Version
-version: 0.0.114
+version: 0.0.115
 
 # Application version to be deployed
-appVersion: 0.0.114
+appVersion: 0.0.115
 
 # Maintainers
 maintainers:

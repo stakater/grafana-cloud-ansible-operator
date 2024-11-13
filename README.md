@@ -17,6 +17,7 @@ Manually configuring Grafana OnCall on a cluster involves several complex steps,
 The grafana-cloud-ansible-operator supports the creation and management of dashboards that track key Service Level Indicators (SLIs) and ensure compliance with Service Level Objectives (SLOs) for Kubernetes (K8s) and OpenShift environments. This section provides an overview of the SLIs monitored and the SLOs established, along with the automation approach for creating dashboards.
 
 Key SLIs and SLOs Monitored:
+
 * K8s API Uptime
   * SLI: Measures the uptime of the Kubernetes API.
   * SLO: Ensure 99.5% uptime.

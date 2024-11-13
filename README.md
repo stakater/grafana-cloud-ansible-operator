@@ -14,7 +14,7 @@ Manually configuring Grafana OnCall on a cluster involves several complex steps,
 
 ### SLO Dashboard Management
 
-The grafana-cloud-ansible-operator supports the creation and management of dashboards that track key Service Level Indicators (SLIs) and ensure compliance with Service Level Objectives (SLOs) for Kubernetes (K8s) and OpenShift environments. This section provides an overview of the SLIs monitored and the SLOs established, along with the automation approach for creating dashboards.
+The Grafana Cloud Operator  supports the creation and management of dashboards that track key Service Level Indicators (SLIs) and ensure compliance with Service Level Objectives (SLOs) for Kubernetes (K8s) and OpenShift environments. This section provides an overview of the SLIs monitored and the SLOs established, along with the automation approach for creating dashboards.
 
 Key SLIs and SLOs Monitored:
 
@@ -38,7 +38,6 @@ Key SLIs and SLOs Monitored:
 * Dashboard Organization:
   * Dedicated Folders: Each customer will have a dedicated folder in Grafana Cloud for storing their respective dashboards.
   * One Dashboard per Cluster: Dashboards will be created for each cluster to track these SLIs and ensure they meet the defined SLOs.
-
 
 ### How the Operator Works
 
@@ -376,13 +375,14 @@ Here's a step-by-step guide on understanding and applying this configuration:
     The operator adapts its behavior based on this directive, ensuring that your Grafana OnCall integrations are set up and managed in a way that's optimal for your organizational architecture and needs.
 
 ### Automated Resource Cleanup
-The grafana-cloud-ansible-operator includes a robust deletion mechanism that not only handles dashboards but also integrations in Grafana Cloud. This feature ensures outdated or unnecessary resources are efficiently removed, maintaining an organized and optimal environment.
+
+The Grafana Cloud Operator includes a robust deletion mechanism that not only handles dashboards but also integrations in Grafana Cloud. This feature ensures outdated or unnecessary resources are efficiently removed, maintaining an organized and optimal environment.
 
 #### How the Deletion Mechanism Works:
 
 * ManagedCluster Monitoring: The operator actively watches ManagedClusters to detect changes or deletions. This ensures that resources associated with deleted or modified clusters are identified for removal.
 * Identification of Outdated Resources:
-    * Dashboards: Retrieves unique identifiers (UIDs) for dashboards linked to ManagedClusters to target for deletion.
+    * Dashboards: Retrieves unique identifiers `(UIDs)` for dashboards linked to ManagedClusters to target for deletion.
     * Integrations: Collects identifiers for integrations tied to ManagedClusters to accurately manage their lifecycle.
 * Automated Deletion: Once outdated or deleted ManagedClusters are detected, the operator sends DELETE requests to the Grafana Cloud API to remove the associated dashboards and integrations.
 * Error Handling: Built-in error handling manages scenarios where resources may have already been deleted or do not exist, preventing unnecessary failures.

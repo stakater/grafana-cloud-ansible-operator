@@ -57,50 +57,57 @@ The operator's workflow can be described in two different architectural models:
 
     In the Hub-Spoke model, the operator is installed on a central Hub cluster and manages Grafana OnCall configurations for multiple Spoke clusters. This model is ideal for organizations with multiple clusters and aims to centralize monitoring and management.
 
-    ```mermaid
-    graph TD
+graph TD
 
-        subgraph "Hub and Spoke Integration with Grafana OnCall"
-            subgraph "OpenShift Hub Cluster"
-                InitHub[Start: Operation Initiated in Hub]
-                GetGCOHub[Get All Config CRs]
-                CheckMultipleCRs[Ensure Only One GCC CR Exists]
-                GetToken[Retrieve Grafana API Token from Secret]
-                ListIntegrations[Fetch List of Existing Integrations in Grafana OnCall]
-                FetchClusters[Fetch ManagedClusters]
-                FetchSlackChannels[Fetch Slack Channel CRs from All Namespaces]
-                DetermineMissingIntegrations[Determine Clusters Missing Integrations]
-                CreateIntegration[Create Integration in Grafana OnCall for Missing Clusters]
-                InitHub --> GetGCOHub
-                GetGCOHub --> CheckMultipleCRs
-                CheckMultipleCRs --> GetToken
-                GetToken --> ListIntegrations
-                ListIntegrations --> FetchClusters
-                FetchClusters --> FetchSlackChannels
-                FetchSlackChannels --> DetermineMissingIntegrations
-                DetermineMissingIntegrations --> CreateIntegration
-            end
+    subgraph "Hub and Spoke Integration with Grafana OnCall and SLO Management"
+        subgraph "OpenShift Hub Cluster"
+            InitHub[Start: Operation Initiated in Hub]
+            GetGCOHub[Get All Config CRs]
+            CheckMultipleCRs[Ensure Only One GCC CR Exists]
+            GetToken[Retrieve Grafana API Token from Secret]
+            ListIntegrations[Fetch List of Existing Integrations in Grafana OnCall]
+            FetchClusters[Fetch ManagedClusters]
+            FetchSlackChannels[Fetch Slack Channel CRs from All Namespaces]
+            DetermineMissingIntegrations[Determine Clusters Missing Integrations]
+            CreateIntegration[Create Integration in Grafana OnCall for Missing Clusters]
+            CreateSLOFolders[Create SLO Folders in Grafana Cloud]
+            CreateSLODashboards[Create SLO Dashboards for Each Cluster]
 
-            subgraph "Grafana Cloud"
-                GOHub[Grafana OnCall]
-            end
+            InitHub --> GetGCOHub
+            GetGCOHub --> CheckMultipleCRs
+            CheckMultipleCRs --> GetToken
+            GetToken --> ListIntegrations
+            ListIntegrations --> FetchClusters
+            FetchClusters --> FetchSlackChannels
+            FetchSlackChannels --> DetermineMissingIntegrations
+            DetermineMissingIntegrations --> CreateIntegration
+            DetermineMissingIntegrations --> CreateSLOFolders
+            CreateSLOFolders --> CreateSLODashboards
+        end
 
-            subgraph "Spoke Clusters"
-                SC1[Spoke Cluster 1]
-                SC2[Spoke Cluster 2]
-                SC3[Spoke Cluster 3]
-            end
+        subgraph "Grafana Cloud"
+            GOHub[Grafana OnCall]
+            SLOFolders[SLO Folders]
+            SLODashboards[SLO Dashboards]
+        end
 
-            subgraph "OpenClusterManagement (OCM)"
+        subgraph "Spoke Clusters"
+            SC1[Spoke Cluster 1]
+            SC2[Spoke Cluster 2]
+            SC3[Spoke Cluster 3]
+        end
+
+        subgraph "OpenClusterManagement (OCM)"
             CreateIntegration --> |Create Integration| GOHub
+            CreateSLOFolders --> |Create Folders| SLOFolders
+            CreateSLODashboards --> |Create Dashboards| SLODashboards
             GOHub -->|Return: Endpoint| RHACM/OCM
             RHACM/OCM --> |ManifestWork| SC1
             RHACM/OCM --> |ManifestWork| SC2
             RHACM/OCM --> |ManifestWork| SC3
-            end
-            
         end
-    ```
+
+    end
 
     *Centralized ManagedClusters Monitoring:*
     The operator, installed on the Hub cluster, continually monitors for the presence of ManagedCluster resources from Hive that are registered from Spoke clusters.

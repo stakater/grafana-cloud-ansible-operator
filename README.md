@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-The Grafana Cloud Operator is an Ansible-based OpenShift Operator that automates the configuration and management of Grafana OnCall within an OpenShift cluster. This operator simplifies the process of setting up Grafana OnCall, ensuring seamless integration with Alertmanager and consistent alert forwarding.This operator also ensures that dashboards are created specifically for SLO 
+The Grafana Cloud Operator is an Ansible-based OpenShift Operator that automates the configuration and management of Grafana OnCall within an OpenShift cluster. This operator simplifies the process of setting up Grafana OnCall, ensuring seamless integration with Alertmanager and consistent alert forwarding.This operator also ensures that dashboards are created for SLO. The operator also ensures proper cleanup of integrations and dashboards.  
 
 ### What is Grafana Cloud?
 

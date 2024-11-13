@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-The Grafana Cloud Operator is an Ansible-based OpenShift Operator that automates the configuration and management of Grafana OnCall within an OpenShift cluster. This operator simplifies the process of setting up Grafana OnCall, ensuring seamless integration with Alertmanager and consistent alert forwarding.This operator also ensures that Dashboads are created specifically  
+The Grafana Cloud Operator is an Ansible-based OpenShift Operator that automates the configuration and management of Grafana OnCall within an OpenShift cluster. This operator simplifies the process of setting up Grafana OnCall, ensuring seamless integration with Alertmanager and consistent alert forwarding.This operator also ensures that dashboards are created specifically for SLO 
 
 ### What is Grafana Cloud?
 
@@ -11,6 +11,33 @@ Grafana Cloud is a fully managed observability platform from Grafana Labs, provi
 ### Problem
 
 Manually configuring Grafana OnCall on a cluster involves several complex steps, including creating accounts, configuring integrations, and editing configurations. This process is time-consuming, error-prone, and can lead to inconsistencies and misconfigurations if not done accurately. Automating these tasks with the Grafana Cloud Operator simplifies the setup, reduces errors, and ensures consistency across clusters.
+
+### SLO Dashboard Management
+
+The grafana-cloud-ansible-operator supports the creation and management of dashboards that track key Service Level Indicators (SLIs) and ensure compliance with Service Level Objectives (SLOs) for Kubernetes (K8s) and OpenShift environments. This section provides an overview of the SLIs monitored and the SLOs established, along with the automation approach for creating dashboards.
+
+Key SLIs and SLOs Monitored:
+* K8s API Uptime
+  * SLI: Measures the uptime of the Kubernetes API.
+  * SLO: Ensure 99.5% uptime.
+
+* K8s API Request Error Rate
+  * SLI: Monitors the error rate of requests made to the Kubernetes API.
+  * SLO: Ensure 99.9% success rate.
+
+* OpenShift Console Uptime
+  * SLI: Tracks the uptime of the OpenShift web console.
+
+* HAProxy / Router Uptime
+  * SLI: Measures the uptime of HAProxy or router services.
+  
+* OpenShift Authentication Uptime
+  * SLI: Monitors the uptime of the OpenShift authentication service.
+
+* Dashboard Organization:
+  * Dedicated Folders: Each customer will have a dedicated folder in Grafana Cloud for storing their respective dashboards.
+  * One Dashboard per Cluster: Dashboards will be created for each cluster to track these SLIs and ensure they meet the defined SLOs.
+
 
 ### How the Operator Works
 

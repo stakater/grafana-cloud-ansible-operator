@@ -176,6 +176,8 @@ The operator's workflow can be described in two different architectural models:
 
     ConfigureSlack -->|API Call: Configure Slack| GO
     GO -->|Return: Endpoint| ConfigureSlack
+    CreateSLOFolder --> |Create Folder| SLOFolders
+    CreateSLODashboard --> |Create Dashboard| SLODashboards
     ```
 
     *Operator Workflow in Standalone Cluster:*

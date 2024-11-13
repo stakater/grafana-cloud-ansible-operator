@@ -19,25 +19,25 @@ The Grafana Cloud Operator  supports the creation and management of dashboards t
 Key SLIs and SLOs Monitored:
 
 * K8s API Uptime
-  * SLI: Measures the uptime of the Kubernetes API.
-  * SLO: Ensure 99.5% uptime.
+    * SLI: Measures the uptime of the Kubernetes API.
+    * SLO: Ensure 99.5% uptime.
 
 * K8s API Request Error Rate
-  * SLI: Monitors the error rate of requests made to the Kubernetes API.
-  * SLO: Ensure 99.9% success rate.
+    * SLI: Monitors the error rate of requests made to the Kubernetes API.
+    * SLO: Ensure 99.9% success rate.
 
 * OpenShift Console Uptime
-  * SLI: Tracks the uptime of the OpenShift web console.
+    * SLI: Tracks the uptime of the OpenShift web console.
 
 * HAProxy / Router Uptime
-  * SLI: Measures the uptime of HAProxy or router services.
+    * SLI: Measures the uptime of HAProxy or router services.
   
 * OpenShift Authentication Uptime
-  * SLI: Monitors the uptime of the OpenShift authentication service.
+    * SLI: Monitors the uptime of the OpenShift authentication service.
 
 * Dashboard Organization:
-  * Dedicated Folders: Each customer will have a dedicated folder in Grafana Cloud for storing their respective dashboards.
-  * One Dashboard per Cluster: Dashboards will be created for each cluster to track these SLIs and ensure they meet the defined SLOs.
+    * Dedicated Folders: Each customer will have a dedicated folder in Grafana Cloud for storing their respective dashboards.
+    * One Dashboard per Cluster: Dashboards will be created for each cluster to track these SLIs and ensure they meet the defined SLOs.
 
 ### How the Operator Works
 

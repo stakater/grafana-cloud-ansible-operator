@@ -140,7 +140,7 @@ The operator's workflow can be described in two different architectural models:
     In a standalone cluster model, the operator is installed directly on a single cluster and manages the Grafana OnCall configuration solely for that cluster. This setup is suitable for individual clusters or standalone environments.
 
     ```mermaid
-    graph TD
+graph TD
 
     subgraph "OpenShift Standalone Cluster"
         Init[Start: Operation Initiated]
@@ -151,6 +151,8 @@ The operator's workflow can be described in two different architectural models:
         Reencode[Re-encode Alertmanager Content]
         PatchSecret[Patch alertmanager-main Secret]
         UpdateCR[Update CR Status to ConfigUpdated]
+        CreateSLOFolder[Create SLO Folder in Grafana Cloud]
+        CreateSLODashboard[Create SLO Dashboard in Grafana Cloud]
 
         Init --> GetClusterName
         GetClusterName --> CheckIntegration
@@ -162,14 +164,20 @@ The operator's workflow can be described in two different architectural models:
         ModSecret --> Reencode
         Reencode --> PatchSecret
         PatchSecret --> UpdateCR
+        CreateIntegration --> CreateSLOFolder
+        CreateSLOFolder --> CreateSLODashboard
     end
 
     subgraph "Grafana Cloud"
         GO[Grafana OnCall]
+        SLOFolders[SLO Folders]
+        SLODashboards[SLO Dashboards]
     end
 
     ConfigureSlack -->|API Call: Configure Slack| GO
     GO -->|Return: Endpoint| ConfigureSlack
+    CreateSLOFolder --> |Create Folder| SLOFolders
+    CreateSLODashboard --> |Create Dashboard| SLODashboards
     ```
 
     *Operator Workflow in Standalone Cluster:*

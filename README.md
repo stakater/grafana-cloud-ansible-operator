@@ -170,14 +170,10 @@ The operator's workflow can be described in two different architectural models:
 
     subgraph "Grafana Cloud"
         GO[Grafana OnCall]
-        SLOFolders[SLO Folders]
-        SLODashboards[SLO Dashboards]
     end
 
     ConfigureSlack -->|API Call: Configure Slack| GO
     GO -->|Return: Endpoint| ConfigureSlack
-    CreateSLOFolder --> |Create Folder| SLOFolders
-    CreateSLODashboard --> |Create Dashboard| SLODashboards
     ```
 
     *Operator Workflow in Standalone Cluster:*

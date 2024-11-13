@@ -385,7 +385,7 @@ Here's a step-by-step guide on understanding and applying this configuration:
 
 The Grafana Cloud Operator includes a robust deletion mechanism that not only handles dashboards but also integrations in Grafana Cloud. This feature ensures outdated or unnecessary resources are efficiently removed, maintaining an organized and optimal environment.
 
-#### How the Deletion Mechanism Works:
+#### How the Deletion Mechanism Works
 
 * ManagedCluster Monitoring: The operator actively watches ManagedClusters to detect changes or deletions. This ensures that resources associated with deleted or modified clusters are identified for removal.
 * Identification of Outdated Resources:
@@ -394,7 +394,7 @@ The Grafana Cloud Operator includes a robust deletion mechanism that not only ha
 * Automated Deletion: Once outdated or deleted ManagedClusters are detected, the operator sends DELETE requests to the Grafana Cloud API to remove the associated dashboards and integrations.
 * Error Handling: Built-in error handling manages scenarios where resources may have already been deleted or do not exist, preventing unnecessary failures.
 
-#### Benefits of the ManagedCluster-Based Deletion:
+#### Benefits of the ManagedCluster-Based Deletion
 
 * Automated Cleanup: Ensures dashboards and integrations tied to ManagedClusters are cleaned up automatically, reducing manual intervention.
 * Resource Optimization: Helps maintain a lean Grafana Cloud environment by removing unused resources, improving performance and manageability.

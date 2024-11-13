@@ -375,6 +375,25 @@ Here's a step-by-step guide on understanding and applying this configuration:
 
     The operator adapts its behavior based on this directive, ensuring that your Grafana OnCall integrations are set up and managed in a way that's optimal for your organizational architecture and needs.
 
+### Automated Resource Cleanup
+The grafana-cloud-ansible-operator includes a robust deletion mechanism that not only handles dashboards but also integrations in Grafana Cloud. This feature ensures outdated or unnecessary resources are efficiently removed, maintaining an organized and optimal environment.
+
+#### How the Deletion Mechanism Works:
+
+* ManagedCluster Monitoring: The operator actively watches ManagedClusters to detect changes or deletions. This ensures that resources associated with deleted or modified clusters are identified for removal.
+* Identification of Outdated Resources:
+    * Dashboards: Retrieves unique identifiers (UIDs) for dashboards linked to ManagedClusters to target for deletion.
+    * Integrations: Collects identifiers for integrations tied to ManagedClusters to accurately manage their lifecycle.
+* Automated Deletion: Once outdated or deleted ManagedClusters are detected, the operator sends DELETE requests to the Grafana Cloud API to remove the associated dashboards and integrations.
+* Error Handling: Built-in error handling manages scenarios where resources may have already been deleted or do not exist, preventing unnecessary failures.
+
+#### Benefits of the ManagedCluster-Based Deletion:
+
+* Automated Cleanup: Ensures dashboards and integrations tied to ManagedClusters are cleaned up automatically, reducing manual intervention.
+* Resource Optimization: Helps maintain a lean Grafana Cloud environment by removing unused resources, improving performance and manageability.
+* Smooth Integration with Playbooks: The deletion process can be integrated with Ansible playbooks for a comprehensive orchestration logic.
+
+
 ### Monitoring and Troubleshooting
 
 After you've applied the CR, the operator starts performing its duties based on the instructions given. You can monitor the operator's activities and troubleshoot potential issues by examining the logs of the operator pod:

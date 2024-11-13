@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-The Grafana Cloud Operator is an Ansible-based OpenShift Operator that automates the configuration and management of Grafana OnCall within an OpenShift cluster. This operator simplifies the process of setting up Grafana OnCall, ensuring seamless integration with Alertmanager and consistent alert forwarding.
+The Grafana Cloud Operator is an Ansible-based OpenShift Operator that automates the configuration and management of Grafana OnCall within an OpenShift cluster. This operator simplifies the process of setting up Grafana OnCall, ensuring seamless integration with Alertmanager and consistent alert forwarding.This operator also ensures that dashboards are created for SLO. The operator also ensures proper cleanup of integrations and dashboards.  
 
 ### What is Grafana Cloud?
 
@@ -11,6 +11,33 @@ Grafana Cloud is a fully managed observability platform from Grafana Labs, provi
 ### Problem
 
 Manually configuring Grafana OnCall on a cluster involves several complex steps, including creating accounts, configuring integrations, and editing configurations. This process is time-consuming, error-prone, and can lead to inconsistencies and misconfigurations if not done accurately. Automating these tasks with the Grafana Cloud Operator simplifies the setup, reduces errors, and ensures consistency across clusters.
+
+### SLO Dashboard Management
+
+The Grafana Cloud Operator  supports the creation and management of dashboards that track key Service Level Indicators (SLIs) and ensure compliance with Service Level Objectives (SLOs) for Kubernetes (K8s) and OpenShift environments. This section provides an overview of the SLIs monitored and the SLOs established, along with the automation approach for creating dashboards.
+
+Key SLIs and SLOs Monitored:
+
+- K8s API Uptime
+    - SLI: Measures the uptime of the Kubernetes API.
+    - SLO: Ensure 99.5% uptime.
+
+- K8s API Request Error Rate
+    - SLI: Monitors the error rate of requests made to the Kubernetes API.
+    - SLO: Ensure 99.9% success rate.
+
+- OpenShift Console Uptime
+    - SLI: Tracks the uptime of the OpenShift web console.
+
+- HAProxy / Router Uptime
+    - SLI: Measures the uptime of HAProxy or router services.
+  
+- OpenShift Authentication Uptime
+    - SLI: Monitors the uptime of the OpenShift authentication service.
+
+- Dashboard Organization:
+    - Dedicated Folders: Each customer will have a dedicated folder in Grafana Cloud for storing their respective dashboards.
+    - One Dashboard per Cluster: Dashboards will be created for each cluster to track these SLIs and ensure they meet the defined SLOs.
 
 ### How the Operator Works
 
@@ -33,7 +60,7 @@ The operator's workflow can be described in two different architectural models:
     ```mermaid
     graph TD
 
-        subgraph "Hub and Spoke Integration with Grafana OnCall"
+        subgraph "Hub and Spoke Integration with Grafana OnCall and SLO Management"
             subgraph "OpenShift Hub Cluster"
                 InitHub[Start: Operation Initiated in Hub]
                 GetGCOHub[Get All Config CRs]
@@ -44,6 +71,9 @@ The operator's workflow can be described in two different architectural models:
                 FetchSlackChannels[Fetch Slack Channel CRs from All Namespaces]
                 DetermineMissingIntegrations[Determine Clusters Missing Integrations]
                 CreateIntegration[Create Integration in Grafana OnCall for Missing Clusters]
+                CreateSLOFolders[Create SLO Folders in Grafana Cloud]
+                CreateSLODashboards[Create SLO Dashboards for Each Cluster]
+
                 InitHub --> GetGCOHub
                 GetGCOHub --> CheckMultipleCRs
                 CheckMultipleCRs --> GetToken
@@ -52,10 +82,14 @@ The operator's workflow can be described in two different architectural models:
                 FetchClusters --> FetchSlackChannels
                 FetchSlackChannels --> DetermineMissingIntegrations
                 DetermineMissingIntegrations --> CreateIntegration
+                DetermineMissingIntegrations --> CreateSLOFolders
+                CreateSLOFolders --> CreateSLODashboards
             end
 
             subgraph "Grafana Cloud"
                 GOHub[Grafana OnCall]
+                SLOFolders[SLO Folders]
+                SLODashboards[SLO Dashboards]
             end
 
             subgraph "Spoke Clusters"
@@ -65,13 +99,15 @@ The operator's workflow can be described in two different architectural models:
             end
 
             subgraph "OpenClusterManagement (OCM)"
-            CreateIntegration --> |Create Integration| GOHub
-            GOHub -->|Return: Endpoint| RHACM/OCM
-            RHACM/OCM --> |ManifestWork| SC1
-            RHACM/OCM --> |ManifestWork| SC2
-            RHACM/OCM --> |ManifestWork| SC3
+                CreateIntegration --> |Create Integration| GOHub
+                CreateSLOFolders --> |Create Folders| SLOFolders
+                CreateSLODashboards --> |Create Dashboards| SLODashboards
+                GOHub -->|Return: Endpoint| RHACM/OCM
+                RHACM/OCM --> |ManifestWork| SC1
+                RHACM/OCM --> |ManifestWork| SC2
+                RHACM/OCM --> |ManifestWork| SC3
             end
-            
+
         end
     ```
 
@@ -115,6 +151,8 @@ The operator's workflow can be described in two different architectural models:
         Reencode[Re-encode Alertmanager Content]
         PatchSecret[Patch alertmanager-main Secret]
         UpdateCR[Update CR Status to ConfigUpdated]
+        CreateSLOFolder[Create SLO Folder in Grafana Cloud]
+        CreateSLODashboard[Create SLO Dashboard in Grafana Cloud]
 
         Init --> GetClusterName
         GetClusterName --> CheckIntegration
@@ -126,6 +164,8 @@ The operator's workflow can be described in two different architectural models:
         ModSecret --> Reencode
         Reencode --> PatchSecret
         PatchSecret --> UpdateCR
+        CreateIntegration --> CreateSLOFolder
+        CreateSLOFolder --> CreateSLODashboard
     end
 
     subgraph "Grafana Cloud"
@@ -346,6 +386,25 @@ Here's a step-by-step guide on understanding and applying this configuration:
     ```
 
     The operator adapts its behavior based on this directive, ensuring that your Grafana OnCall integrations are set up and managed in a way that's optimal for your organizational architecture and needs.
+
+### Automated Resource Cleanup
+
+The Grafana Cloud Operator includes a robust deletion mechanism that not only handles dashboards but also integrations in Grafana Cloud. This feature ensures outdated or unnecessary resources are efficiently removed, maintaining an organized and optimal environment.
+
+#### How the Deletion Mechanism Works
+
+- ManagedCluster Monitoring: The operator actively watches ManagedClusters to detect changes or deletions. This ensures that resources associated with deleted or modified clusters are identified for removal.
+- Identification of Outdated Resources:
+    - Dashboards: Retrieves unique identifiers `(UIDs)` for dashboards linked to ManagedClusters to target for deletion.
+    - Integrations: Collects identifiers for integrations tied to ManagedClusters to accurately manage their lifecycle.
+- Automated Deletion: Once outdated or deleted ManagedClusters are detected, the operator sends DELETE requests to the Grafana Cloud API to remove the associated dashboards and integrations.
+- Error Handling: Built-in error handling manages scenarios where resources may have already been deleted or do not exist, preventing unnecessary failures.
+
+#### Benefits of the ManagedCluster-Based Deletion
+
+- Automated Cleanup: Ensures dashboards and integrations tied to ManagedClusters are cleaned up automatically, reducing manual intervention.
+- Resource Optimization: Helps maintain a lean Grafana Cloud environment by removing unused resources, improving performance and manageability.
+- Smooth Integration with Playbooks: The deletion process can be integrated with Ansible playbooks for a comprehensive orchestration logic.
 
 ### Monitoring and Troubleshooting
 

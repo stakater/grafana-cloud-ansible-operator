@@ -18,26 +18,26 @@ The Grafana Cloud Operator  supports the creation and management of dashboards t
 
 Key SLIs and SLOs Monitored:
 
-* K8s API Uptime
-    * SLI: Measures the uptime of the Kubernetes API.
-    * SLO: Ensure 99.5% uptime.
+- K8s API Uptime
+    - SLI: Measures the uptime of the Kubernetes API.
+    - SLO: Ensure 99.5% uptime.
 
-* K8s API Request Error Rate
-    * SLI: Monitors the error rate of requests made to the Kubernetes API.
-    * SLO: Ensure 99.9% success rate.
+- K8s API Request Error Rate
+    - SLI: Monitors the error rate of requests made to the Kubernetes API.
+    - SLO: Ensure 99.9% success rate.
 
-* OpenShift Console Uptime
-    * SLI: Tracks the uptime of the OpenShift web console.
+- OpenShift Console Uptime
+    - SLI: Tracks the uptime of the OpenShift web console.
 
-* HAProxy / Router Uptime
-    * SLI: Measures the uptime of HAProxy or router services.
+- HAProxy / Router Uptime
+    - SLI: Measures the uptime of HAProxy or router services.
   
-* OpenShift Authentication Uptime
-    * SLI: Monitors the uptime of the OpenShift authentication service.
+- OpenShift Authentication Uptime
+    - SLI: Monitors the uptime of the OpenShift authentication service.
 
-* Dashboard Organization:
-    * Dedicated Folders: Each customer will have a dedicated folder in Grafana Cloud for storing their respective dashboards.
-    * One Dashboard per Cluster: Dashboards will be created for each cluster to track these SLIs and ensure they meet the defined SLOs.
+- Dashboard Organization:
+    - Dedicated Folders: Each customer will have a dedicated folder in Grafana Cloud for storing their respective dashboards.
+    - One Dashboard per Cluster: Dashboards will be created for each cluster to track these SLIs and ensure they meet the defined SLOs.
 
 ### How the Operator Works
 
@@ -393,19 +393,18 @@ The Grafana Cloud Operator includes a robust deletion mechanism that not only ha
 
 #### How the Deletion Mechanism Works
 
-* ManagedCluster Monitoring: The operator actively watches ManagedClusters to detect changes or deletions. This ensures that resources associated with deleted or modified clusters are identified for removal.
-* Identification of Outdated Resources:
-    * Dashboards: Retrieves unique identifiers `(UIDs)` for dashboards linked to ManagedClusters to target for deletion.
-    * Integrations: Collects identifiers for integrations tied to ManagedClusters to accurately manage their lifecycle.
-* Automated Deletion: Once outdated or deleted ManagedClusters are detected, the operator sends DELETE requests to the Grafana Cloud API to remove the associated dashboards and integrations.
-* Error Handling: Built-in error handling manages scenarios where resources may have already been deleted or do not exist, preventing unnecessary failures.
+- ManagedCluster Monitoring: The operator actively watches ManagedClusters to detect changes or deletions. This ensures that resources associated with deleted or modified clusters are identified for removal.
+- Identification of Outdated Resources:
+    - Dashboards: Retrieves unique identifiers `(UIDs)` for dashboards linked to ManagedClusters to target for deletion.
+    - Integrations: Collects identifiers for integrations tied to ManagedClusters to accurately manage their lifecycle.
+- Automated Deletion: Once outdated or deleted ManagedClusters are detected, the operator sends DELETE requests to the Grafana Cloud API to remove the associated dashboards and integrations.
+- Error Handling: Built-in error handling manages scenarios where resources may have already been deleted or do not exist, preventing unnecessary failures.
 
 #### Benefits of the ManagedCluster-Based Deletion
 
-* Automated Cleanup: Ensures dashboards and integrations tied to ManagedClusters are cleaned up automatically, reducing manual intervention.
-* Resource Optimization: Helps maintain a lean Grafana Cloud environment by removing unused resources, improving performance and manageability.
-* Smooth Integration with Playbooks: The deletion process can be integrated with Ansible playbooks for a comprehensive orchestration logic.
-
+- Automated Cleanup: Ensures dashboards and integrations tied to ManagedClusters are cleaned up automatically, reducing manual intervention.
+- Resource Optimization: Helps maintain a lean Grafana Cloud environment by removing unused resources, improving performance and manageability.
+- Smooth Integration with Playbooks: The deletion process can be integrated with Ansible playbooks for a comprehensive orchestration logic.
 
 ### Monitoring and Troubleshooting
 

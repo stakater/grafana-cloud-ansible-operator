@@ -140,7 +140,7 @@ The operator's workflow can be described in two different architectural models:
     In a standalone cluster model, the operator is installed directly on a single cluster and manages the Grafana OnCall configuration solely for that cluster. This setup is suitable for individual clusters or standalone environments.
 
     ```mermaid
-graph TD
+    graph TD
 
     subgraph "OpenShift Standalone Cluster"
         Init[Start: Operation Initiated]

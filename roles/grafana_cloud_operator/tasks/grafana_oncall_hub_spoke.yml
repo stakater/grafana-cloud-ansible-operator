@@ -45,7 +45,7 @@
 
 - name: Extract ManagedCluster details with owner label
   ansible.builtin.set_fact:
-    managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name, 'owner': item.metadata.labels.owner }}"
+    managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name, 'owner': item.metadata.labels.owner}] }}"
   loop: "{{ managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item

@@ -43,9 +43,9 @@
     kind: ManagedCluster
   register: managed_clusters_raw
 
-- name: Extract the list of ManagedCluster CRs
+- name: Extract ManagedCluster details with owner label
   ansible.builtin.set_fact:
-    managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name}] }}"
+    managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name, 'owner': item.metadata.labels.owner }}"
   loop: "{{ managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
@@ -100,19 +100,19 @@
           {{
             {
               "type": "alertmanager",
-              "name": item.name,
+              "name": (item.owner + '-' + item.name),
               "default_route": {
-              "slack": {
-                    "channel_id": slack_channel_validated[loop_index].slack_id,
-                    "enabled": slack_cond
-                  }
+                "slack": {
+                  "channel_id": slack_channel_validated[loop_index].slack_id,
+                  "enabled": slack_cond
                 }
-              } if slack_channel_validated is defined and
-                   slack_channel_validated | length > loop_index and
-                   slack_channel_validated[loop_index].slack_id | length > 0
-                else {
-                  "type": "alertmanager",
-                  "name": item.name
+              }
+            } if slack_channel_validated is defined and
+                 slack_channel_validated | length > loop_index and
+                 slack_channel_validated[loop_index].slack_id | length > 0
+              else {
+                "type": "alertmanager",
+                "name": (item.owner + '-' + item.name)
               }
           }}
         status_code: [200, 201]

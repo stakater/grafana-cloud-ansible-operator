@@ -43,20 +43,51 @@
     kind: ManagedCluster
   register: managed_clusters_raw
 
-- name: Extract ManagedCluster details with owner label
+- name: Extract ManagedCluster details with name label
   ansible.builtin.set_fact:
-    managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name, 'owner': item.metadata.labels.owner}] }}"
+    managed_clusters_create: "{{ managed_clusters_create | default([]) + [{'name': item.metadata.name}] }}"
   loop: "{{ managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
 
-- name: Remove duplicate entries from managed_clusters
+- name: Extract ManagedCluster names with prefix
   ansible.builtin.set_fact:
-    managed_clusters: "{{ managed_clusters | unique(attribute='name') }}"
+    managed_cluster_names: "{{ managed_cluster_names | default([]) + ['name: ' ~ item.metadata.name] }}"
+  loop: "{{ managed_clusters_raw.resources }}"
+  loop_control:
+    loop_var: item
+
+- name: Extract ManagedCluster owners with prefix
+  ansible.builtin.set_fact:
+    managed_cluster_owners: "{{ managed_cluster_owners | default([]) + ['owner: ' ~ item.metadata.labels.owner | default('unknown')] }}"
+  loop: "{{ managed_clusters_raw.resources }}"
+  loop_control:
+    loop_var: item
+
+- name: Combine managed_cluster_names and managed_cluster_owners into a dictionary
+  set_fact:
+    managed_clusters: >-
+      {{
+        dict(managed_cluster_names | zip(managed_cluster_owners))
+      }}
 
 - name: Determine which ManagedCluster CRs don't have integrations
   ansible.builtin.set_fact:
-    create_integration_for: "{{ managed_clusters | rejectattr('name', 'in', existing_integration_names) | list }}"
+    create_integration_for: "{{ managed_clusters_create | rejectattr('name', 'in', existing_integration_names) | list }}"
+
+- name: Add 'name:' prefix to integration_names
+  set_fact:
+    integration_names: "{{ create_integration_for | map(attribute='name') | map('regex_replace', '^', 'name: ') | list }}"
+
+- name: Filter common clusters for integration by name
+  set_fact:
+    common_clusters: >-
+      {{
+        managed_clusters
+        | dict2items
+        | selectattr('key', 'in', integration_names)
+        | items2dict
+      }}
 
 - name: Integration creation
   block:
@@ -100,7 +131,7 @@
           {{
             {
               "type": "alertmanager",
-              "name": (item.owner + '-' + item.name),
+              "name": (item.key | regex_replace('^name: ', '') + '-' + item.value | regex_replace('^owner: ', '')),
               "default_route": {
                 "slack": {
                   "channel_id": slack_channel_validated[loop_index].slack_id,
@@ -112,20 +143,19 @@
                  slack_channel_validated[loop_index].slack_id | length > 0
               else {
                 "type": "alertmanager",
-                "name": (item.owner + '-' + item.name)
+                "name": (item.key | regex_replace('^name: ', '') + '-' + item.value | regex_replace('^owner: ', ''))
               }
           }}
         status_code: [200, 201]
       register: grafana_integration_response
-      loop: "{{ create_integration_for }}"
+      loop: "{{ common_clusters | dict2items }}"
       loop_control:
-        label: "{{ item.name }}"
+        label: "{{ item.key }}"
         index_var: loop_index
       retries: 5
       delay: 6
       until: grafana_integration_response.status in [200, 201]
       failed_when: false
-
     - name: Update status with ManagedCluster field
       operator_sdk.util.k8s_status:
         api_version: grafanacloud.stakater.com/v1alpha1

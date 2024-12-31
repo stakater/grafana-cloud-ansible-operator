@@ -156,6 +156,7 @@
       delay: 6
       until: grafana_integration_response.status in [200, 201]
       failed_when: false
+
     - name: Update status with ManagedCluster field
       operator_sdk.util.k8s_status:
         api_version: grafanacloud.stakater.com/v1alpha1

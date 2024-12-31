@@ -176,7 +176,7 @@
 
     - name: Set fact for list of ManagedCluster names
       ansible.builtin.set_fact:
-        managed_cluster_names: "{{ managed_cluster_owners | map(attribute='name') | list }}"
+        managed_cluster_names: "{{ managed_clusters_create | map(attribute='name') | list }}"
       when: create_integration_for | length == grafana_integration_response.results | length
 
     - name: Merge existing ManagedCluster names with new ones

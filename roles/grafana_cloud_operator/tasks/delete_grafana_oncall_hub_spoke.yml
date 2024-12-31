@@ -34,6 +34,10 @@
     kind: ManagedCluster
   register: managed_clusters_raw
 
+- name: Initialize managed_clusters as an empty list
+  ansible.builtin.set_fact:
+    managed_clusters: []
+
 - name: Extract list of ManagedCluster CRs
   ansible.builtin.set_fact:
     managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name}] }}"

@@ -65,7 +65,7 @@
     loop_var: item
 
 - name: Combine managed_cluster_names and managed_cluster_owners into a dictionary
-  set_fact:
+  ansible.builtin.set_fact:
     managed_clusters: >-
       {{
         dict(managed_cluster_names | zip(managed_cluster_owners))
@@ -76,11 +76,11 @@
     create_integration_for: "{{ managed_clusters_create | rejectattr('name', 'in', existing_integration_names) | list }}"
 
 - name: Add 'name:' prefix to integration_names
-  set_fact:
+  ansible.builtin.set_fact:
     integration_names: "{{ create_integration_for | map(attribute='name') | map('regex_replace', '^', 'name: ') | list }}"
 
 - name: Filter common clusters for integration by name
-  set_fact:
+  ansible.builtin.set_fact:
     common_clusters: >-
       {{
         managed_clusters

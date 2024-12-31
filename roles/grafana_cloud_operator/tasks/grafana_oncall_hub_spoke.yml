@@ -43,7 +43,7 @@
     kind: ManagedCluster
   register: managed_clusters_raw
 
-- name: Extract ManagedCluster details with name label
+- name: Extract ManagedCluster details with name
   ansible.builtin.set_fact:
     managed_clusters_create: "{{ managed_clusters_create | default([]) + [{'name': item.metadata.name}] }}"
   loop: "{{ managed_clusters_raw.resources }}"
@@ -75,7 +75,7 @@
   ansible.builtin.set_fact:
     create_integration_for: "{{ managed_clusters_create | rejectattr('name', 'in', existing_integration_names) | list }}"
 
-- name: Add 'name:' prefix to integration_names
+- name: Adds name as prefix to integration_names
   ansible.builtin.set_fact:
     integration_names: "{{ create_integration_for | map(attribute='name') | map('regex_replace', '^', 'name: ') | list }}"
 

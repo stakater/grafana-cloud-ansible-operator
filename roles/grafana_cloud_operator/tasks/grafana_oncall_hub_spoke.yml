@@ -129,6 +129,7 @@
       loop: "{{ slack_channel_info.results | map(attribute='resources') | flatten }}"
       loop_control:
         label: "{{ item.metadata.name }}"
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Populate List with spaces if any
       vars:

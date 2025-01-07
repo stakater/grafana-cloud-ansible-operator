@@ -152,7 +152,7 @@
           {{
             {
               "type": "alertmanager",
-              "name": (item.key | regex_replace('^name: ', '') + '-' + item.value | regex_replace('^owner: ', '')),
+              "name": item.name,
               "default_route": {
                 "slack": {
                   "channel_id": slack_channel_validated[loop_index].slack_id,
@@ -160,16 +160,16 @@
                 }
               }
             } if slack_channel_validated is defined and
-                 slack_channel_validated | length > loop_index and
-                 slack_channel_validated[loop_index].slack_id | length > 0
+                slack_channel_validated | length > loop_index and
+                slack_channel_validated[loop_index].slack_id | length > 0
               else {
                 "type": "alertmanager",
-                "name": (item.key | regex_replace('^name: ', '') + '-' + item.value | regex_replace('^owner: ', ''))
+                "name": item.name
               }
           }}
         status_code: [200, 201]
       register: grafana_integration_response
-      loop: "{{ common_clusters | dict2items }}"
+      loop: "{{ create_integration_for_dict }}"
       loop_control:
         label: "{{ item.key }}"
         index_var: loop_index
@@ -192,21 +192,35 @@
 
     - name: Extract existing ManagedCluster names from current status
       ansible.builtin.set_fact:
-        existing_managed_cluster_names: "{{ current_config_cr.resources[0].status.managedClusters | list | default([]) }}"
-      when: create_integration_for | length == grafana_integration_response.results | length
+        existing_managed_cluster_names: >-
+          {{
+            current_config_cr.resources[0].status.managed_clusters
+            | default([])
+          }}
 
-    - name: Set fact for list of ManagedCluster names
+    - name: Extract new ManagedCluster names
       ansible.builtin.set_fact:
-        managed_cluster_names: "{{ managed_clusters | map(attribute='name') | list }}"
-      when: create_integration_for | length == grafana_integration_response.results | length
+        managed_cluster_names: >-
+          {{
+            managed_clusters
+            | dict2items
+            | map(attribute='key')
+            | zip(
+                managed_clusters
+                | dict2items
+                | map(attribute='value')
+              )
+            | map('join', '-')
+            | list
+          }}
 
+    - name: Merge existing ManagedCluster names with new ones
     - name: Merge existing ManagedCluster names with new ones
       ansible.builtin.set_fact:
         updated_managed_cluster_names: >-
           {{
             (existing_managed_cluster_names + managed_cluster_names) | unique
           }}
-      when: create_integration_for | length == grafana_integration_response.results | length
 
     - name: Update CR status to IntegrationsCreated
       operator_sdk.util.k8s_status:
@@ -222,7 +236,7 @@
               type: "Successful"
               reason: "IntegrationsCreated"
               message: "Grafana integrations created for all ManagedClusters."
-      when: create_integration_for | length == grafana_integration_response.results | length
+      when: managed_cluster_names | length > 0
 
     - name: Inform user if Grafana integration creation was skipped or failed
       when: grafana_integration_response is skipped or (grafana_integration_response.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)

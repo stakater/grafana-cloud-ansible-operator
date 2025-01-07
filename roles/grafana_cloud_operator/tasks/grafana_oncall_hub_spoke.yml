@@ -198,7 +198,7 @@
           managedClusters: []
       when:
         - "'managedClusters' not in current_config_cr.resources[0].status"
-        - create_integration_for | length == grafana_integration_response.results | length
+        - create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Extract existing ManagedCluster names from current status
       ansible.builtin.set_fact:

@@ -215,7 +215,6 @@
           }}
 
     - name: Merge existing ManagedCluster names with new ones
-    - name: Merge existing ManagedCluster names with new ones
       ansible.builtin.set_fact:
         updated_managed_cluster_names: >-
           {{

@@ -248,7 +248,7 @@
               type: "Successful"
               reason: "IntegrationsCreated"
               message: "Grafana integrations created for all ManagedClusters."
-      when: managed_cluster_names | length > 0
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Inform user if Grafana integration creation was skipped or failed
       when: grafana_integration_response is skipped or (grafana_integration_response.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)

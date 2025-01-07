@@ -116,7 +116,10 @@
       kubernetes.core.k8s_info:
         api_version: slack.stakater.com/v1alpha1
         kind: Channel
-        namespace: "{{ item.name }}"
+        # Strip everything from the last dash to the end. 
+        # e.g., "local-cluster-unknown" -> "local-cluster"
+        #       "2d23wd4e-epical"       -> "2d23wd4e"
+        namespace: "{{ item.name | regex_replace('^(.+)-[^-]+$', '\\1') }}"
       register: slack_channel_info
       loop: "{{ create_integration_for_dict }}"
       loop_control:

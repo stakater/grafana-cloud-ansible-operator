@@ -121,6 +121,7 @@
       loop: "{{ create_integration_for_dict }}"
       loop_control:
         label: "{{ item.name }}"
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Extract Channel id from slack channel
       ansible.builtin.set_fact:
@@ -204,6 +205,7 @@
             current_config_cr.resources[0].status.managed_clusters
             | default([])
           }}
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Extract new ManagedCluster names
       ansible.builtin.set_fact:
@@ -220,6 +222,7 @@
             | map('join', '-')
             | list
           }}
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Merge existing ManagedCluster names with new ones
       ansible.builtin.set_fact:
@@ -227,6 +230,7 @@
           {{
             (existing_managed_cluster_names + managed_cluster_names) | unique
           }}
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Update CR status to IntegrationsCreated
       operator_sdk.util.k8s_status:

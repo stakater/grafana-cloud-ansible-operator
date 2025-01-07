@@ -186,6 +186,7 @@
       delay: 6
       until: grafana_integration_response.status in [200, 201]
       failed_when: false
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Update status with ManagedCluster field
       operator_sdk.util.k8s_status:

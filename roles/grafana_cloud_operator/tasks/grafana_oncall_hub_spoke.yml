@@ -289,7 +289,7 @@
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
-        namespace: "{{ item.cluster.name }}"
+        namespace: "{{ item.cluster.name | regex_replace('^(.+?)(-new)?$', '\\1') }}"
         cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"

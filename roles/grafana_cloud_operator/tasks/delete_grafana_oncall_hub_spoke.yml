@@ -149,6 +149,17 @@
               message: "Clears old managed clusters"
       when: delete_integration_for
 
+    - name: Deduplicate and clean up managedClusters status
+      ansible.builtin.set_fact:
+        cleaned_managed_clusters: >-
+          {{
+            config_cr.resources[0].status.managedClusters
+            | map('regex_replace', '^name: ', '')
+            | map('regex_replace', '-owner: ', '-')
+            | unique
+            | list
+          }}
+
     - name: Update CR status for IntegrationsDeleted
       operator_sdk.util.k8s_status:
         api_version: grafanacloud.stakater.com/v1alpha1
@@ -156,7 +167,7 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
         status:
-          managedClusters: "{{ managed_clusters }}"
+          managedClusters: "{{ cleaned_managed_clusters }}"
           conditions:
             - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
               status: "True"

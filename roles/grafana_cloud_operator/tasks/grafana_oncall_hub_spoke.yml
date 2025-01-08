@@ -280,11 +280,19 @@
         - name: Start deletion for hubAndSpoke mode
           ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml
 
-    - name: Associate Grafana integration details with ManagedClusters
-      ansible.builtin.set_fact:
-        mapped_integrations: "{{ mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
-      loop: "{{ grafana_integration_response.results }}"
-      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
+        - name: Associate Grafana integration details with ManagedClusters
+          ansible.builtin.set_fact:
+            mapped_integrations: >-
+              {{
+                mapped_integrations | default([]) + [
+                  {
+                    'cluster': item.item,  # Ensure this aligns with the loop structure
+                    'grafana_details': item.json
+                  }
+                ]
+              }}
+          loop: "{{ grafana_integration_response.results | default([]) }}"
+          when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     # Following tasks will execute only if Grafana integration was created successfully
     - name: Modify Alertmanager secret
@@ -296,6 +304,8 @@
         cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"
+      loop_control:
+        label: "{{ item.cluster.name }}"
 
 - name: Update CR status for ManifestWork creation
   operator_sdk.util.k8s_status:

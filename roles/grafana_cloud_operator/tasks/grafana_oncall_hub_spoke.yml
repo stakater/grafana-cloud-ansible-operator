@@ -285,7 +285,7 @@
 
     - name: Transform and set namespace for each cluster
       ansible.builtin.set_fact:
-        transformed_namespaces: "{{ transformed_namespaces | default([]) + [{'original': item.cluster.name, 'transformed': item.cluster.name | regex_replace('^(.*?)-.*$', '\\1')}] }}"
+        transformed_namespaces: "{{ transformed_namespaces | default([]) + [{'original': item.cluster.name, 'transformed': item.cluster.name | regex_replace('^(.*?)-.*$', '\\1')}] }}" # yamllint disable-line rule:line-length
       loop: "{{ mapped_integrations }}"
       loop_control:
         label: "{{ item.cluster.name }}"

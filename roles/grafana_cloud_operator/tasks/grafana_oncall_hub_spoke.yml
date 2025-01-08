@@ -257,10 +257,6 @@
           ansible.builtin.debug:
             msg: "Checking if Grafana integration for the cluster was skipped or failed."
 
-        - name: Debug grafana_integration_response
-          ansible.builtin.debug:
-            var: grafana_integration_response
-
         - name: Update CR status to Failure for failed integrations
           operator_sdk.util.k8s_status:
             api_version: grafanacloud.stakater.com/v1alpha1

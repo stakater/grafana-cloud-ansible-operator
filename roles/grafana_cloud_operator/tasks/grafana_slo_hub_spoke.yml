@@ -12,6 +12,44 @@
           reason: "OperationStarted"
           message: "Starting creation of SLO dashboard in hubAndSpoke mode"
 
+- name: Fetch ManagedCluster CRs
+  kubernetes.core.k8s_info:
+    api_version: cluster.open-cluster-management.io/v1
+    kind: ManagedCluster
+  register: managed_clusters_raw
+
+- name: Extract ManagedCluster names with prefix
+  ansible.builtin.set_fact:
+    managed_cluster_names: "{{ managed_cluster_names | default([]) + ['name: ' ~ item.metadata.name] }}"
+  loop: "{{ managed_clusters_raw.resources }}"
+  loop_control:
+    loop_var: item
+
+- name: Extract ManagedCluster owners with prefix
+  ansible.builtin.set_fact:
+    managed_cluster_owners: "{{ managed_cluster_owners | default([]) + ['owner: ' ~ item.metadata.labels.owner | default('unknown')] }}"
+  loop: "{{ managed_clusters_raw.resources }}"
+  loop_control:
+    loop_var: item
+
+- name: Combine managed_cluster_names and managed_cluster_owners into a dictionary
+  ansible.builtin.set_fact:
+    managed_clusters: >-
+      {{
+        dict(
+          managed_cluster_names
+          | map('regex_replace', '^name: ', '')
+          | zip(
+              managed_cluster_owners
+              | map('regex_replace', '^owner: ', '')
+            )
+        )
+      }}
+
+- name: Convert managed_clusters to <clusterID>-<owner> format
+  ansible.builtin.set_fact:
+    current_managed_clusters: "{{ managed_clusters | dict2items | map('join', '-') | list }}"
+
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
     url: "{{ gco_cr.spec.sloCloudAPI }}/folders"

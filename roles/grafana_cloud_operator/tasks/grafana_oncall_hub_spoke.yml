@@ -276,8 +276,6 @@
             - grafana_integration_response.results is defined
             - grafana_integration_response.results | length > 0
             - item.status not in [200, 201]
-        
-        
 
     - name: Associate Grafana integration details with ManagedClusters
       ansible.builtin.set_fact:

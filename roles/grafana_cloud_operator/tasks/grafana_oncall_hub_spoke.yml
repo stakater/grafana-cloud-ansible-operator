@@ -286,7 +286,7 @@
               {{
                 mapped_integrations | default([]) + [
                   {
-                    'cluster': item.item,  # Ensure this aligns with the loop structure
+                    'cluster': item.item,
                     'grafana_details': item.json
                   }
                 ]

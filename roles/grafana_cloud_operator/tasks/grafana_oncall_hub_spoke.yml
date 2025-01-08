@@ -283,13 +283,20 @@
       loop: "{{ grafana_integration_response.results }}"
       when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
+    - name: Transform and set namespace for each cluster
+      ansible.builtin.set_fact:
+        transformed_namespaces: "{{ transformed_namespaces | default([]) + [{'original': item.cluster.name, 'transformed': item.cluster.name | regex_replace('^(.*?)-.*$', '\\1')}] }}"
+      loop: "{{ mapped_integrations }}"
+      loop_control:
+        label: "{{ item.cluster.name }}"
+
     # Following tasks will execute only if Grafana integration was created successfully
     - name: Modify Alertmanager secret
       ansible.builtin.include_tasks: modify_alertmanager_secret.yml
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
-        namespace: "{{ item.cluster.name | regex_replace('^(.*?)(-new)?$', '\\1') | default('default') }}"
+        namespace: "{{ transformed_namespaces  }}"
         cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"

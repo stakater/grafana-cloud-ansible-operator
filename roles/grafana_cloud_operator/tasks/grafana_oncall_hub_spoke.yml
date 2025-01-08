@@ -295,6 +295,7 @@
       loop: "{{ mapped_integrations }}"
       loop_control:
         label: "{{ item.cluster.name }}"
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
 - name: Update CR status for ManifestWork creation
   operator_sdk.util.k8s_status:

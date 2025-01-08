@@ -38,16 +38,26 @@
   ansible.builtin.set_fact:
     managed_clusters: []
 
-- name: Extract list of ManagedCluster CRs with owners
+- name: Extract ManagedCluster names with prefix
+  ansible.builtin.set_fact:
+    managed_cluster_names: "{{ managed_cluster_names | default([]) + [item.metadata.name] }}"
+  loop: "{{ managed_clusters_raw.resources }}"
+  loop_control:
+    loop_var: item
+
+- name: Extract ManagedCluster owners with prefix
+  ansible.builtin.set_fact:
+    managed_cluster_owners: "{{ managed_cluster_owners | default([]) + [item.metadata.labels.owner | default('unknown')] }}"
+  loop: "{{ managed_clusters_raw.resources }}"
+  loop_control:
+    loop_var: item
+
+- name: Combine managed_cluster_names and managed_cluster_owners into a list of strings
   ansible.builtin.set_fact:
     managed_clusters: >-
       {{
-        managed_clusters_raw.resources
-        | map(attribute='metadata.name')
-        | zip(
-            managed_clusters_raw.resources
-            | map(attribute='metadata.labels.owner' | default('unknown'))
-          )
+        managed_cluster_names
+        | zip(managed_cluster_owners)
         | map('join', '-')
         | list
       }}

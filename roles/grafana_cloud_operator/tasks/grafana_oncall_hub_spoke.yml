@@ -277,19 +277,11 @@
             - grafana_integration_response.results | length > 0
             - item.status not in [200, 201]
 
-        - name: Associate Grafana integration details with ManagedClusters
-          ansible.builtin.set_fact:
-            mapped_integrations: >-
-              {{
-                mapped_integrations | default([]) + [
-                  {
-                    'cluster': item.item,
-                    'grafana_details': item.json
-                  }
-                ]
-              }}
-          loop: "{{ grafana_integration_response.results | default([]) }}"
-          when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
+    - name: Associate Grafana integration details with ManagedClusters
+      ansible.builtin.set_fact:
+        mapped_integrations: "{{ mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
+      loop: "{{ grafana_integration_response.results }}"
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     # Following tasks will execute only if Grafana integration was created successfully
     - name: Modify Alertmanager secret

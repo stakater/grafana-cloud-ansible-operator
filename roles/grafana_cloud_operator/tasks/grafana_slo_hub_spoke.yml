@@ -46,7 +46,7 @@
         )
       }}
 
-- name: Convert managed_clusters to format
+- name: Convert managed_clusters to <clusterID>-<owner> format
   ansible.builtin.set_fact:
     current_managed_clusters: "{{ managed_clusters | dict2items | map('join', '-') | list }}"
 

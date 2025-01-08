@@ -277,9 +277,6 @@
             - grafana_integration_response.results | length > 0
             - item.status not in [200, 201]
 
-        - name: Start deletion for hubAndSpoke mode
-          ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml
-
         - name: Associate Grafana integration details with ManagedClusters
           ansible.builtin.set_fact:
             mapped_integrations: >-
@@ -338,3 +335,6 @@
             reason: "ManifestWorkCreationFailed"
             message: "Failed to create ManifestWork for one or more ManagedClusters"
   when: manifestwork_creation_results.failed
+
+- name: Start deletion for hubAndSpoke mode
+  ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml

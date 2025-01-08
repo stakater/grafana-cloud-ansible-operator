@@ -276,8 +276,10 @@
                   message: "Failed to create Grafana integration for ManagedClusters."
           loop: "{{ grafana_integration_response.results }}"
           when:
+            - grafana_integration_response is defined
+            - grafana_integration_response.results is defined
+            - grafana_integration_response.results | length > 0
             - item.status not in [200, 201]
-            - create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
         - name: Start deletion for hubAndSpoke mode
           ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml

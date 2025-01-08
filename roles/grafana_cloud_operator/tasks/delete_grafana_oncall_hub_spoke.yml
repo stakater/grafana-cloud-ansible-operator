@@ -38,26 +38,16 @@
   ansible.builtin.set_fact:
     managed_clusters: []
 
-- name: Extract ManagedCluster names with prefix
-  ansible.builtin.set_fact:
-    managed_cluster_names: "{{ managed_cluster_names | default([]) + [item.metadata.name] }}"
-  loop: "{{ managed_clusters_raw.resources }}"
-  loop_control:
-    loop_var: item
-
-- name: Extract ManagedCluster owners with prefix
-  ansible.builtin.set_fact:
-    managed_cluster_owners: "{{ managed_cluster_owners | default([]) + [item.metadata.labels.owner | default('unknown')] }}"
-  loop: "{{ managed_clusters_raw.resources }}"
-  loop_control:
-    loop_var: item
-
-- name: Combine managed_cluster_names and managed_cluster_owners into a list of strings
+- name: Extract list of ManagedCluster CRs with owners
   ansible.builtin.set_fact:
     managed_clusters: >-
       {{
-        managed_cluster_names
-        | zip(managed_cluster_owners)
+        managed_clusters_raw.resources
+        | map(attribute='metadata.name')
+        | zip(
+            managed_clusters_raw.resources
+            | map(attribute='metadata.labels.owner' | default('unknown'))
+          )
         | map('join', '-')
         | list
       }}
@@ -149,6 +139,22 @@
               message: "Clears old managed clusters"
       when: delete_integration_for
 
+    - name: Update CR status for IntegrationsDeleted
+      operator_sdk.util.k8s_status:
+        api_version: grafanacloud.stakater.com/v1alpha1
+        kind: Config
+        name: "{{ cr_name }}"
+        namespace: "{{ cr_namespace }}"
+        status:
+          managedClusters: "{{ managed_clusters }}"
+          conditions:
+            - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+              status: "True"
+              type: "DeletionCompleted"
+              reason: "OperationDone"
+              message: "Deleted the integrations {{ delete_integration_for }}"
+      when: delete_integration_for
+
     - name: Deduplicate and clean up managedClusters status
       ansible.builtin.set_fact:
         cleaned_managed_clusters: >-
@@ -159,8 +165,9 @@
             | unique
             | list
           }}
+      when: delete_integration_for
 
-    - name: Update CR status for IntegrationsDeleted
+    - name: Update CR status with deduplicated ManagedClusters
       operator_sdk.util.k8s_status:
         api_version: grafanacloud.stakater.com/v1alpha1
         kind: Config
@@ -171,9 +178,9 @@
           conditions:
             - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
               status: "True"
-              type: "DeletionCompleted"
-              reason: "OperationDone"
-              message: "Deleted the integrations {{ delete_integration_for }}"
+              type: "Updated"
+              reason: "Deduplicated"
+              message: "Removed duplicates and updated managedClusters status."
       when: delete_integration_for
 
     - name: Remove ManifestWork CR from cluster

@@ -43,7 +43,7 @@
     kind: ManagedCluster
   register: managed_clusters_raw
 
-# Extracts name from MangedCluster and saves it like name: local-cluster 
+# Extracts name from MangedCluster and saves it like name: local-cluster
 - name: Extract ManagedCluster names with prefix
   ansible.builtin.set_fact:
     managed_cluster_names: "{{ managed_cluster_names | default([]) + ['name: ' ~ item.metadata.name] }}"
@@ -74,7 +74,9 @@
         )
       }}
 
-# existing_integration_names comes fomr common_task via GET request and it has extracted names of integrations existing on Grafana Cloud. We add name: local-cluster-owner and store them as list to integration_names
+# existing_integration_names comes fomr common_task via GET request
+# and it has extracted names of integrations existing on Grafana Cloud.
+# We add name: local-cluster-owner and store them as list to integration_names
 - name: Adds name as prefix to integration_names
   ansible.builtin.set_fact:
     integration_names: "{{ existing_integration_names | map('regex_replace', '^', 'name: ') | list }}"
@@ -89,7 +91,8 @@
         | items2dict
       }}
 
-# By comparing local available managedClusters CR names and existing_integration_names integrations names on grafana cloud we are creating a list for the integration to be created
+# By comparing local available managedClusters CR names and existing_integration_names
+# integrations names on grafana cloud we are creating a list for the integration to be created
 - name: Determine which ManagedCluster CRs don't have integrations (case-insensitive)
   ansible.builtin.set_fact:
     create_integration_for: >-
@@ -108,7 +111,8 @@
         | list
       }}
 
-# This creates a dictionary from the create_integration_for list to streamline with our usage ahead
+# This creates a dictionary from the create_integration_for
+# list to streamline with our usage ahead
 - name: Transform create_integration_for into a list of dictionaries
   ansible.builtin.set_fact:
     create_integration_for_dict: "{{ create_integration_for_dict | default([]) + [{'name': item}] }}"
@@ -155,7 +159,8 @@
         label: "{{ item }}"
       when: slack_channel_ids is defined
 
-    # Creates the new integration with prefix added for customer e.g. local-cluster-unknown. Will run only once there's integration to be created
+    # Creates the new integration with prefix added for customer e.g.
+    # local-cluster-unknown. Will run only once there's integration to be created
     - name: Create a new integration in Grafana OnCall integration for each ManagedClusters that does not have one
       ansible.builtin.uri:
         url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
@@ -218,7 +223,7 @@
       when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
       # This task processes the 'managed_clusters' dictionary to generate a list of ManagedCluster names
-      # with their associated prefixes. Each entry in the dictionary is transformed into a string in the 
+      # with their associated prefixes. Each entry in the dictionary is transformed into a string in the
       # format "<prefix>-<name>". The resulting list is stored in 'managed_cluster_names'.
     - name: Extract new ManagedCluster names
       ansible.builtin.set_fact:
@@ -294,7 +299,8 @@
       loop: "{{ grafana_integration_response.results }}"
       when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
-    # The namespace for ManagedCluster is without prefix of customer name. So we remove it here and store it as transformed_namespaces
+    # The namespace for ManagedCluster is without prefix
+    # of customer name. So we remove it here and store it as transformed_namespaces
     - name: Transform and set namespace for each cluster
       ansible.builtin.set_fact:
         transformed_namespaces: "{{ item.cluster.name | regex_replace('^(.*?)-.*$', '\\1') }}"
@@ -350,6 +356,6 @@
             message: "Failed to create ManifestWork for one or more ManagedClusters"
   when: manifestwork_creation_results is defined and not manifestwork_creation_results.failed
 
-# Moved to the bottom as we want to trigger deletion after all 
+# Moved to the bottom as we want to trigger deletion after all
 - name: Start deletion for hubAndSpoke mode
   ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml

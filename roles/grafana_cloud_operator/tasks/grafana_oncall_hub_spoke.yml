@@ -351,3 +351,6 @@
 # Moved to the bottom as we want to trigger deletion after all
 - name: Start deletion for hubAndSpoke mode
   ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml
+  when:
+    - manifestwork_creation_results is not defined
+    - create_integration_for_dict is not defined or create_integration_for_dict | length == 0

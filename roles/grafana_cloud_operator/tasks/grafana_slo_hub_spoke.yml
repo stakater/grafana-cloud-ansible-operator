@@ -18,6 +18,7 @@
     kind: ManagedCluster
   register: managed_clusters_raw
 
+# Extracts the name from ManagedCluster CR
 - name: Extract ManagedCluster names
   ansible.builtin.set_fact:
     managed_cluster_names: "{{ managed_cluster_names | default([]) + [item.metadata.name] }}"
@@ -25,6 +26,7 @@
   loop_control:
     loop_var: item
 
+# Extracts the owner from ManagedCluster CR
 - name: Extract ManagedCluster owners
   ansible.builtin.set_fact:
     managed_cluster_owners: "{{ managed_cluster_owners | default([]) + [item.metadata.labels.owner | default('unknown')] }}"
@@ -32,6 +34,7 @@
   loop_control:
     loop_var: item
 
+# Combines them into a list
 - name: Combine ManagedCluster names and owners into a list of strings
   ansible.builtin.set_fact:
     current_managed_clusters: >-

@@ -34,10 +34,12 @@
     kind: ManagedCluster
   register: managed_clusters_raw
 
+# This initializes the managed_cluster var as it has been used at other places in the playbook
 - name: Initialize managed_clusters as an empty list
   ansible.builtin.set_fact:
     managed_clusters: []
 
+# This will extract all the names from the ManagedCluster CR
 - name: Extract ManagedCluster names with prefix
   ansible.builtin.set_fact:
     managed_cluster_names: "{{ managed_cluster_names | default([]) + [item.metadata.name] }}"
@@ -45,6 +47,7 @@
   loop_control:
     loop_var: item
 
+# This will extract all the owner from the labels of ManagedCluster CR
 - name: Extract ManagedCluster owners with prefix
   ansible.builtin.set_fact:
     managed_cluster_owners: "{{ managed_cluster_owners | default([]) + [item.metadata.labels.owner | default('unknown')] }}"
@@ -52,6 +55,7 @@
   loop_control:
     loop_var: item
 
+# This combines both the name and owner as [managed_cluster_names]-[managed_cluster_owners] and saves it in var managed_cluster
 - name: Combine managed_cluster_names and managed_cluster_owners into a list of strings
   ansible.builtin.set_fact:
     managed_clusters: >-
@@ -74,6 +78,7 @@
   ansible.builtin.set_fact:
     previous_managed_clusters: "{{ config_cr.resources[0].status.managedClusters | default([]) }}"
 
+# Compares the Status field of Config CR with exsiting managed clusters in the clusters and then detemines which integrations to delete.
 - name: Determine integrations to delete in Grafana Cloud
   ansible.builtin.set_fact:
     delete_integration_for: "{{ previous_managed_clusters | difference(managed_clusters) }}"
@@ -133,6 +138,7 @@
       loop_control:
         loop_var: item
 
+    # This clears out the status field which was having existing managedCluster list
     - name: Removing old ManagedCluster List
       operator_sdk.util.k8s_status:
         api_version: grafanacloud.stakater.com/v1alpha1
@@ -149,6 +155,7 @@
               message: "Clears old managed clusters"
       when: delete_integration_for
 
+    # This removes any duplications if found and stores the mangedCluster list with correct format [managed_cluster_name]-[managed_cluster_owner]
     - name: Remove deleted integrations from managedClusters
       ansible.builtin.set_fact:
         updated_managed_clusters: >-

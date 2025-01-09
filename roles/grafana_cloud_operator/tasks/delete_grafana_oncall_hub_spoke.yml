@@ -34,16 +34,37 @@
     kind: ManagedCluster
   register: managed_clusters_raw
 
-- name: Extract list of ManagedCluster CRs
+# This initializes the managed_cluster var as it has been used at other places in the playbook
+- name: Initialize managed_clusters as an empty list
   ansible.builtin.set_fact:
-    managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name}] }}"
+    managed_clusters: []
+
+# This will extract all the names from the ManagedCluster CR
+- name: Extract ManagedCluster names with prefix
+  ansible.builtin.set_fact:
+    managed_cluster_names: "{{ managed_cluster_names | default([]) + [item.metadata.name] }}"
   loop: "{{ managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
 
-- name: Determine which ManagedCluster CR doesn't have integrations
+# This will extract all the owner from the labels of ManagedCluster CR
+- name: Extract ManagedCluster owners with prefix
   ansible.builtin.set_fact:
-    create_integration_for: "{{ managed_clusters | rejectattr('name', 'in', existing_integration_names) | list }}"
+    managed_cluster_owners: "{{ managed_cluster_owners | default([]) + [item.metadata.labels.owner | default('unknown')] }}"
+  loop: "{{ managed_clusters_raw.resources }}"
+  loop_control:
+    loop_var: item
+
+# This combines both the name and owner as [managed_cluster_names]-[managed_cluster_owners] and saves it in var managed_cluster
+- name: Combine managed_cluster_names and managed_cluster_owners into a list of strings
+  ansible.builtin.set_fact:
+    managed_clusters: >-
+      {{
+        managed_cluster_names
+        | zip(managed_cluster_owners)
+        | map('join', '-')
+        | list
+      }}
 
 - name: Fetch current status of Config CR
   kubernetes.core.k8s_info:
@@ -57,13 +78,10 @@
   ansible.builtin.set_fact:
     previous_managed_clusters: "{{ config_cr.resources[0].status.managedClusters | default([]) }}"
 
-- name: Extract current ManagedCluster names
-  ansible.builtin.set_fact:
-    current_managed_clusters: "{{ managed_clusters | map(attribute='name') | list }}"
-
+# Compares the Status field of Config CR with exsiting managed clusters in the clusters and then detemines which integrations to delete.
 - name: Determine integrations to delete in Grafana Cloud
   ansible.builtin.set_fact:
-    delete_integration_for: "{{ previous_managed_clusters | difference(current_managed_clusters) }}"
+    delete_integration_for: "{{ previous_managed_clusters | difference(managed_clusters) }}"
 
 - name: Delete integrations and dashboards when there are integrations to delete
   when: delete_integration_for | length > 0
@@ -120,6 +138,7 @@
       loop_control:
         loop_var: item
 
+    # This clears out the status field which was having existing managedCluster list
     - name: Removing old ManagedCluster List
       operator_sdk.util.k8s_status:
         api_version: grafanacloud.stakater.com/v1alpha1
@@ -136,6 +155,20 @@
               message: "Clears old managed clusters"
       when: delete_integration_for
 
+    # This removes any duplications if found and stores the mangedCluster list with correct format [managed_cluster_name]-[managed_cluster_owner]
+    - name: Remove deleted integrations from managedClusters
+      ansible.builtin.set_fact:
+        updated_managed_clusters: >-
+          {{
+            config_cr.resources[0].status.managedClusters
+            | map('regex_replace', '^name: ', '')
+            | map('regex_replace', '-owner: ', '-')
+            | difference(delete_integration_for)
+            | unique
+            | list
+          }}
+      when: delete_integration_for | length > 0
+
     - name: Update CR status for IntegrationsDeleted
       operator_sdk.util.k8s_status:
         api_version: grafanacloud.stakater.com/v1alpha1
@@ -143,7 +176,7 @@
         name: "{{ cr_name }}"
         namespace: "{{ cr_namespace }}"
         status:
-          managedClusters: "{{ current_managed_clusters }}"
+          managedClusters: "{{ updated_managed_clusters }}"
           conditions:
             - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
               status: "True"
@@ -160,7 +193,7 @@
           kind: ManifestWork
           metadata:
             name: "{{ item.name }}-manifestwork-grafana-oncall"
-            namespace: "{{ item.name }}"
+            namespace: "{{ item.name | regex_replace('^(.+)-[^-]+$', '\\1') }}"
           spec:
             workload:
               manifests:
@@ -169,11 +202,10 @@
                   metadata:
                     name: alertmanager-main
                     namespace: openshift-monitoring
-      loop: "{{ integrations_to_delete }}"   # Ensure you have a loop here
+      loop: "{{ integrations_to_delete }}"
       loop_control:
         label: "{{ item.name }}"
-      when:
-        - delete_integration_for | length > 0
+      when: delete_integration_for | length > 0
       register: manifestwork_deletion_results
 
 - name: End play if any integrations failed or were skipped

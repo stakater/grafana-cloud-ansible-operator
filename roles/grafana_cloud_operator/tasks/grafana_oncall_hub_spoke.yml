@@ -43,32 +43,96 @@
     kind: ManagedCluster
   register: managed_clusters_raw
 
-- name: Extract the list of ManagedCluster CRs
+# Extracts name from MangedCluster and saves it like name: local-cluster
+- name: Extract ManagedCluster names with prefix
   ansible.builtin.set_fact:
-    managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name}] }}"
+    managed_cluster_names: "{{ managed_cluster_names | default([]) + ['name: ' ~ item.metadata.name] }}"
   loop: "{{ managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
 
-- name: Remove duplicate entries from managed_clusters
+# Extracts owner from the ManagedCluster labels and saves it like owner: unknown
+- name: Extract ManagedCluster owners with prefix
   ansible.builtin.set_fact:
-    managed_clusters: "{{ managed_clusters | unique(attribute='name') }}"
+    managed_cluster_owners: "{{ managed_cluster_owners | default([]) + ['owner: ' ~ item.metadata.labels.owner | default('unknown')] }}"
+  loop: "{{ managed_clusters_raw.resources }}"
+  loop_control:
+    loop_var: item
 
-- name: Determine which ManagedCluster CRs don't have integrations
+# Removes name: and owner: and joins the managed_cluster_names and managed_cluster_owners with hyphen in between. e.g. local-cluster-unkonwn
+- name: Combine managed_cluster_names and managed_cluster_owners into a dictionary
   ansible.builtin.set_fact:
-    create_integration_for: "{{ managed_clusters | rejectattr('name', 'in', existing_integration_names) | list }}"
+    managed_clusters: >-
+      {{
+        dict(
+          managed_cluster_names
+          | map('regex_replace', '^name: ', '')
+          | zip(
+              managed_cluster_owners
+              | map('regex_replace', '^owner: ', '')
+            )
+        )
+      }}
+
+# existing_integration_names comes fomr common_task via GET request
+# and it has extracted names of integrations existing on Grafana Cloud.
+# We add name: local-cluster-owner and store them as list to integration_names
+- name: Adds name as prefix to integration_names
+  ansible.builtin.set_fact:
+    integration_names: "{{ existing_integration_names | map('regex_replace', '^', 'name: ') | list }}"
+
+- name: Filter common clusters for integration by name
+  ansible.builtin.set_fact:
+    common_clusters: >-
+      {{
+        managed_clusters
+        | dict2items
+        | selectattr('key', 'in', integration_names)
+        | items2dict
+      }}
+
+# By comparing local available managedClusters CR names and existing_integration_names
+# integrations names on grafana cloud we are creating a list for the integration to be created
+- name: Determine which ManagedCluster CRs don't have integrations (case-insensitive)
+  ansible.builtin.set_fact:
+    create_integration_for: >-
+      {{
+        managed_clusters
+        | dict2items
+        | map(attribute='key')
+        | zip(
+            managed_clusters | dict2items | map(attribute='value')
+        )
+        | map('join', '-')
+        | reject('in', integration_names
+          | map('regex_replace', '^name: ', '')
+          | map('lower')
+        | list)
+        | list
+      }}
+
+# This creates a dictionary from the create_integration_for
+# list to streamline with our usage ahead
+- name: Transform create_integration_for into a list of dictionaries
+  ansible.builtin.set_fact:
+    create_integration_for_dict: "{{ create_integration_for_dict | default([]) + [{'name': item}] }}"
+  loop: "{{ create_integration_for }}"
+  loop_control:
+    loop_var: item
 
 - name: Integration creation
   block:
+    # This will run only when we have create_integration_for_dict defined
     - name: Fetch Slack Channel from ManagedCluster namespace
       kubernetes.core.k8s_info:
         api_version: slack.stakater.com/v1alpha1
         kind: Channel
-        namespace: "{{ item.name }}"
+        namespace: "{{ item.name | regex_replace('^(.+)-[^-]+$', '\\1') }}"
       register: slack_channel_info
-      loop: "{{ create_integration_for }}"
+      loop: "{{ create_integration_for_dict }}"
       loop_control:
         label: "{{ item.name }}"
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Extract Channel id from slack channel
       ansible.builtin.set_fact:
@@ -76,17 +140,27 @@
       loop: "{{ slack_channel_info.results | map(attribute='resources') | flatten }}"
       loop_control:
         label: "{{ item.metadata.name }}"
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Populate List with spaces if any
       vars:
-        slack_id_fetched: "{{ slack_channel_ids | selectattr('name', 'contains', item.name) | map(attribute='slack_id') | join(',') }}"
+        slack_id_fetched: >-
+          {{
+            slack_channel_ids
+            | default([])
+            | selectattr('name', 'contains', item)
+            | map(attribute='slack_id')
+            | join(',')
+          }}
       ansible.builtin.set_fact:
-        slack_channel_validated: "{{ slack_channel_validated | default([]) + [{'name': item.name, 'slack_id': slack_id_fetched}] }}"
+        slack_channel_validated: "{{ slack_channel_validated | default([]) + [{'name': item, 'slack_id': slack_id_fetched}] }}"
       loop: "{{ create_integration_for }}"
       loop_control:
-        label: "{{ item.name }}"
+        label: "{{ item }}"
       when: slack_channel_ids is defined
 
+    # Creates the new integration with prefix added for customer e.g.
+    # local-cluster-unknown. Will run only once there's integration to be created
     - name: Create a new integration in Grafana OnCall integration for each ManagedClusters that does not have one
       ansible.builtin.uri:
         url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
@@ -102,22 +176,22 @@
               "type": "alertmanager",
               "name": item.name,
               "default_route": {
-              "slack": {
-                    "channel_id": slack_channel_validated[loop_index].slack_id,
-                    "enabled": slack_cond
-                  }
+                "slack": {
+                  "channel_id": slack_channel_validated[loop_index].slack_id,
+                  "enabled": slack_cond
                 }
-              } if slack_channel_validated is defined and
-                   slack_channel_validated | length > loop_index and
-                   slack_channel_validated[loop_index].slack_id | length > 0
-                else {
-                  "type": "alertmanager",
-                  "name": item.name
+              }
+            } if slack_channel_validated is defined and
+                slack_channel_validated | length > loop_index and
+                slack_channel_validated[loop_index].slack_id | length > 0
+              else {
+                "type": "alertmanager",
+                "name": item.name
               }
           }}
         status_code: [200, 201]
       register: grafana_integration_response
-      loop: "{{ create_integration_for }}"
+      loop: "{{ create_integration_for_dict }}"
       loop_control:
         label: "{{ item.name }}"
         index_var: loop_index
@@ -125,6 +199,7 @@
       delay: 6
       until: grafana_integration_response.status in [200, 201]
       failed_when: false
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Update status with ManagedCluster field
       operator_sdk.util.k8s_status:
@@ -136,17 +211,36 @@
           managedClusters: []
       when:
         - "'managedClusters' not in current_config_cr.resources[0].status"
-        - create_integration_for | length == grafana_integration_response.results | length
+        - create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Extract existing ManagedCluster names from current status
       ansible.builtin.set_fact:
-        existing_managed_cluster_names: "{{ current_config_cr.resources[0].status.managedClusters | list | default([]) }}"
-      when: create_integration_for | length == grafana_integration_response.results | length
+        existing_managed_cluster_names: >-
+          {{
+            current_config_cr.resources[0].status.managed_clusters
+            | default([])
+          }}
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
-    - name: Set fact for list of ManagedCluster names
+      # This task processes the 'managed_clusters' dictionary to generate a list of ManagedCluster names
+      # with their associated prefixes. Each entry in the dictionary is transformed into a string in the
+      # format "<prefix>-<name>". The resulting list is stored in 'managed_cluster_names'.
+    - name: Extract new ManagedCluster names
       ansible.builtin.set_fact:
-        managed_cluster_names: "{{ managed_clusters | map(attribute='name') | list }}"
-      when: create_integration_for | length == grafana_integration_response.results | length
+        managed_cluster_names: >-
+          {{
+            managed_clusters
+            | dict2items
+            | map(attribute='key')
+            | zip(
+                managed_clusters
+                | dict2items
+                | map(attribute='value')
+              )
+            | map('join', '-')
+            | list
+          }}
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Merge existing ManagedCluster names with new ones
       ansible.builtin.set_fact:
@@ -154,7 +248,7 @@
           {{
             (existing_managed_cluster_names + managed_cluster_names) | unique
           }}
-      when: create_integration_for | length == grafana_integration_response.results | length
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Update CR status to IntegrationsCreated
       operator_sdk.util.k8s_status:
@@ -170,7 +264,7 @@
               type: "Successful"
               reason: "IntegrationsCreated"
               message: "Grafana integrations created for all ManagedClusters."
-      when: create_integration_for | length == grafana_integration_response.results | length
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     - name: Inform user if Grafana integration creation was skipped or failed
       when: grafana_integration_response is skipped or (grafana_integration_response.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)
@@ -193,27 +287,42 @@
                   reason: "IntegrationCreationFailed"
                   message: "Failed to create Grafana integration for ManagedClusters."
           loop: "{{ grafana_integration_response.results }}"
-          when: item.status not in [200, 201]
-
-        - name: Start deletion for hubAndSpoke mode
-          ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml
+          when:
+            - grafana_integration_response is defined
+            - grafana_integration_response.results is defined
+            - grafana_integration_response.results | length > 0
+            - item.status not in [200, 201]
 
     - name: Associate Grafana integration details with ManagedClusters
       ansible.builtin.set_fact:
         mapped_integrations: "{{ mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
       loop: "{{ grafana_integration_response.results }}"
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
+
+    # The namespace for ManagedCluster is without prefix
+    # of customer name. So we remove it here and store it as transformed_namespaces
+    - name: Transform and set namespace for each cluster
+      ansible.builtin.set_fact:
+        transformed_namespaces: "{{ item.cluster.name | regex_replace('^(.*?)-.*$', '\\1') }}"
+      loop: "{{ mapped_integrations }}"
+      loop_control:
+        label: "{{ item.cluster.name }}"
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
     # Following tasks will execute only if Grafana integration was created successfully
+    # transformed_namespaces from above task it removes owner name from it and prints out as local-cluster
     - name: Modify Alertmanager secret
       ansible.builtin.include_tasks: modify_alertmanager_secret.yml
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
-        namespace: "{{ item.cluster.name }}"
+        namespace: "{{ transformed_namespaces  }}"
         cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"
+      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
+# Skipped when manifestwork_creation_results is not defined
 - name: Update CR status for ManifestWork creation
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
@@ -227,8 +336,9 @@
           type: "Successful"
           reason: "ManifestWorksCreated"
           message: "ManifestWorks created for all ManagedClusters"
-  when: not manifestwork_creation_results.failed
+  when: manifestwork_creation_results is defined and not manifestwork_creation_results.failed
 
+# Skipped when manifestwork_creation_results is not defined
 - name: Update CR status for ManifestWork creation failure
   kubernetes.core.k8s:
     state: present
@@ -244,4 +354,8 @@
             type: "Failed"
             reason: "ManifestWorkCreationFailed"
             message: "Failed to create ManifestWork for one or more ManagedClusters"
-  when: manifestwork_creation_results.failed
+  when: manifestwork_creation_results is defined and not manifestwork_creation_results.failed
+
+# Moved to the bottom as we want to trigger deletion after all
+- name: Start deletion for hubAndSpoke mode
+  ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml

@@ -306,7 +306,7 @@
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
-        transformed_namespace: "{{ item.cluster.name | regex_replace('^(.*?)-.*$', '\\1') }}"
+        transformed_namespace: "{{ item.cluster.name | regex_replace('^(.*)-[^-]+$', '\\1') }}"
         cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"
@@ -351,3 +351,6 @@
 # Moved to the bottom as we want to trigger deletion after all
 - name: Start deletion for hubAndSpoke mode
   ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml
+  when:
+    - manifestwork_creation_results is not defined
+    - create_integration_for_dict is not defined or create_integration_for_dict | length == 0

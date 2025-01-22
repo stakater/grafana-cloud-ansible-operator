@@ -121,7 +121,7 @@ The operator's workflow can be described in two different architectural models:
 
     *Cross-Cluster Grafana OnCall Setup:*
     For each ManagedClusters identified, the operator communicates with the Grafana Cloud's API, initiating the integration process.
-    This setup involves creating necessary configurations on Grafana Cloud and retrieving vital details such as the Alertmanager HTTP URL for each respective Spoke cluster.
+    This setup involves creating necessary configurations on Grafana Cloud and retrieving vital details such as the Alertmanager http URL for each respective Spoke cluster.
 
     *`ManifestWork` Synchronization:*
     Utilizing `ManifestWork` resources from open-cluster-management, the operator ensures that alerting configurations are consistent across all Spoke clusters.
@@ -181,7 +181,7 @@ The operator's workflow can be described in two different architectural models:
 
     *Direct Grafana OnCall Setup:*
     Upon identifying the GCC CR, described in the next section, the operator proceeds with the Grafana OnCall setup by interacting with Grafana Cloud's API.
-    It establishes the necessary integrations and secures essential details, including the Alertmanager HTTP URL.
+    It establishes the necessary integrations and secures essential details, including the Alertmanager http URL.
 
     *In-Cluster Configuration Management:*
     The operator directly applies configuration changes within the cluster, bypassing the need for `ManifestWork`.

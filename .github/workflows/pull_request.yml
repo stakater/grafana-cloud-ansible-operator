@@ -24,7 +24,7 @@ jobs:
           persist-credentials: false
 
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@v25.1.0
+        uses: ansible/ansible-lint@v25.1.1
 
       - name: Generate Tag
         id: generate_tag

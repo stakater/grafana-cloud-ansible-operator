@@ -10,7 +10,7 @@ Grafana Cloud is a fully managed observability platform from Grafana Labs, provi
 
 ### Problem
 
-Manually configuring Grafana OnCall on a cluster involves several complex steps, including creating accounts, configuring integrations, and editing configurations. This process is time-consuming, error-prone, and can lead to inconsistencies and misconfigurations if not done accurately. Automating these tasks with the Grafana Cloud Operator simplifies the setup, reduces errors, and ensures consistency across clusters.
+Manually configuring Grafana OnCall on a cluster involves several complex steps, including creating accounts, configuring integrations, and editing configurations. This process is time-consuming, error-prone, and can lead to inconsistencies and mis-configurations if not done accurately. Automating these tasks with the Grafana Cloud Operator simplifies the setup, reduces errors, and ensures consistency across clusters.
 
 ### SLO Dashboard Management
 
@@ -359,7 +359,7 @@ Here's a step-by-step guide on understanding and applying this configuration:
       - `sloObservabilityVersion`: You can use this field to use any available release for the SLO Dashboards
       - `sloDashboardAPIToken`: Since the operator needs to interact with Grafana Dashboards API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.
       - `grafanaAPIToken`: Since the operator needs to interact with Grafana OnCall's API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.
-      - `provisionMode`: Indicates how the operator should function. It could be in a 'hubAndSpoke' mode where it manages multiple clusters or 'standaloneCluster' for managing a single cluster.
+      - `provisionMode`: Indicates how the operator should function. It could be in a 'hubAndSpoke' mode where it manages multiple clusters or `standaloneCluster` for managing a single cluster.
       - `slackId`: For `standalone` provision mode populate this field to connect Slack Channel to Grafana OnCall Integration.
       - `slack`: This is toggle for slack alerts to channel. It accepts boolean. By default, it set to true.
 

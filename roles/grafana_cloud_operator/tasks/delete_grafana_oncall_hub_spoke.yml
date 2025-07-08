@@ -71,7 +71,7 @@
   ansible.builtin.set_fact:
     delete_integration_for: "{{ previous_managed_clusters | difference(managed_clusters) }}"
 
-- name: Delete integrations and dashboards when there are integrations to delete
+- name: Delete integrations when there are integrations to delete
   when: delete_integration_for | length > 0
   block:
     - name: Extract integration details from the response

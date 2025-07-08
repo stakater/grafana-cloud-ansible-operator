@@ -32,11 +32,8 @@ spec:
   - grafana-cloud
   - oncall
   - sre
-  - dashboard
   - grafana-sre
   - grafana-oncall
-  - slo
-  - grafana-slo
   links:
   - name: Grafana Cloud Ansible Operator
     url: https://grafana-cloud-ansible-operator.domain

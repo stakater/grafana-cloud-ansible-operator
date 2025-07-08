@@ -328,7 +328,6 @@ spec:
   - grafana-cloud
   - oncall
   - sre
-  - dashboard
   - grafana-sre
   - grafana-oncall
   - slo

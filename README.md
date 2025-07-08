@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-The Grafana Cloud Operator is an Ansible-based OpenShift Operator that automates the configuration and management of Grafana OnCall within an OpenShift cluster. This operator simplifies the process of setting up Grafana OnCall, ensuring seamless integration with Alertmanager and consistent alert forwarding.This operator also ensures that dashboards are created for SLO. The operator also ensures proper cleanup of integrations and dashboards.  
+The Grafana Cloud Operator is an Ansible-based OpenShift Operator that automates the configuration and management of Grafana OnCall within an OpenShift cluster. This operator simplifies the process of setting up Grafana OnCall, ensuring seamless integration with Alertmanager and consistent alert forwarding.  
 
 ### What is Grafana Cloud?
 
@@ -11,33 +11,6 @@ Grafana Cloud is a fully managed observability platform from Grafana Labs, provi
 ### Problem
 
 Manually configuring Grafana OnCall on a cluster involves several complex steps, including creating accounts, configuring integrations, and editing configurations. This process is time-consuming, error-prone, and can lead to inconsistencies and mis-configurations if not done accurately. Automating these tasks with the Grafana Cloud Operator simplifies the setup, reduces errors, and ensures consistency across clusters.
-
-### SLO Dashboard Management
-
-The Grafana Cloud Operator  supports the creation and management of dashboards that track key Service Level Indicators (SLIs) and ensure compliance with Service Level Objectives (SLOs) for Kubernetes (K8s) and OpenShift environments. This section provides an overview of the SLIs monitored and the SLOs established, along with the automation approach for creating dashboards.
-
-Key SLIs and SLOs Monitored:
-
-- K8s API Uptime
-    - SLI: Measures the uptime of the Kubernetes API.
-    - SLO: Ensure 99.5% uptime.
-
-- K8s API Request Error Rate
-    - SLI: Monitors the error rate of requests made to the Kubernetes API.
-    - SLO: Ensure 99.9% success rate.
-
-- OpenShift Console Uptime
-    - SLI: Tracks the uptime of the OpenShift web console.
-
-- HAProxy / Router Uptime
-    - SLI: Measures the uptime of HAProxy or router services.
-  
-- OpenShift Authentication Uptime
-    - SLI: Monitors the uptime of the OpenShift authentication service.
-
-- Dashboard Organization:
-    - Dedicated Folders: Each customer will have a dedicated folder in Grafana Cloud for storing their respective dashboards.
-    - One Dashboard per Cluster: Dashboards will be created for each cluster to track these SLIs and ensure they meet the defined SLOs.
 
 ### How the Operator Works
 
@@ -60,7 +33,7 @@ The operator's workflow can be described in two different architectural models:
     ```mermaid
     graph TD
 
-        subgraph "Hub and Spoke Integration with Grafana OnCall and SLO Management"
+        subgraph "Hub and Spoke Integration with Grafana OnCall"
             subgraph "OpenShift Hub Cluster"
                 InitHub[Start: Operation Initiated in Hub]
                 GetGCOHub[Get All Config CRs]
@@ -71,8 +44,6 @@ The operator's workflow can be described in two different architectural models:
                 FetchSlackChannels[Fetch Slack Channel CRs from All Namespaces]
                 DetermineMissingIntegrations[Determine Clusters Missing Integrations]
                 CreateIntegration[Create Integration in Grafana OnCall for Missing Clusters]
-                CreateSLOFolders[Create SLO Folders in Grafana Cloud]
-                CreateSLODashboards[Create SLO Dashboards for Each Cluster]
 
                 InitHub --> GetGCOHub
                 GetGCOHub --> CheckMultipleCRs
@@ -82,14 +53,10 @@ The operator's workflow can be described in two different architectural models:
                 FetchClusters --> FetchSlackChannels
                 FetchSlackChannels --> DetermineMissingIntegrations
                 DetermineMissingIntegrations --> CreateIntegration
-                DetermineMissingIntegrations --> CreateSLOFolders
-                CreateSLOFolders --> CreateSLODashboards
             end
 
             subgraph "Grafana Cloud"
                 GOHub[Grafana OnCall]
-                SLOFolders[SLO Folders]
-                SLODashboards[SLO Dashboards]
             end
 
             subgraph "Spoke Clusters"
@@ -100,8 +67,6 @@ The operator's workflow can be described in two different architectural models:
 
             subgraph "OpenClusterManagement (OCM)"
                 CreateIntegration --> |Create Integration| GOHub
-                CreateSLOFolders --> |Create Folders| SLOFolders
-                CreateSLODashboards --> |Create Dashboards| SLODashboards
                 GOHub -->|Return: Endpoint| RHACM/OCM
                 RHACM/OCM --> |ManifestWork| SC1
                 RHACM/OCM --> |ManifestWork| SC2
@@ -151,8 +116,6 @@ The operator's workflow can be described in two different architectural models:
         Reencode[Re-encode Alertmanager Content]
         PatchSecret[Patch alertmanager-main Secret]
         UpdateCR[Update CR Status to ConfigUpdated]
-        CreateSLOFolder[Create SLO Folder in Grafana Cloud]
-        CreateSLODashboard[Create SLO Dashboard in Grafana Cloud]
 
         Init --> GetClusterName
         GetClusterName --> CheckIntegration
@@ -164,8 +127,6 @@ The operator's workflow can be described in two different architectural models:
         ModSecret --> Reencode
         Reencode --> PatchSecret
         PatchSecret --> UpdateCR
-        CreateIntegration --> CreateSLOFolder
-        CreateSLOFolder --> CreateSLODashboard
     end
 
     subgraph "Grafana Cloud"
@@ -339,11 +300,6 @@ Here's a step-by-step guide on understanding and applying this configuration:
       namespace: grafana-cloud-operator  # Namespace where the operator is installed
     spec:
       enabled: true
-      sloObservabilityURL: https://raw.githubusercontent.com/stakater/charts/slo-observability-0.0.9 # URL of SLO Dashboard that needs to be used
-      sloCloudAPI: https://grafana.net/api # Api URL for SLO Dashboards
-      sloDashboardAPIToken:
-        key: api-token  # The key field within the secret holding the Dashboard API token
-        secretName: slo-dashboard-api-token-secret # The name of the Kubernetes secret storing the Dashboard API token
       grafanaAPIToken:
         key: api-token  # The key field within the secret holding the Grafana OnCall API token
         secretName: grafana-api-token-secret  # The name of the Kubernetes secret storing the Grafana OnCall API token
@@ -355,9 +311,6 @@ Here's a step-by-step guide on understanding and applying this configuration:
     - `metadata`: Contains general information about the custom resource that you are creating, such as its name and the namespace it resides in.
     - `spec`: This is where the bulk of the configuration goes. It's broken down further below:
       - `enabled`: Currently does nothing. But the idea is to use the flag to support removal of Grafana Integration in the future.
-      - `sloCloudAPI`: API for Grafana Dashboard
-      - `sloObservabilityVersion`: You can use this field to use any available release for the SLO Dashboards
-      - `sloDashboardAPIToken`: Since the operator needs to interact with Grafana Dashboards API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.
       - `grafanaAPIToken`: Since the operator needs to interact with Grafana OnCall's API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.
       - `provisionMode`: Indicates how the operator should function. It could be in a 'hubAndSpoke' mode where it manages multiple clusters or `standaloneCluster` for managing a single cluster.
       - `slackId`: For `standalone` provision mode populate this field to connect Slack Channel to Grafana OnCall Integration.

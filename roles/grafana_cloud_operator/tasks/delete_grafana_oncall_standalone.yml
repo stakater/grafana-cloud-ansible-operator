@@ -16,18 +16,6 @@
           reason: "OperationStarted"
           message: "Operation to delete Grafana OnCall integration started"
 
-- name: Get all folders in Grafana Cloud
-  ansible.builtin.uri:
-    url: "{{ gco_cr.spec.sloCloudAPI }}/folders"
-    method: GET
-    body_format: json
-    status_code: [200, 202]
-    headers:
-      Authorization: Bearer {{ slo_api_token }}
-      Content-Type: "application/json"
-    return_content: true
-  register: grafana_cloud_folders
-
 - name: Get the Cluster's name
   kubernetes.core.k8s_info:
     kind: IngressController
@@ -79,24 +67,6 @@
   when: integration_exists_for_cluster
   register: grafana_integration_response
   failed_when: false
-
-- name: Set the UID of the folder to delete
-  ansible.builtin.set_fact:
-    folder_uid_to_delete: "{{ grafana_cloud_folders.json | selectattr('title', 'equalto', cluster_name) | map(attribute='uid') | list }}"
-
-- name: Delete Dashboard
-  ansible.builtin.uri:
-    url: "{{ gco_cr.spec.sloCloudAPI }}/folders/{{ item }}"
-    method: DELETE
-    body_format: json
-    return_content: true
-    headers:
-      Authorization: Bearer {{ slo_api_token }}
-      Content-Type: "application/json"
-    status_code: 200
-  loop: "{{ folder_uid_to_delete }}"
-  loop_control:
-    loop_var: item
 
 - name: Decode and modify alertmanager secret configuration
   ansible.builtin.set_fact:

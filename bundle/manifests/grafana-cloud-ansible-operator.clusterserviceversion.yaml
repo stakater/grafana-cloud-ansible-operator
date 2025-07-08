@@ -24,12 +24,7 @@ metadata:
               "secretName": "grafana-api-token-secret"
             },
             "provisionMode": "standalone",
-            "sloCloudAPI": "https://grafana.net/api",
-            "sloDashboardAPIToken": {
-              "key": "api-token",
-              "secretName": "slo-dashboard-api-token-secret"
             },
-            "sloObservabilityURL": "https://raw.githubusercontent.com/stakater/charts/slo-observability-0.0.9"
           }
         }
       ]

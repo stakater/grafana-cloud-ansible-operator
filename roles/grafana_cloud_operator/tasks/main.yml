@@ -8,7 +8,7 @@
 
 - name: Install SLO Dashboard
   ansible.builtin.include_tasks: grafana_slo_hub_spoke.yml
-  when: gco_cr.spec.provisionMode == 'hubAndSpoke' and state != 'absent'
+  when: gco_cr.spec.provisionMode == 'hubAndSpoke' and state != 'absent' and gco_cr.spec.enabled == 'true'
 
 - name: Execute tasks for hub and spoke topology
   ansible.builtin.include_tasks: grafana_oncall_hub_spoke.yml
@@ -16,7 +16,7 @@
 
 - name: Install SLO Dashboard
   ansible.builtin.include_tasks: grafana_slo_standalone.yml
-  when: gco_cr.spec.provisionMode == 'standalone' and state != 'absent'
+  when: gco_cr.spec.provisionMode == 'standalone' and state != 'absent' and gco_cr.spec.enabled == 'true'
 
 - name: Execute tasks for standalone topology
   ansible.builtin.include_tasks: grafana_oncall_standalone.yml

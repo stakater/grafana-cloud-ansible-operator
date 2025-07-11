@@ -354,4 +354,3 @@
   when:
     - manifestwork_creation_results is not defined
     - create_integration_for_dict is not defined or create_integration_for_dict | length == 0
-    - gco_cr.spec.enabled == 'true'

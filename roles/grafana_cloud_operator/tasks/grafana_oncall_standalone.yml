@@ -50,7 +50,7 @@
     body_format: json
     return_content: true
     headers:
-      Authorization: "{{ grafana_cloud_api_token }}"
+      Authorization: "{{ grafana_cloud_operator_grafana_cloud_api_token }}"
       Content-Type: "application/json"
     body: >
       {{

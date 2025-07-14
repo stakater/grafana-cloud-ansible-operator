@@ -22,7 +22,7 @@
 
 - name: Set the CR name from the fetched list
   ansible.builtin.set_fact:
-    grafana_cloud_operator_grafana_cloud_operator_gco_grafana_cloud_operator_cr_name: "{{ grafana_cloud_operator_all_grafana_cloud_operator_gco_crs.resources[0].metadata.name }}"
+    grafana_cloud_operator_grafana_cloud_operator_gco_grafana_cloud_operator_cr_name: "{{ grafana_cloud_operator_all_grafana_cloud_operator_gco_crs.resources[0].metadata.name }}" # yamllint disable-line rule:line-length
 
 - name: Update CR name and namespace
   ansible.builtin.set_fact:
@@ -76,7 +76,7 @@
 
 - name: Extract current managed cluster names
   ansible.builtin.set_fact:
-    current_managed_clusters: "{{ managed_clusters | map(attribute='name') | list }}"
+    grafana_cloud_operator_current_managed_clusters: "{{ managed_clusters | map(attribute='name') | list }}"
 
 - name: Update CR status for existing ManagedCluster
   operator_sdk.util.k8s_status:
@@ -85,7 +85,7 @@
     name: "{{ grafana_cloud_operator_cr_name }}"
     namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
-      managedClusters: "{{ current_managed_clusters }}"
+      managedClusters: "{{ grafana_cloud_operator_current_managed_clusters }}"
   when: "'managedClusters' not in grafana_cloud_operator_current_config_cr.resources[0].status"
 
 - name: Ensure required CR fields are set
@@ -104,7 +104,7 @@
     kind: Secret
     name: "{{ grafana_cloud_operator_gco_cr.spec.grafanaAPIToken.secretName }}"
     namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
-  register: grafana_api_secret
+  register: grafana_cloud_operator_grafana_api_secret
 
 - name: Get SLO Dashboard API token from the secret
   kubernetes.core.k8s_info:
@@ -112,15 +112,15 @@
     kind: Secret
     name: "slo-dashboard-api-token-secret"
     namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
-  register: slo_dashboard_api_secret
+  register: grafana_cloud_operator_slo_dashboard_api_secret
 
 - name: Decode grafana api key
   ansible.builtin.set_fact:
-    grafana_cloud_api_token: "{{ grafana_api_secret.resources[0].data[grafana_cloud_operator_gco_cr.spec.grafanaAPIToken.key] | b64decode }}"
+    grafana_cloud_operator_grafana_cloud_api_token: "{{ grafana_cloud_operator_grafana_api_secret.resources[0].data[grafana_cloud_operator_gco_cr.spec.grafanaAPIToken.key] | b64decode }}"
 
 - name: Decode SLO api key
   ansible.builtin.set_fact:
-    slo_api_token: "{{ slo_dashboard_api_secret.resources[0].data[grafana_cloud_operator_gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}"
+    grafana_cloud_operator_slo_api_token: "{{ grafana_cloud_operator_slo_dashboard_api_secret.resources[0].data[grafana_cloud_operator_gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}"
 
 - name: Fetch SlackId
   ansible.builtin.set_fact:
@@ -147,12 +147,12 @@
 - name: Ensure Grafana API Token is available
   ansible.builtin.fail:
     msg: "Failed to retrieve Grafana API token from the secret."
-  when: grafana_cloud_api_token is not defined or grafana_cloud_api_token == ''
+  when: grafana_cloud_operator_grafana_cloud_api_token is not defined or grafana_cloud_operator_grafana_cloud_api_token == ''
 
 - name: Ensure SLO Dashboard API Token is available
   ansible.builtin.fail:
     msg: "Failed to retrieve SLO Dashboard API token from the secret."
-  when: slo_api_token is not defined or slo_api_token == ''
+  when: grafana_cloud_operator_slo_api_token is not defined or grafana_cloud_operator_slo_api_token == ''
 
 
 - name: Fetch list of all existing integrations in Grafana OnCall
@@ -160,7 +160,7 @@
     url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"
     method: GET
     headers:
-      Authorization: "{{ grafana_cloud_api_token }}"
+      Authorization: "{{ grafana_cloud_operator_grafana_cloud_api_token }}"
       Content-Type: "application/json"
     return_content: true
   register: existing_integrations_response

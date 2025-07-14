@@ -83,7 +83,6 @@
 - name: Set the UID of the folder to delete
   ansible.builtin.set_fact:
     folder_uid_to_delete: "{{ grafana_cloud_folders.json | selectattr('title', 'equalto', cluster_name) | map(attribute='uid') | list }}"
-  when: gco_cr.spec.enabled == 'true'
 
 - name: Delete Dashboard
   ansible.builtin.uri:
@@ -98,7 +97,6 @@
   loop: "{{ folder_uid_to_delete }}"
   loop_control:
     loop_var: item
-  when: gco_cr.spec.enabled == 'true'
 
 - name: Decode and modify alertmanager secret configuration
   ansible.builtin.set_fact:

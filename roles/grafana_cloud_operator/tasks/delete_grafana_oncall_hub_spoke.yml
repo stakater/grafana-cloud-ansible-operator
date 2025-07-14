@@ -123,7 +123,6 @@
       loop: "{{ delete_integration_for }}"
       loop_control:
         loop_var: item
-      when: gco_cr.spec.enabled == 'true'
 
     - name: Delete Dashboard
       ansible.builtin.uri:
@@ -138,7 +137,6 @@
       loop: "{{ folder_uid_to_delete }}"
       loop_control:
         loop_var: item
-      when: gco_cr.spec.enabled == 'true'
 
     # This clears out the status field which was having existing managedCluster list
     - name: Removing old ManagedCluster List

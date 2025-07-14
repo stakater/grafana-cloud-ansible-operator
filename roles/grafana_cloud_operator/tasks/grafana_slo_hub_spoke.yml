@@ -2,11 +2,11 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: 'True'
           type: "Initiated"
           reason: "OperationStarted"
@@ -47,7 +47,7 @@
 
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
-    url: "{{ gco_cr.spec.sloCloudAPI }}/folders"
+    url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/folders"
     method: GET
     body_format: json
     status_code: [200, 202]
@@ -74,7 +74,7 @@
 
 - name: Create Folder in Grafana Cloud
   ansible.builtin.uri:
-    url: "{{ gco_cr.spec.sloCloudAPI }}/folders"
+    url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/folders"
     method: POST
     return_content: true
     body:
@@ -99,7 +99,7 @@
 
 - name: Download SLO Dashboard YAML
   ansible.builtin.get_url:
-    url: "{{ gco_cr.spec.sloObservabilityURL }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml" # yamllint disable-line rule:line-length
+    url: "{{ grafana_cloud_operator_gco_cr.spec.sloObservabilityURL }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml" # yamllint disable-line rule:line-length
     dest: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     mode: '0644'
   loop: "{{ missing_dashboards }}"
@@ -137,7 +137,7 @@
   ansible.builtin.replace:
     path: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     regexp: '\{\{ include "slo-observability.namespace" \. \}\}'
-    replace: "{{ cr_namespace }}"
+    replace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
   loop: "{{ missing_dashboards }}"
   loop_control:
     loop_var: item
@@ -161,7 +161,7 @@
 
 - name: Deploy SLO Dashboard to Grafana Cloud for each cluster
   ansible.builtin.uri:
-    url: "{{ gco_cr.spec.sloCloudAPI }}/dashboards/db"
+    url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/dashboards/db"
     method: POST
     body: "{{ lookup('file', '/tmp/slo-dashboard-' + item + '.json') }}"
     return_content: true
@@ -179,11 +179,11 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ gco_cr.metadata.name }}"
-    namespace: "{{ gco_cr.metadata.namespace }}"
+    name: "{{ grafana_cloud_operator_gco_cr.metadata.name }}"
+    namespace: "{{ grafana_cloud_operator_gco_cr.metadata.namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: 'True'
           type: "Successful"
           reason: "ConfigUpdated"

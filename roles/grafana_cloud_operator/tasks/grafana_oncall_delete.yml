@@ -1,6 +1,6 @@
 - name: Delete resources for standalone topology
   ansible.builtin.include_tasks: delete_grafana_oncall_standalone.yml
-  when: gco_cr.spec.provisionMode == 'standalone'
+  when: grafana_cloud_operator_gco_cr.spec.provisionMode == 'standalone'
 
 - name: Remove finalizer from CR
   kubernetes.core.k8s:
@@ -8,7 +8,7 @@
       apiVersion: grafanacloud.stakater.com/v1alpha1
       kind: Config
       metadata:
-        name: "{{ gco_cr.metadata.name }}"
-        namespace: "{{ cr_namespace }}"
+        name: "{{ grafana_cloud_operator_gco_cr.metadata.name }}"
+        namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
         finalizers: []
     state: present

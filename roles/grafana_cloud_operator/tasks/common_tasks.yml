@@ -1,53 +1,53 @@
 - name: Set current date and time
   ansible.builtin.command: date --iso-8601=seconds
-  register: current_datetime
+  register: grafana_cloud_operator_current_datetime
   changed_when: false
 
 - name: Ansible date time
   ansible.builtin.set_fact:
-    ansible_date_time:
-      iso8601: "{{ current_datetime.stdout }}"
+    grafana_cloud_operator_ansible_date_time:
+      iso8601: "{{ grafana_cloud_operator_current_datetime.stdout }}"
 
 - name: Get all Config CRs in the operator namespace
   kubernetes.core.k8s_info:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
     namespace: "{{ grafana_cloud_operator_operator_namespace }}"
-  register: all_gco_crs
+  register: grafana_cloud_operator_all_grafana_cloud_operator_gco_crs
 
 - name: Fail if there's more than one CR
   ansible.builtin.fail:
     msg: "There are multiple Config CRs in the {{ grafana_cloud_operator_operator_namespace }} namespace. Only one is expected"
-  when: all_gco_crs.resources | length > 1
+  when: grafana_cloud_operator_all_grafana_cloud_operator_gco_crs.resources | length > 1
 
 - name: Set the CR name from the fetched list
   ansible.builtin.set_fact:
-    gco_cr_name: "{{ all_gco_crs.resources[0].metadata.name }}"
+    grafana_cloud_operator_grafana_cloud_operator_gco_grafana_cloud_operator_cr_name: "{{ grafana_cloud_operator_all_grafana_cloud_operator_gco_crs.resources[0].metadata.name }}"
 
 - name: Update CR name and namespace
   ansible.builtin.set_fact:
-    cr_name: "{{ gco_cr_name }}"
-    cr_namespace: "{{ grafana_cloud_operator_operator_namespace }}"
-    gco_cr: "{{ all_gco_crs.resources[0] }}"
+    grafana_cloud_operator_cr_name: "{{ grafana_cloud_operator_grafana_cloud_operator_gco_grafana_cloud_operator_cr_name }}"
+    grafana_cloud_operator_grafana_cloud_operator_cr_namespace: "{{ grafana_cloud_operator_operator_namespace }}"
+    grafana_cloud_operator_gco_cr: "{{ grafana_cloud_operator_all_grafana_cloud_operator_gco_crs.resources[0] }}"
 
 # # Fetch the single Config CR
 # - name: Get the specific Config CR
 #   kubernetes.core.k8s_info:
 #     api_version: grafanacloud.stakater.com/v1alpha1
 #     kind: Config
-#     namespace: "{{ cr_namespace }}"
-#     name: "{{ cr_name }}"
-#   register: gco_cr
+#     namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+#     name: "{{ grafana_cloud_operator_cr_name }}"
+#   register: grafana_cloud_operator_gco_cr
 
 - name: Update CR status to CRRetrieved
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: 'True'
           type: "Processing"
           reason: "CRRetrieved"
@@ -57,9 +57,9 @@
   kubernetes.core.k8s_info:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
-  register: current_config_cr
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+  register: grafana_cloud_operator_current_config_cr
 
 - name: Fetch ManagedCluster CRs
   kubernetes.core.k8s_info:
@@ -82,18 +82,18 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
       managedClusters: "{{ current_managed_clusters }}"
-  when: "'managedClusters' not in current_config_cr.resources[0].status"
+  when: "'managedClusters' not in grafana_cloud_operator_current_config_cr.resources[0].status"
 
 - name: Ensure required CR fields are set
   ansible.builtin.fail:
     msg: "Required field '{{ item.field }}' is missing in the Config CR"
   loop:
-    - { field: "grafanaAPIToken.secretName", value: gco_cr.spec.grafanaAPIToken.secretName }
-    - { field: "grafanaAPIToken.key", value: gco_cr.spec.grafanaAPIToken.key }
+    - { field: "grafanaAPIToken.secretName", value: grafana_cloud_operator_gco_cr.spec.grafanaAPIToken.secretName }
+    - { field: "grafanaAPIToken.key", value: grafana_cloud_operator_gco_cr.spec.grafanaAPIToken.key }
   loop_control:
     label: "{{ item.field }}"
   when: (item.value is none or item.value == '')
@@ -102,8 +102,8 @@
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Secret
-    name: "{{ gco_cr.spec.grafanaAPIToken.secretName }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_gco_cr.spec.grafanaAPIToken.secretName }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
   register: grafana_api_secret
 
 - name: Get SLO Dashboard API token from the secret
@@ -111,34 +111,34 @@
     api_version: v1
     kind: Secret
     name: "slo-dashboard-api-token-secret"
-    namespace: "{{ cr_namespace }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
   register: slo_dashboard_api_secret
 
 - name: Decode grafana api key
   ansible.builtin.set_fact:
-    grafana_cloud_api_token: "{{ grafana_api_secret.resources[0].data[gco_cr.spec.grafanaAPIToken.key] | b64decode }}"
+    grafana_cloud_api_token: "{{ grafana_api_secret.resources[0].data[grafana_cloud_operator_gco_cr.spec.grafanaAPIToken.key] | b64decode }}"
 
 - name: Decode SLO api key
   ansible.builtin.set_fact:
-    slo_api_token: "{{ slo_dashboard_api_secret.resources[0].data[gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}"
+    slo_api_token: "{{ slo_dashboard_api_secret.resources[0].data[grafana_cloud_operator_gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}"
 
 - name: Fetch SlackId
   ansible.builtin.set_fact:
-    slack_id: "{{ gco_cr.spec.slackId | default('') }}"
+    slack_id: "{{ grafana_cloud_operator_gco_cr.spec.slackId | default('') }}"
 
 - name: Fetch Slack Condition
   ansible.builtin.set_fact:
-    slack_cond: "{{ gco_cr.spec.slack | default('true') }}"
+    slack_cond: "{{ grafana_cloud_operator_gco_cr.spec.slack | default('true') }}"
 
 - name: Update CR status to TokenFetched
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           type: "Processing"
           status: 'True'
           reason: "TokenFetched"
@@ -178,11 +178,11 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: 'True'
           type: "Processing"
           reason: "IntegrationsListFetched"
@@ -199,11 +199,11 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           type: "Processing"
           status: 'True'
           reason: "AlertmanagerSecretFetched"
@@ -214,11 +214,11 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: 'True'
           type: "Failed"
           reason: "AlertmanagerSecretInvalid"

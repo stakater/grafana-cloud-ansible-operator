@@ -6,11 +6,11 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: "True"
           type: "DeletionInitiated"
           reason: "OperationStarted"
@@ -18,7 +18,7 @@
 
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
-    url: "{{ gco_cr.spec.sloCloudAPI }}/folders"
+    url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/folders"
     method: GET
     body_format: json
     status_code: [200, 202]
@@ -70,8 +70,8 @@
   kubernetes.core.k8s_info:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
   register: config_cr
 
 - name: Set current ManagedCluster status
@@ -123,11 +123,11 @@
       loop: "{{ delete_integration_for }}"
       loop_control:
         loop_var: item
-      when: gco_cr.spec.enabled == 'true'
+      when: grafana_cloud_operator_gco_cr.spec.enabled == 'true'
 
     - name: Delete Dashboard
       ansible.builtin.uri:
-        url: "{{ gco_cr.spec.sloCloudAPI }}/folders/{{ item }}"
+        url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/folders/{{ item }}"
         method: DELETE
         body_format: json
         return_content: true
@@ -138,19 +138,19 @@
       loop: "{{ folder_uid_to_delete }}"
       loop_control:
         loop_var: item
-      when: gco_cr.spec.enabled == 'true'
+      when: grafana_cloud_operator_gco_cr.spec.enabled == 'true'
 
     # This clears out the status field which was having existing managedCluster list
     - name: Removing old ManagedCluster List
       operator_sdk.util.k8s_status:
         api_version: grafanacloud.stakater.com/v1alpha1
         kind: Config
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
+        name: "{{ grafana_cloud_operator_cr_name }}"
+        namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
         status:
           managedClusters: []
           conditions:
-            - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+            - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
               status: "True"
               type: "EmptyList"
               reason: "OperationDone"
@@ -175,12 +175,12 @@
       operator_sdk.util.k8s_status:
         api_version: grafanacloud.stakater.com/v1alpha1
         kind: Config
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
+        name: "{{ grafana_cloud_operator_cr_name }}"
+        namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
         status:
           managedClusters: "{{ updated_managed_clusters }}"
           conditions:
-            - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+            - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
               status: "True"
               type: "DeletionCompleted"
               reason: "OperationDone"

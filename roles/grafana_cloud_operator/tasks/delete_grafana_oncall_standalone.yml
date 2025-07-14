@@ -6,11 +6,11 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: "True"
           type: "DeletionInitiated"
           reason: "OperationStarted"
@@ -18,7 +18,7 @@
 
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
-    url: "{{ gco_cr.spec.sloCloudAPI }}/folders"
+    url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/folders"
     method: GET
     body_format: json
     status_code: [200, 202]
@@ -83,11 +83,11 @@
 - name: Set the UID of the folder to delete
   ansible.builtin.set_fact:
     folder_uid_to_delete: "{{ grafana_cloud_folders.json | selectattr('title', 'equalto', cluster_name) | map(attribute='uid') | list }}"
-  when: gco_cr.spec.enabled == 'true'
+  when: grafana_cloud_operator_gco_cr.spec.enabled == 'true'
 
 - name: Delete Dashboard
   ansible.builtin.uri:
-    url: "{{ gco_cr.spec.sloCloudAPI }}/folders/{{ item }}"
+    url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/folders/{{ item }}"
     method: DELETE
     body_format: json
     return_content: true
@@ -98,7 +98,7 @@
   loop: "{{ folder_uid_to_delete }}"
   loop_control:
     loop_var: item
-  when: gco_cr.spec.enabled == 'true'
+  when: grafana_cloud_operator_gco_cr.spec.enabled == 'true'
 
 - name: Decode and modify alertmanager secret configuration
   ansible.builtin.set_fact:
@@ -122,11 +122,11 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: "True"
           type: "Successful"
           reason: "IntegrationDeleted"

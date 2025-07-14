@@ -9,21 +9,21 @@
       apiVersion: grafanacloud.stakater.com/v1alpha1
       kind: Config
       metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
+        name: "{{ grafana_cloud_operator_cr_name }}"
+        namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
         finalizers:
           - "grafanacloud.stakater.com/config"
-  when: "'grafanacloud.stakater.com/config' not in gco_cr.metadata.finalizers"
+  when: "'grafanacloud.stakater.com/config' not in grafana_cloud_operator_gco_cr.metadata.finalizers"
 
 - name: Update CR status to Initiated
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: 'True'
           type: "Initiated"
           reason: "OperationStarted"
@@ -90,11 +90,11 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: 'True'
           type: "IntegrationCreated"
           reason: "GrafanaIntegrationSuccess"
@@ -129,11 +129,11 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ gco_cr.metadata.name }}"
-    namespace: "{{ gco_cr.metadata.namespace }}"
+    name: "{{ grafana_cloud_operator_gco_cr.metadata.name }}"
+    namespace: "{{ grafana_cloud_operator_gco_cr.metadata.namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: 'True'
           type: "Successful"
           reason: "ConfigUpdated"

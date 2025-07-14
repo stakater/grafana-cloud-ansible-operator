@@ -439,9 +439,9 @@ Apache2 © [Stakater][website]
 
 ## About
 
-`Grafana Cloud Ansible Operator` is maintained by [Stakater][website]. Like it? Please let us know at <hello@stakater.com>
+`Grafana Cloud Ansible Operator` is maintained by [Stakater][website]. Like it? Please let us know at `hello@stakater.com`
 
 See [our other projects](https://github.com/stakater)
-or contact us in case of professional services and queries on <hello@stakater.com>
+or contact us in case of professional services and queries on `hello@stakater.com`
 
 [website]: https://stakater.com

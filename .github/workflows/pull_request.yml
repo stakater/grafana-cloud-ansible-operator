@@ -7,7 +7,7 @@ on:
 
 jobs:
   qa:
-    uses: stakater/.github/.github/workflows/pull_request_doc_qa.yaml@v0.0.117
+    uses: stakater/.github/.github/workflows/pull_request_doc_qa.yaml@v0.0.131
     with:
       MD_CONFIG: .github/md_config.json
       DOC_SRC: README.md
@@ -24,7 +24,7 @@ jobs:
           persist-credentials: false
 
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@v25.1.3
+        uses: ansible/ansible-lint@v25.6.1
 
       - name: Generate Tag
         id: generate_tag

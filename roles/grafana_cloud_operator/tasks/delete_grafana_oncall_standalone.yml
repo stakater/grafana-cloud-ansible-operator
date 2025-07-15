@@ -71,7 +71,11 @@
 - name: Set the integration ID if match found
   ansible.builtin.set_fact:
     grafana_cloud_operator_grafana_grafana_cloud_operator_integration_id: >-
-      {{ grafana_cloud_operator_grafana_cloud_operator_matched_integrations[0].id if grafana_cloud_operator_grafana_cloud_operator_matched_integrations else None }}
+      {{
+        grafana_cloud_operator_grafana_cloud_operator_matched_integrations[0].id
+        if grafana_cloud_operator_grafana_cloud_operator_matched_integrations
+        else None
+      }}
 
 - name: Delete the Integration
   ansible.builtin.uri:

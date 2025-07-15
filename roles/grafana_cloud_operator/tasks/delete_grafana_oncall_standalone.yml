@@ -61,7 +61,7 @@
 
 - name: Filter matching integrations by name
   ansible.builtin.set_fact:
-    matched_integrations: >-
+    grafana_cloud_operator_grafana_cloud_operator_matched_integrations: >-
       {{
         grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response.json.results
         | selectattr('name', 'eq', grafana_cloud_operator_cluster_name)
@@ -71,7 +71,7 @@
 - name: Set the integration ID if match found
   ansible.builtin.set_fact:
     grafana_cloud_operator_grafana_grafana_cloud_operator_integration_id: >-
-      {{ matched_integrations[0].id if matched_integrations else None }}
+      {{ grafana_cloud_operator_grafana_cloud_operator_matched_integrations[0].id if grafana_cloud_operator_grafana_cloud_operator_matched_integrations else None }}
 
 - name: Delete the Integration
   ansible.builtin.uri:

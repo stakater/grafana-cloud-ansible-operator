@@ -314,7 +314,7 @@
         label: "{{ item.cluster.name }}"
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
-# Skipped when manifestwork_creation_results is not defined
+# Skipped when grafana_cloud_operator_manifestwork_creation_results is not defined
 - name: Update CR status for ManifestWork creation
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
@@ -328,9 +328,9 @@
           type: "Successful"
           reason: "ManifestWorksCreated"
           message: "ManifestWorks created for all ManagedClusters"
-  when: manifestwork_creation_results is defined and not manifestwork_creation_results.failed
+  when: grafana_cloud_operator_manifestwork_creation_results is defined and not grafana_cloud_operator_manifestwork_creation_results.failed
 
-# Skipped when manifestwork_creation_results is not defined
+# Skipped when grafana_cloud_operator_manifestwork_creation_results is not defined
 - name: Update CR status for ManifestWork creation failure
   kubernetes.core.k8s:
     state: present
@@ -346,11 +346,11 @@
             type: "Failed"
             reason: "ManifestWorkCreationFailed"
             message: "Failed to create ManifestWork for one or more ManagedClusters"
-  when: manifestwork_creation_results is defined and not manifestwork_creation_results.failed
+  when: grafana_cloud_operator_manifestwork_creation_results is defined and not grafana_cloud_operator_manifestwork_creation_results.failed
 
 # Moved to the bottom as we want to trigger deletion after all
 - name: Start deletion for hubAndSpoke mode
   ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml
   when:
-    - manifestwork_creation_results is not defined
+    - grafana_cloud_operator_manifestwork_creation_results is not defined
     - grafana_cloud_operator_create_integration_for_dict is not defined or grafana_cloud_operator_create_integration_for_dict | length == 0

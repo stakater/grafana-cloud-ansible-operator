@@ -29,7 +29,7 @@
 # Extracts the owner from ManagedCluster CR
 - name: Extract ManagedCluster owners
   ansible.builtin.set_fact:
-    grafana_cloud_operator_managed_cluster_owners: "{{ grafana_cloud_operator_managed_cluster_owners | default([]) + [item.metadata.labels.owner | default('unknown')] }}"
+    grafana_cloud_operator_managed_cluster_owners: "{{ grafana_cloud_operator_managed_cluster_owners | default([]) + [item.metadata.labels.owner | default('unknown')] }}" # yamllint disable-line rule:line-length
   loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
@@ -59,7 +59,7 @@
 
 - name: Define existing folders for managed clusters
   ansible.builtin.set_fact:
-    grafana_cloud_operator_encoded_existing_folders: "{{ grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'in', grafana_cloud_operator_current_grafana_cloud_operator_managed_clusters) | map(attribute='title') | list }}"
+    grafana_cloud_operator_encoded_existing_folders: "{{ grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'in', grafana_cloud_operator_current_grafana_cloud_operator_managed_clusters) | map(attribute='title') | list }}" # yamllint disable-line rule:line-length
 
 - name: Define missing dashboards
   ansible.builtin.set_fact:

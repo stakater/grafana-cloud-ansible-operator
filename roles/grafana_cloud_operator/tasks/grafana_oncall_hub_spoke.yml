@@ -295,7 +295,7 @@
 
     - name: Associate Grafana integration details with ManagedClusters
       ansible.builtin.set_fact:
-        grafana_cloud_operator_mapped_integrations: "{{ grafana_cloud_operator_mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
+        grafana_cloud_operator_mapped_integrations: "{{ grafana_cloud_operator_mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}" # yamllint disable-line rule:line-length
       loop: "{{ grafana_cloud_operator_integration_response.results }}"
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 

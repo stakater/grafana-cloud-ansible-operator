@@ -37,7 +37,7 @@
 
 - name: Update hostname with cluster name and ID
   ansible.builtin.set_fact:
-    grafana_cloud_operator_cluster_name: "{{ grafana_cloud_operator_ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+\\.[^.]+(?=\\.)') }}"
+    grafana_cloud_operator_cluster_name: "{{ grafana_cloud_operator_ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+\\.[^.]+(?=\\.)') }}" # yamllint disable-line rule:line-length
 
 - name: Determine if integration exists for the cluster
   ansible.builtin.set_fact:
@@ -109,7 +109,7 @@
 
 - name: Re-encode modified alertmanager content for cluster
   ansible.builtin.set_fact:
-    grafana_cloud_operator_encoded_alertmanager_secret_content: "{{ grafana_cloud_operator_grafana_cloud_operator_modified_alertmanager_secret_content | to_nice_yaml | b64encode }}"
+    grafana_cloud_operator_encoded_alertmanager_secret_content: "{{ grafana_cloud_operator_grafana_cloud_operator_modified_alertmanager_secret_content | to_nice_yaml | b64encode }}" # yamllint disable-line rule:line-length
 
 - name: Patch alertmanager-main secret for cluster
   kubernetes.core.k8s:

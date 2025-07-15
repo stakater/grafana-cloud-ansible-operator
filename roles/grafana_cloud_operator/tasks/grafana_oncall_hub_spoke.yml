@@ -76,18 +76,18 @@
 
 # grafana_cloud_operator_existing_integration_names comes fomr common_task via GET request
 # and it has extracted names of integrations existing on Grafana Cloud.
-# We add name: local-cluster-owner and store them as list to integration_names
-- name: Adds name as prefix to integration_names
+# We add name: local-cluster-owner and store them as list to grafana_cloud_operator_integration_names
+- name: Adds name as prefix to grafana_cloud_operator_integration_names
   ansible.builtin.set_fact:
-    integration_names: "{{ grafana_cloud_operator_existing_integration_names | map('regex_replace', '^', 'name: ') | list }}"
+   grafana_cloud_operator_integration_names : "{{ grafana_cloud_operator_existing_integration_names | map('regex_replace', '^', 'name: ') | list }}"
 
 - name: Filter common clusters for integration by name
   ansible.builtin.set_fact:
-    common_clusters: >-
+    grafana_cloud_operator_common_clusters: >-
       {{
         grafana_cloud_operator_managed_clusters
         | dict2items
-        | selectattr('key', 'in', integration_names)
+        | selectattr('key', 'in', grafana_cloud_operator_integration_names)
         | items2dict
       }}
 
@@ -95,7 +95,7 @@
 # integrations names on grafana cloud we are creating a list for the integration to be created
 - name: Determine which ManagedCluster CRs don't have integrations (case-insensitive)
   ansible.builtin.set_fact:
-    create_integration_for: >-
+    grafana_cloud_operator_create_integration_for: >-
       {{
         grafana_cloud_operator_managed_clusters
         | dict2items
@@ -104,60 +104,60 @@
             grafana_cloud_operator_managed_clusters | dict2items | map(attribute='value')
         )
         | map('join', '-')
-        | reject('in', integration_names
+        | reject('in', grafana_cloud_operator_integration_names
           | map('regex_replace', '^name: ', '')
           | map('lower')
         | list)
         | list
       }}
 
-# This creates a dictionary from the create_integration_for
+# This creates a dictionary from the grafana_cloud_operator_create_integration_for
 # list to streamline with our usage ahead
-- name: Transform create_integration_for into a list of dictionaries
+- name: Transform grafana_cloud_operator_create_integration_for into a list of dictionaries
   ansible.builtin.set_fact:
-    create_integration_for_dict: "{{ create_integration_for_dict | default([]) + [{'name': item}] }}"
-  loop: "{{ create_integration_for }}"
+    grafana_cloud_operator_create_integration_for_dict: "{{ grafana_cloud_operator_create_integration_for_dict | default([]) + [{'name': item}] }}"
+  loop: "{{ grafana_cloud_operator_create_integration_for }}"
   loop_control:
     loop_var: item
 
 - name: Integration creation
   block:
-    # This will run only when we have create_integration_for_dict defined
+    # This will run only when we have grafana_cloud_operator_create_integration_for_dict defined
     - name: Fetch Slack Channel from ManagedCluster namespace
       kubernetes.core.k8s_info:
         api_version: slack.stakater.com/v1alpha1
         kind: Channel
         namespace: "{{ item.name | regex_replace('^(.+)-[^-]+$', '\\1') }}"
-      register: slack_channel_info
-      loop: "{{ create_integration_for_dict }}"
+      register: grafana_cloud_operator_slack_channel_info
+      loop: "{{ grafana_cloud_operator_create_integration_for_dict }}"
       loop_control:
         label: "{{ item.name }}"
-      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
+      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     - name: Extract Channel id from slack channel
       ansible.builtin.set_fact:
-        slack_channel_ids: "{{ slack_channel_ids | default([]) + [{'name': item.metadata.name, 'grafana_cloud_operator_slack_id': item.status.id}] }}"
-      loop: "{{ slack_channel_info.results | map(attribute='resources') | flatten }}"
+        grafana_cloud_operator_slack_channel_ids: "{{ grafana_cloud_operator_slack_channel_ids | default([]) + [{'name': item.metadata.name, 'grafana_cloud_operator_slack_id': item.status.id}] }}"
+      loop: "{{ grafana_cloud_operator_slack_channel_info.results | map(attribute='resources') | flatten }}"
       loop_control:
         label: "{{ item.metadata.name }}"
-      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
+      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     - name: Populate List with spaces if any
       vars:
         grafana_cloud_operator_slack_id_fetched: >-
           {{
-            slack_channel_ids
+            grafana_cloud_operator_slack_channel_ids
             | default([])
             | selectattr('name', 'contains', item)
             | map(attribute='grafana_cloud_operator_slack_id')
             | join(',')
           }}
       ansible.builtin.set_fact:
-        slack_channel_validated: "{{ slack_channel_validated | default([]) + [{'name': item, 'grafana_cloud_operator_slack_id': grafana_cloud_operator_slack_id_fetched}] }}"
-      loop: "{{ create_integration_for }}"
+        grafana_cloud_operator_slack_channel_validated: "{{ grafana_cloud_operator_slack_channel_validated | default([]) + [{'name': item, 'grafana_cloud_operator_slack_id': grafana_cloud_operator_slack_id_fetched}] }}"
+      loop: "{{ grafana_cloud_operator_create_integration_for }}"
       loop_control:
         label: "{{ item }}"
-      when: slack_channel_ids is defined
+      when: grafana_cloud_operator_slack_channel_ids is defined
 
     # Creates the new integration with prefix added for customer e.g.
     # local-cluster-unknown. Will run only once there's integration to be created
@@ -177,13 +177,13 @@
               "name": item.name,
               "default_route": {
                 "slack": {
-                  "channel_id": slack_channel_validated[loop_index].grafana_cloud_operator_slack_id,
+                  "channel_id": grafana_cloud_operator_slack_channel_validated[loop_index].grafana_cloud_operator_slack_id,
                   "enabled": grafana_cloud_operator_slack_cond
                 }
               }
-            } if slack_channel_validated is defined and
-                slack_channel_validated | length > loop_index and
-                slack_channel_validated[loop_index].grafana_cloud_operator_slack_id | length > 0
+            } if grafana_cloud_operator_slack_channel_validated is defined and
+                grafana_cloud_operator_slack_channel_validated | length > loop_index and
+                grafana_cloud_operator_slack_channel_validated[loop_index].grafana_cloud_operator_slack_id | length > 0
               else {
                 "type": "alertmanager",
                 "name": item.name
@@ -191,7 +191,7 @@
           }}
         status_code: [200, 201]
       register: grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response
-      loop: "{{ create_integration_for_dict }}"
+      loop: "{{ grafana_cloud_operator_create_integration_for_dict }}"
       loop_control:
         label: "{{ item.name }}"
         index_var: loop_index
@@ -199,7 +199,7 @@
       delay: 6
       until: grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response.status in [200, 201]
       failed_when: false
-      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
+      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     - name: Update status with ManagedCluster field
       operator_sdk.util.k8s_status:
@@ -211,16 +211,16 @@
           managedClusters: []
       when:
         - "'managedClusters' not in grafana_cloud_operator_current_grafana_cloud_operator_config_cr.resources[0].status"
-        - create_integration_for_dict is defined and create_integration_for_dict | length > 0
+        - grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     - name: Extract existing ManagedCluster names from current status
       ansible.builtin.set_fact:
-        existing_grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names: >-
+        grafana_cloud_operator_existing_managed_cluster_names: >-
           {{
             grafana_cloud_operator_current_grafana_cloud_operator_config_cr.resources[0].status.grafana_cloud_operator_managed_clusters
             | default([])
           }}
-      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
+      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
       # This task processes the 'grafana_cloud_operator_managed_clusters' dictionary to generate a list of ManagedCluster names
       # with their associated prefixes. Each entry in the dictionary is transformed into a string in the
@@ -240,15 +240,15 @@
             | map('join', '-')
             | list
           }}
-      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
+      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     - name: Merge existing ManagedCluster names with new ones
       ansible.builtin.set_fact:
-        updated_grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names: >-
+        grafana_cloud_operator_updated_managed_cluster_names: >-
           {{
-            (existing_grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names + grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names) | unique
+            (grafana_cloud_operator_existing_managed_cluster_names + grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names) | unique
           }}
-      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
+      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     - name: Update CR status to IntegrationsCreated
       operator_sdk.util.k8s_status:
@@ -257,14 +257,14 @@
         name: "{{ grafana_cloud_operator_cr_name }}"
         namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
         status:
-          managedClusters: "{{ updated_grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names }}"
+          managedClusters: "{{ grafana_cloud_operator_updated_managed_cluster_names }}"
           conditions:
             - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
               status: "True"
               type: "Successful"
               reason: "IntegrationsCreated"
               message: "Grafana integrations created for all ManagedClusters."
-      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
+      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     - name: Inform user if Grafana integration creation was skipped or failed
       when: grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response is skipped or (grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)
@@ -297,7 +297,7 @@
       ansible.builtin.set_fact:
         mapped_integrations: "{{ mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
       loop: "{{ grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response.results }}"
-      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
+      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     # Following tasks will execute only if Grafana integration was created successfully
     # transformed_namespaces from above task it removes owner name from it and prints out as local-cluster
@@ -312,7 +312,7 @@
       loop: "{{ mapped_integrations }}"
       loop_control:
         label: "{{ item.cluster.name }}"
-      when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
+      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
 # Skipped when manifestwork_creation_results is not defined
 - name: Update CR status for ManifestWork creation
@@ -353,4 +353,4 @@
   ansible.builtin.include_tasks: delete_grafana_oncall_hub_spoke.yml
   when:
     - manifestwork_creation_results is not defined
-    - create_integration_for_dict is not defined or create_integration_for_dict | length == 0
+    - grafana_cloud_operator_create_integration_for_dict is not defined or grafana_cloud_operator_create_integration_for_dict | length == 0

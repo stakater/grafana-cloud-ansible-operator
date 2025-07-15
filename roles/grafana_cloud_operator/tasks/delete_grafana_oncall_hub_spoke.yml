@@ -76,12 +76,12 @@
 
 - name: Set current ManagedCluster status
   ansible.builtin.set_fact:
-    grafana_cloud_operator_previous_grafana_cloud_operator_managed_clusters: "{{ grafana_cloud_operator_config_cr.resources[0].status.managedClusters | default([]) }}"
+    grafana_cloud_operator_previous_grafana_cloud_operator_managed_clusters: "{{ grafana_cloud_operator_config_cr.resources[0].status.managedClusters | default([]) }}" # yamllint disable-line rule:line-length
 
 # Compares the Status field of Config CR with exsiting managed clusters in the clusters and then detemines which integrations to delete.
 - name: Determine integrations to delete in Grafana Cloud
   ansible.builtin.set_fact:
-    grafana_cloud_operator_delete_integration_for: "{{ grafana_cloud_operator_previous_grafana_cloud_operator_managed_clusters | difference(grafana_cloud_operator_managed_clusters) }}"
+    grafana_cloud_operator_delete_integration_for: "{{ grafana_cloud_operator_previous_grafana_cloud_operator_managed_clusters | difference(grafana_cloud_operator_managed_clusters) }}" # yamllint disable-line rule:line-length
 
 - name: Delete integrations and dashboards when there are integrations to delete
   when: grafana_cloud_operator_delete_integration_for | length > 0
@@ -92,7 +92,7 @@
 
     - name: Find Grafana Integration IDs for the Integrations to Delete
       ansible.builtin.set_fact:
-        integrations_to_delete: "{{ integrations_to_delete | default([]) + [{'name': item, 'integration_id': integration_id}] }}"
+        grafana_cloud_operator_integrations_to_delete: "{{ grafana_cloud_operator_integrations_to_delete | default([]) + [{'name': item, 'integration_id': integration_id}] }}"
       loop: "{{ grafana_cloud_operator_delete_integration_for }}"
       vars:
         integration_id: >-
@@ -109,7 +109,7 @@
           Authorization: "{{ grafana_cloud_operator_grafana_cloud_api_token }}"
           Content-Type: "application/json"
         status_code: [200, 201]
-      loop: "{{ integrations_to_delete }}"
+      loop: "{{ grafana_cloud_operator_integrations_to_delete }}"
       loop_control:
         label: "{{ item }}"
       retries: 5
@@ -119,7 +119,7 @@
 
     - name: Set the UIDs of the folders to delete
       ansible.builtin.set_fact:
-        folder_uid_to_delete: "{{ folder_uid_to_delete | default([]) + (grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'equalto', item) | map(attribute='uid') | list) }}" # yamllint disable-line rule:line-length
+        grafana_cloud_operator_folder_uid_to_delete: "{{ grafana_cloud_operator_folder_uid_to_delete | default([]) + (grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'equalto', item) | map(attribute='uid') | list) }}" # yamllint disable-line rule:line-length
       loop: "{{ grafana_cloud_operator_delete_integration_for }}"
       loop_control:
         loop_var: item
@@ -135,7 +135,7 @@
           Authorization: Bearer {{ grafana_cloud_operator_slo_api_token }}
           Content-Type: "application/json"
         status_code: 200
-      loop: "{{ folder_uid_to_delete }}"
+      loop: "{{ grafana_cloud_operator_folder_uid_to_delete }}"
       loop_control:
         loop_var: item
       when: grafana_cloud_operator_gco_cr.spec.enabled == 'true'
@@ -160,7 +160,7 @@
     # This removes any duplications if found and stores the mangedCluster list with correct format [managed_cluster_name]-[managed_cluster_owner]
     - name: Remove deleted integrations from managedClusters
       ansible.builtin.set_fact:
-        updated_grafana_cloud_operator_managed_clusters: >-
+        grafana_cloud_operator_updated_grafana_cloud_operator_managed_clusters: >-
           {{
             grafana_cloud_operator_config_cr.resources[0].status.managedClusters
             | map('regex_replace', '^name: ', '')
@@ -178,7 +178,7 @@
         name: "{{ grafana_cloud_operator_cr_name }}"
         namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
         status:
-          managedClusters: "{{ updated_grafana_cloud_operator_managed_clusters }}"
+          managedClusters: "{{ grafana_cloud_operator_updated_grafana_cloud_operator_managed_clusters }}"
           conditions:
             - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
               status: "True"
@@ -204,7 +204,7 @@
                   metadata:
                     name: alertmanager-main
                     namespace: openshift-monitoring
-      loop: "{{ integrations_to_delete }}"
+      loop: "{{ grafana_cloud_operator_integrations_to_delete }}"
       loop_control:
         label: "{{ item.name }}"
       when: grafana_cloud_operator_delete_integration_for | length > 0

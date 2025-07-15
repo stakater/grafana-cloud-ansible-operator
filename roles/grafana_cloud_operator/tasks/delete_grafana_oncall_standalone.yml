@@ -82,7 +82,7 @@
 
 - name: Set the UID of the folder to delete
   ansible.builtin.set_fact:
-    folder_uid_to_delete: "{{ grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'equalto', cluster_name) | map(attribute='uid') | list }}"
+    grafana_cloud_operator_folder_uid_to_delete: "{{ grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'equalto', cluster_name) | map(attribute='uid') | list }}"
   when: grafana_cloud_operator_gco_cr.spec.enabled == 'true'
 
 - name: Delete Dashboard
@@ -95,7 +95,7 @@
       Authorization: Bearer {{ grafana_cloud_operator_slo_api_token }}
       Content-Type: "application/json"
     status_code: 200
-  loop: "{{ folder_uid_to_delete }}"
+  loop: "{{ grafana_cloud_operator_folder_uid_to_delete }}"
   loop_control:
     loop_var: item
   when: grafana_cloud_operator_gco_cr.spec.enabled == 'true'

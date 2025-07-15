@@ -8,7 +8,7 @@
 
 - name: Install SLO Dashboard
   ansible.builtin.include_tasks: grafana_slo_hub_spoke.yml
-  when: grafana_cloud_operator_cr.spec.provisionMode == 'hubAndSpoke' and grafana_cloud_operator_state != 'absent' and grafana_cloud_operator_cr.spec.enabled == 'true'
+  when: grafana_cloud_operator_cr.spec.provisionMode == 'hubAndSpoke' and grafana_cloud_operator_state != 'absent' and grafana_cloud_operator_cr.spec.enabled == 'true' # yamllint disable-line rule:line-length
 
 - name: Execute tasks for hub and spoke topology
   ansible.builtin.include_tasks: grafana_oncall_hub_spoke.yml
@@ -16,7 +16,7 @@
 
 - name: Install SLO Dashboard
   ansible.builtin.include_tasks: grafana_slo_standalone.yml
-  when: grafana_cloud_operator_cr.spec.provisionMode == 'standalone' and grafana_cloud_operator_state != 'absent' and grafana_cloud_operator_cr.spec.enabled == 'true'
+  when: grafana_cloud_operator_cr.spec.provisionMode == 'standalone' and grafana_cloud_operator_state != 'absent' and grafana_cloud_operator_cr.spec.enabled == 'true' # yamllint disable-line rule:line-length
 
 - name: Execute tasks for standalone topology
   ansible.builtin.include_tasks: grafana_oncall_standalone.yml

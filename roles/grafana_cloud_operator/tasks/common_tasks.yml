@@ -59,7 +59,7 @@
     kind: Config
     name: "{{ grafana_cloud_operator_cr_name }}"
     namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
-  register: grafana_cloud_operator_current_config_cr
+  register: grafana_cloud_operator_current_grafana_cloud_operator_config_cr
 
 - name: Fetch ManagedCluster CRs
   kubernetes.core.k8s_info:
@@ -86,7 +86,7 @@
     namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
       managedClusters: "{{ grafana_cloud_operator_current_grafana_cloud_operator_managed_clusters }}"
-  when: "'managedClusters' not in grafana_cloud_operator_current_config_cr.resources[0].status"
+  when: "'managedClusters' not in grafana_cloud_operator_current_grafana_cloud_operator_config_cr.resources[0].status"
 
 - name: Ensure required CR fields are set
   ansible.builtin.fail:

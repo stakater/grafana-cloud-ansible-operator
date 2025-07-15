@@ -22,7 +22,7 @@
       Authorization: Bearer {{ grafana_cloud_operator_slo_api_token }}
       Content-Type: "application/json"
     return_content: true
-  register: grafana_cloud_folders
+  register: grafana_cloud_operator_grafana_cloud_folders
 
 - name: Get the Cluster's name
   kubernetes.core.k8s_info:
@@ -39,7 +39,7 @@
     folder_uid: "{{ item.uid }}"
   when: item.title == cluster_name
   with_items:
-    - "{{ grafana_cloud_folders.json }}"
+    - "{{ grafana_cloud_operator_grafana_cloud_folders.json }}"
 
 - name: Create Folder in Grafana Cloud
   ansible.builtin.uri:

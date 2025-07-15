@@ -13,7 +13,7 @@
         namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
         finalizers:
           - "grafanacloud.stakater.com/config"
-  when: "'grafanacloud.stakater.com/config' not in grafana_cloud_operator_gco_cr.metadata.finalizers"
+  when: "'grafanacloud.stakater.com/config' not in grafana_cloud_operator_cr.metadata.finalizers"
 
 - name: Update CR status to Initiated
   operator_sdk.util.k8s_status:

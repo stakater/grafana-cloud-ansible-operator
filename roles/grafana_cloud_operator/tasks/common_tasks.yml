@@ -13,22 +13,22 @@
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
     namespace: "{{ grafana_cloud_operator_operator_namespace }}"
-  register: grafana_cloud_operator_all_grafana_cloud_operator_gco_crs
+  register: grafana_cloud_operator_all_grafana_cloud_operator_crs
 
 - name: Fail if there's more than one CR
   ansible.builtin.fail:
     msg: "There are multiple Config CRs in the {{ grafana_cloud_operator_operator_namespace }} namespace. Only one is expected"
-  when: grafana_cloud_operator_all_grafana_cloud_operator_gco_crs.resources | length > 1
+  when: grafana_cloud_operator_all_grafana_cloud_operator_crs.resources | length > 1
 
 - name: Set the CR name from the fetched list
   ansible.builtin.set_fact:
-    grafana_cloud_operator_grafana_cloud_operator_gco_grafana_cloud_operator_cr_name: "{{ grafana_cloud_operator_all_grafana_cloud_operator_gco_crs.resources[0].metadata.name }}" # yamllint disable-line rule:line-length
+    grafana_cloud_operator_grafana_cloud_operator_gco_grafana_cloud_operator_cr_name: "{{ grafana_cloud_operator_all_grafana_cloud_operator_crs.resources[0].metadata.name }}" # yamllint disable-line rule:line-length
 
 - name: Update CR name and namespace
   ansible.builtin.set_fact:
     grafana_cloud_operator_cr_name: "{{ grafana_cloud_operator_grafana_cloud_operator_gco_grafana_cloud_operator_cr_name }}"
     grafana_cloud_operator_grafana_cloud_operator_cr_namespace: "{{ grafana_cloud_operator_operator_namespace }}"
-    grafana_cloud_operator_gco_cr: "{{ grafana_cloud_operator_all_grafana_cloud_operator_gco_crs.resources[0] }}"
+    grafana_cloud_operator_cr: "{{ grafana_cloud_operator_all_grafana_cloud_operator_crs.resources[0] }}"
 
 # # Fetch the single Config CR
 # - name: Get the specific Config CR
@@ -37,7 +37,7 @@
 #     kind: Config
 #     namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
 #     name: "{{ grafana_cloud_operator_cr_name }}"
-#   register: grafana_cloud_operator_gco_cr
+#   register: grafana_cloud_operator_cr
 
 - name: Update CR status to CRRetrieved
   operator_sdk.util.k8s_status:
@@ -92,8 +92,8 @@
   ansible.builtin.fail:
     msg: "Required field '{{ item.field }}' is missing in the Config CR"
   loop:
-    - { field: "grafanaAPIToken.secretName", value: grafana_cloud_operator_gco_cr.spec.grafanaAPIToken.secretName }
-    - { field: "grafanaAPIToken.key", value: grafana_cloud_operator_gco_cr.spec.grafanaAPIToken.key }
+    - { field: "grafanaAPIToken.secretName", value: grafana_cloud_operator_cr.spec.grafanaAPIToken.secretName }
+    - { field: "grafanaAPIToken.key", value: grafana_cloud_operator_cr.spec.grafanaAPIToken.key }
   loop_control:
     label: "{{ item.field }}"
   when: (item.value is none or item.value == '')
@@ -102,7 +102,7 @@
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Secret
-    name: "{{ grafana_cloud_operator_gco_cr.spec.grafanaAPIToken.secretName }}"
+    name: "{{ grafana_cloud_operator_cr.spec.grafanaAPIToken.secretName }}"
     namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
   register: grafana_cloud_operator_grafana_api_secret
 
@@ -116,19 +116,19 @@
 
 - name: Decode grafana api key
   ansible.builtin.set_fact:
-    grafana_cloud_operator_grafana_cloud_api_token: "{{ grafana_cloud_operator_grafana_api_secret.resources[0].data[grafana_cloud_operator_gco_cr.spec.grafanaAPIToken.key] | b64decode }}" # yamllint disable-line rule:line-length
+    grafana_cloud_operator_grafana_cloud_api_token: "{{ grafana_cloud_operator_grafana_api_secret.resources[0].data[grafana_cloud_operator_cr.spec.grafanaAPIToken.key] | b64decode }}" # yamllint disable-line rule:line-length
 
 - name: Decode SLO api key
   ansible.builtin.set_fact:
-    grafana_cloud_operator_slo_api_token: "{{ grafana_cloud_operator_slo_dashboard_api_secret.resources[0].data[grafana_cloud_operator_gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}" # yamllint disable-line rule:line-length
+    grafana_cloud_operator_slo_api_token: "{{ grafana_cloud_operator_slo_dashboard_api_secret.resources[0].data[grafana_cloud_operator_cr.spec.sloDashboardAPIToken.key] | b64decode }}" # yamllint disable-line rule:line-length
 
 - name: Fetch SlackId
   ansible.builtin.set_fact:
-    grafana_cloud_operator_slack_id: "{{ grafana_cloud_operator_gco_cr.spec.slackId | default('') }}"
+    grafana_cloud_operator_slack_id: "{{ grafana_cloud_operator_cr.spec.slackId | default('') }}"
 
 - name: Fetch Slack Condition
   ansible.builtin.set_fact:
-    grafana_cloud_operator_slack_cond: "{{ grafana_cloud_operator_gco_cr.spec.slack | default('true') }}"
+    grafana_cloud_operator_slack_cond: "{{ grafana_cloud_operator_cr.spec.slack | default('true') }}"
 
 - name: Update CR status to TokenFetched
   operator_sdk.util.k8s_status:

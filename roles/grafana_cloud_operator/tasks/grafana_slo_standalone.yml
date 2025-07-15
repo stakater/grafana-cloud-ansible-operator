@@ -14,7 +14,7 @@
 
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
-    url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/folders"
+    url: "{{ grafana_cloud_operator_cr.spec.sloCloudAPI }}/folders"
     method: GET
     body_format: json
     status_code: [200, 202]
@@ -43,7 +43,7 @@
 
 - name: Create Folder in Grafana Cloud
   ansible.builtin.uri:
-    url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/folders"
+    url: "{{ grafana_cloud_operator_cr.spec.sloCloudAPI }}/folders"
     method: POST
     return_content: true
     body:
@@ -62,7 +62,7 @@
 
 - name: Download SLO Dashboard YAML
   ansible.builtin.get_url:
-    url: "{{ grafana_cloud_operator_gco_cr.spec.sloObservabilityURL }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml" # yamllint disable-line rule:line-length
+    url: "{{ grafana_cloud_operator_cr.spec.sloObservabilityURL }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml" # yamllint disable-line rule:line-length
     dest: "/tmp/slo-dashboard-cm.yaml"
     mode: '0644'
 
@@ -101,7 +101,7 @@
 
 - name: Deploy SLO Dashboard to Grafana Cloud
   ansible.builtin.uri:
-    url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/dashboards/db"
+    url: "{{ grafana_cloud_operator_cr.spec.sloCloudAPI }}/dashboards/db"
     method: POST
     body: "{{ grafana_cloud_operator_slo_dashboard_json }}"
     return_content: true
@@ -121,8 +121,8 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ grafana_cloud_operator_gco_cr.metadata.name }}"
-    namespace: "{{ grafana_cloud_operator_gco_cr.metadata.namespace }}"
+    name: "{{ grafana_cloud_operator_cr.metadata.name }}"
+    namespace: "{{ grafana_cloud_operator_cr.metadata.namespace }}"
     status:
       conditions:
         - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"

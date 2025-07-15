@@ -18,7 +18,7 @@
 
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
-    url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/folders"
+    url: "{{ grafana_cloud_operator_cr.spec.sloCloudAPI }}/folders"
     method: GET
     body_format: json
     status_code: [200, 202]
@@ -123,11 +123,11 @@
       loop: "{{ grafana_cloud_operator_delete_integration_for }}"
       loop_control:
         loop_var: item
-      when: grafana_cloud_operator_gco_cr.spec.enabled == 'true'
+      when: grafana_cloud_operator_cr.spec.enabled == 'true'
 
     - name: Delete Dashboard
       ansible.builtin.uri:
-        url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/folders/{{ item }}"
+        url: "{{ grafana_cloud_operator_cr.spec.sloCloudAPI }}/folders/{{ item }}"
         method: DELETE
         body_format: json
         return_content: true
@@ -138,7 +138,7 @@
       loop: "{{ grafana_cloud_operator_folder_uid_to_delete }}"
       loop_control:
         loop_var: item
-      when: grafana_cloud_operator_gco_cr.spec.enabled == 'true'
+      when: grafana_cloud_operator_cr.spec.enabled == 'true'
 
     # This clears out the status field which was having existing managedCluster list
     - name: Removing old ManagedCluster List

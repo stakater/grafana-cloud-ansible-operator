@@ -18,7 +18,7 @@
 
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
-    url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/folders"
+    url: "{{ grafana_cloud_operator_cr.spec.sloCloudAPI }}/folders"
     method: GET
     body_format: json
     status_code: [200, 202]
@@ -92,11 +92,11 @@
 - name: Set the UID of the folder to delete
   ansible.builtin.set_fact:
     grafana_cloud_operator_folder_uid_to_delete: "{{ grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'equalto', grafana_cloud_operator_cluster_name) | map(attribute='uid') | list }}" # yamllint disable-line rule:line-length
-  when: grafana_cloud_operator_gco_cr.spec.enabled == 'true'
+  when: grafana_cloud_operator_cr.spec.enabled == 'true'
 
 - name: Delete Dashboard
   ansible.builtin.uri:
-    url: "{{ grafana_cloud_operator_gco_cr.spec.sloCloudAPI }}/folders/{{ item }}"
+    url: "{{ grafana_cloud_operator_cr.spec.sloCloudAPI }}/folders/{{ item }}"
     method: DELETE
     body_format: json
     return_content: true
@@ -107,7 +107,7 @@
   loop: "{{ grafana_cloud_operator_folder_uid_to_delete }}"
   loop_control:
     loop_var: item
-  when: grafana_cloud_operator_gco_cr.spec.enabled == 'true'
+  when: grafana_cloud_operator_cr.spec.enabled == 'true'
 
 - name: Decode and modify alertmanager secret configuration
   ansible.builtin.set_fact:

@@ -267,7 +267,15 @@
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     - name: Inform user if Grafana integration creation was skipped or failed
-      when: grafana_cloud_operator_integration_response is skipped or (grafana_cloud_operator_integration_response.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)
+      when:
+        - grafana_cloud_operator_integration_response is skipped
+        - >
+          (
+            grafana_cloud_operator_integration_response.results
+            | rejectattr('status', 'in', [200, 201])
+            | list
+            | length > 0
+          )
       block:
         - name: Display message about potential Grafana integration issues
           ansible.builtin.debug:

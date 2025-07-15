@@ -37,7 +37,7 @@
 # Combines them into a list
 - name: Combine ManagedCluster names and owners into a list of strings
   ansible.builtin.set_fact:
-    grafana_cloud_operator_current_grafana_cloud_operator_managed_clusters: >-
+    grafana_cloud_operator_current_managed_clusters: >-
       {{
         grafana_cloud_operator_managed_cluster_names
         | zip(grafana_cloud_operator_managed_cluster_owners)
@@ -59,11 +59,11 @@
 
 - name: Define existing folders for managed clusters
   ansible.builtin.set_fact:
-    grafana_cloud_operator_encoded_existing_folders: "{{ grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'in', grafana_cloud_operator_current_grafana_cloud_operator_managed_clusters) | map(attribute='title') | list }}" # yamllint disable-line rule:line-length
+    grafana_cloud_operator_encoded_existing_folders: "{{ grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'in', grafana_cloud_operator_current_managed_clusters) | map(attribute='title') | list }}" # yamllint disable-line rule:line-length
 
 - name: Define missing dashboards
   ansible.builtin.set_fact:
-    grafana_cloud_operator_missing_dashboards: "{{ grafana_cloud_operator_current_grafana_cloud_operator_managed_clusters | difference(grafana_cloud_operator_encoded_existing_folders) }}"
+    grafana_cloud_operator_missing_dashboards: "{{ grafana_cloud_operator_current_managed_clusters | difference(grafana_cloud_operator_encoded_existing_folders) }}" # yamllint disable-line rule:line-length
 
 - name: Set the fact if the folder exists
   ansible.builtin.set_fact:

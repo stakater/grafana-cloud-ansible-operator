@@ -76,7 +76,7 @@
 
 - name: Extract current managed cluster names
   ansible.builtin.set_fact:
-    grafana_cloud_operator_current_grafana_cloud_operator_managed_clusters: "{{ grafana_cloud_operator_managed_clusters | map(attribute='name') | list }}"
+    grafana_cloud_operator_current_managed_clusters: "{{ grafana_cloud_operator_managed_clusters | map(attribute='name') | list }}"
 
 - name: Update CR status for existing ManagedCluster
   operator_sdk.util.k8s_status:
@@ -85,7 +85,7 @@
     name: "{{ grafana_cloud_operator_cr_name }}"
     namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
-      managedClusters: "{{ grafana_cloud_operator_current_grafana_cloud_operator_managed_clusters }}"
+      managedClusters: "{{ grafana_cloud_operator_current_managed_clusters }}"
   when: "'managedClusters' not in grafana_cloud_operator_current_grafana_cloud_operator_config_cr.resources[0].status"
 
 - name: Ensure required CR fields are set

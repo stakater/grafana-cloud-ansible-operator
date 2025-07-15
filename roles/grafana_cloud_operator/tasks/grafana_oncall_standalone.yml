@@ -109,7 +109,7 @@
 
 - name: Re-encode modified alertmanager content for cluster
   ansible.builtin.set_fact:
-    encoded_alertmanager_secret_content: "{{ grafana_cloud_operator_grafana_cloud_operator_modified_alertmanager_secret_content | to_nice_yaml | b64encode }}"
+    grafana_cloud_operator_encoded_alertmanager_secret_content: "{{ grafana_cloud_operator_grafana_cloud_operator_modified_alertmanager_secret_content | to_nice_yaml | b64encode }}"
 
 - name: Patch alertmanager-main secret for cluster
   kubernetes.core.k8s:
@@ -122,7 +122,7 @@
         name: "{{ grafana_cloud_operator_alertmanager_secret_name }}"
         namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
       data:
-        alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
+        alertmanager.yaml: "{{ grafana_cloud_operator_encoded_alertmanager_secret_content }}"
   when: not grafana_cloud_operator_integration_exists_for_cluster
 
 - name: Update CR status to ConfigUpdated

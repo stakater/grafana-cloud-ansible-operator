@@ -124,7 +124,7 @@
         name: "{{ grafana_cloud_operator_alertmanager_secret_name }}"
         namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
       data:
-        alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
+        alertmanager.yaml: "{{ grafana_cloud_operator_encoded_alertmanager_secret_content }}"
   when: not grafana_cloud_operator_integration_exists_for_cluster
 
 - name: Update CR status to DeletionCompleted

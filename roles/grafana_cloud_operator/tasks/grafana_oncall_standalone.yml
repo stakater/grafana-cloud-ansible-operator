@@ -41,7 +41,7 @@
 
 - name: Determine if integration exists for the cluster
   ansible.builtin.set_fact:
-    integration_exists_for_cluster: "{{ cluster_name in existing_integration_names }}"
+    integration_exists_for_cluster: "{{ cluster_name in grafana_cloud_operator_existing_integration_names }}"
 
 - name: Create a new integration in Grafana OnCall for the cluster only if it does not have one with slackId
   ansible.builtin.uri:
@@ -59,11 +59,11 @@
           "name": cluster_name,
           "default_route": {
             "slack": {
-              "channel_id": slack_id,
-              "enabled": slack_cond
+              "channel_id": grafana_cloud_operator_slack_id,
+              "enabled": grafana_cloud_operator_slack_cond
             }
           }
-        } if slack_id | length > 0 else {
+        } if grafana_cloud_operator_slack_id | length > 0 else {
           "type": "alertmanager",
           "name": cluster_name
         }

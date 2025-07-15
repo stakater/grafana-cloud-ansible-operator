@@ -16,13 +16,13 @@
   kubernetes.core.k8s_info:
     api_version: cluster.open-cluster-management.io/v1
     kind: ManagedCluster
-  register: managed_clusters_raw
+  register: grafana_cloud_operator_managed_clusters_raw
 
 # Extracts the name from ManagedCluster CR
 - name: Extract ManagedCluster names
   ansible.builtin.set_fact:
     managed_cluster_names: "{{ managed_cluster_names | default([]) + [item.metadata.name] }}"
-  loop: "{{ managed_clusters_raw.resources }}"
+  loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
 
@@ -30,14 +30,14 @@
 - name: Extract ManagedCluster owners
   ansible.builtin.set_fact:
     managed_cluster_owners: "{{ managed_cluster_owners | default([]) + [item.metadata.labels.owner | default('unknown')] }}"
-  loop: "{{ managed_clusters_raw.resources }}"
+  loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
 
 # Combines them into a list
 - name: Combine ManagedCluster names and owners into a list of strings
   ansible.builtin.set_fact:
-    grafana_cloud_operator_current_managed_clusters: >-
+    grafana_cloud_operator_current_grafana_cloud_operator_managed_clusters: >-
       {{
         managed_cluster_names
         | zip(managed_cluster_owners)
@@ -59,11 +59,11 @@
 
 - name: Define existing folders for managed clusters
   ansible.builtin.set_fact:
-    existing_folders: "{{ grafana_cloud_folders.json | selectattr('title', 'in', grafana_cloud_operator_current_managed_clusters) | map(attribute='title') | list }}"
+    existing_folders: "{{ grafana_cloud_folders.json | selectattr('title', 'in', grafana_cloud_operator_current_grafana_cloud_operator_managed_clusters) | map(attribute='title') | list }}"
 
 - name: Define missing dashboards
   ansible.builtin.set_fact:
-    missing_dashboards: "{{ grafana_cloud_operator_current_managed_clusters | difference(existing_folders) }}"
+    missing_dashboards: "{{ grafana_cloud_operator_current_grafana_cloud_operator_managed_clusters | difference(existing_folders) }}"
 
 - name: Set the fact if the folder exists
   ansible.builtin.set_fact:

@@ -65,18 +65,18 @@
   kubernetes.core.k8s_info:
     api_version: cluster.open-cluster-management.io/v1
     kind: ManagedCluster
-  register: managed_clusters_raw
+  register: grafana_cloud_operator_managed_clusters_raw
 
 - name: Extract list of ManagedCluster
   ansible.builtin.set_fact:
-    managed_clusters: "{{ managed_clusters | default([]) + [{'name': item.metadata.name}] }}"
-  loop: "{{ managed_clusters_raw.resources }}"
+    grafana_cloud_operator_managed_clusters: "{{ grafana_cloud_operator_managed_clusters | default([]) + [{'name': item.metadata.name}] }}"
+  loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
 
 - name: Extract current managed cluster names
   ansible.builtin.set_fact:
-    grafana_cloud_operator_current_managed_clusters: "{{ managed_clusters | map(attribute='name') | list }}"
+    grafana_cloud_operator_current_grafana_cloud_operator_managed_clusters: "{{ grafana_cloud_operator_managed_clusters | map(attribute='name') | list }}"
 
 - name: Update CR status for existing ManagedCluster
   operator_sdk.util.k8s_status:
@@ -85,7 +85,7 @@
     name: "{{ grafana_cloud_operator_cr_name }}"
     namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
     status:
-      managedClusters: "{{ grafana_cloud_operator_current_managed_clusters }}"
+      managedClusters: "{{ grafana_cloud_operator_current_grafana_cloud_operator_managed_clusters }}"
   when: "'managedClusters' not in grafana_cloud_operator_current_config_cr.resources[0].status"
 
 - name: Ensure required CR fields are set
@@ -116,19 +116,19 @@
 
 - name: Decode grafana api key
   ansible.builtin.set_fact:
-    grafana_cloud_operator_grafana_cloud_api_token: "{{ grafana_cloud_operator_grafana_api_secret.resources[0].data[grafana_cloud_operator_gco_cr.spec.grafanaAPIToken.key] | b64decode }}"
+    grafana_cloud_operator_grafana_cloud_api_token: "{{ grafana_cloud_operator_grafana_api_secret.resources[0].data[grafana_cloud_operator_gco_cr.spec.grafanaAPIToken.key] | b64decode }}" # yamllint disable-line rule:line-length
 
 - name: Decode SLO api key
   ansible.builtin.set_fact:
-    grafana_cloud_operator_slo_api_token: "{{ grafana_cloud_operator_slo_dashboard_api_secret.resources[0].data[grafana_cloud_operator_gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}"
+    grafana_cloud_operator_slo_api_token: "{{ grafana_cloud_operator_slo_dashboard_api_secret.resources[0].data[grafana_cloud_operator_gco_cr.spec.sloDashboardAPIToken.key] | b64decode }}" # yamllint disable-line rule:line-length
 
 - name: Fetch SlackId
   ansible.builtin.set_fact:
-    slack_id: "{{ grafana_cloud_operator_gco_cr.spec.slackId | default('') }}"
+    grafana_cloud_operator_slack_id: "{{ grafana_cloud_operator_gco_cr.spec.slackId | default('') }}"
 
 - name: Fetch Slack Condition
   ansible.builtin.set_fact:
-    slack_cond: "{{ grafana_cloud_operator_gco_cr.spec.slack | default('true') }}"
+    grafana_cloud_operator_slack_cond: "{{ grafana_cloud_operator_gco_cr.spec.slack | default('true') }}"
 
 - name: Update CR status to TokenFetched
   operator_sdk.util.k8s_status:
@@ -163,16 +163,16 @@
       Authorization: "{{ grafana_cloud_operator_grafana_cloud_api_token }}"
       Content-Type: "application/json"
     return_content: true
-  register: existing_integrations_response
+  register: grafana_cloud_operator_existing_integrations_response
 
 - name: Extract integration names from the response
   ansible.builtin.set_fact:
-    existing_integration_names: "{{ existing_integrations_response.json.results | map(attribute='name') | list }}"
+    grafana_cloud_operator_existing_integration_names: "{{ grafana_cloud_operator_existing_integrations_response.json.results | map(attribute='name') | list }}"
 
 - name: Ensure retrieved Grafana integrations list is valid
   ansible.builtin.fail:
     msg: "Failed to retrieve valid Grafana integrations"
-  when: existing_integration_names is none or existing_integration_names | type_debug != 'list'
+  when: grafana_cloud_operator_existing_integration_names is none or grafana_cloud_operator_existing_integration_names | type_debug != 'list'
 
 - name: Update CR status to IntegrationsListFetched
   operator_sdk.util.k8s_status:

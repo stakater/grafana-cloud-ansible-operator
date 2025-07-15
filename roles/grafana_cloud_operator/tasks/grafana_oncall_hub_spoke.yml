@@ -190,14 +190,14 @@
               }
           }}
         status_code: [200, 201]
-      register: grafana_cloud_operator_grafana_integration_response
+      register: grafana_cloud_operator_integration_response
       loop: "{{ grafana_cloud_operator_create_integration_for_dict }}"
       loop_control:
         label: "{{ item.name }}"
         index_var: loop_index
       retries: 5
       delay: 6
-      until: grafana_cloud_operator_grafana_integration_response.status in [200, 201]
+      until: grafana_cloud_operator_integration_response.status in [200, 201]
       failed_when: false
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
@@ -267,7 +267,7 @@
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     - name: Inform user if Grafana integration creation was skipped or failed
-      when: grafana_cloud_operator_grafana_integration_response is skipped or (grafana_cloud_operator_grafana_integration_response.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)
+      when: grafana_cloud_operator_integration_response is skipped or (grafana_cloud_operator_integration_response.results | rejectattr('status', 'in', [200, 201]) | list | length > 0)
       block:
         - name: Display message about potential Grafana integration issues
           ansible.builtin.debug:
@@ -286,17 +286,17 @@
                   type: "Failed"
                   reason: "IntegrationCreationFailed"
                   message: "Failed to create Grafana integration for ManagedClusters."
-          loop: "{{ grafana_cloud_operator_grafana_integration_response.results }}"
+          loop: "{{ grafana_cloud_operator_integration_response.results }}"
           when:
-            - grafana_cloud_operator_grafana_integration_response is defined
-            - grafana_cloud_operator_grafana_integration_response.results is defined
-            - grafana_cloud_operator_grafana_integration_response.results | length > 0
+            - grafana_cloud_operator_integration_response is defined
+            - grafana_cloud_operator_integration_response.results is defined
+            - grafana_cloud_operator_integration_response.results | length > 0
             - item.status not in [200, 201]
 
     - name: Associate Grafana integration details with ManagedClusters
       ansible.builtin.set_fact:
         grafana_cloud_operator_mapped_integrations: "{{ grafana_cloud_operator_mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}"
-      loop: "{{ grafana_cloud_operator_grafana_integration_response.results }}"
+      loop: "{{ grafana_cloud_operator_integration_response.results }}"
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     # Following tasks will execute only if Grafana integration was created successfully

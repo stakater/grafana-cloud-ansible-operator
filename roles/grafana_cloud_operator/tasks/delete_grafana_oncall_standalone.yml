@@ -56,14 +56,14 @@
       Content-Type: "application/json"
     status_code: [200, 201]
   when: grafana_cloud_operator_integration_exists_for_cluster
-  register: grafana_cloud_operator_grafana_integration_response
+  register: grafana_cloud_operator_integration_response
   failed_when: false
 
 - name: Filter matching integrations by name
   ansible.builtin.set_fact:
     grafana_cloud_operator_grafana_cloud_operator_matched_integrations: >-
       {{
-        grafana_cloud_operator_grafana_integration_response.json.results
+        grafana_cloud_operator_integration_response.json.results
         | selectattr('name', 'eq', grafana_cloud_operator_cluster_name)
         | list
       }}
@@ -86,7 +86,7 @@
       Content-Type: "application/json"
     status_code: [200, 201]
   when: grafana_cloud_operator_integration_exists_for_cluster
-  register: grafana_cloud_operator_grafana_integration_response
+  register: grafana_cloud_operator_integration_response
   failed_when: false
 
 - name: Set the UID of the folder to delete

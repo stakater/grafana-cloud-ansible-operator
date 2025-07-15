@@ -92,18 +92,18 @@
 
     - name: Find Grafana Integration IDs for the Integrations to Delete
       ansible.builtin.set_fact:
-        grafana_cloud_operator_integrations_to_delete: "{{ grafana_cloud_operator_integrations_to_delete | default([]) + [{'name': item, 'integration_id': integration_id}] }}"
+        grafana_cloud_operator_integrations_to_delete: "{{ grafana_cloud_operator_integrations_to_delete | default([]) + [{'name': item, 'grafana_cloud_operator_grafana_grafana_cloud_operator_integration_id': grafana_cloud_operator_grafana_grafana_cloud_operator_integration_id}] }}" # yamllint disable-line rule:line-length
       loop: "{{ grafana_cloud_operator_delete_integration_for }}"
       vars:
-        integration_id: >-
+        grafana_cloud_operator_grafana_grafana_cloud_operator_integration_id: >-
           {{
             grafana_cloud_operator_grafana_integrations | selectattr('name', 'eq', item) | map(attribute='id') | first | default(None)
           }}
-      when: integration_id is not none
+      when: grafana_cloud_operator_grafana_grafana_cloud_operator_integration_id is not none
 
     - name: Delete integrations from Grafana Cloud for deleted ManagedClusters
       ansible.builtin.uri:
-        url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}{{ item.integration_id }}"
+        url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}{{ item.grafana_cloud_operator_grafana_grafana_cloud_operator_integration_id }}"
         method: DELETE
         headers:
           Authorization: "{{ grafana_cloud_operator_grafana_cloud_api_token }}"
@@ -157,7 +157,7 @@
               message: "Clears old managed clusters"
       when: grafana_cloud_operator_delete_integration_for
 
-    # This removes any duplications if found and stores the mangedCluster list with correct format [managed_grafana_cloud_operator_cluster_name]-[managed_cluster_owner]
+    # This removes any duplications if found and stores the mangedCluster list with correct format [cluster_name]-[managed_cluster_owner]
     - name: Remove deleted integrations from managedClusters
       ansible.builtin.set_fact:
         grafana_cloud_operator_updated_grafana_cloud_operator_managed_clusters: >-

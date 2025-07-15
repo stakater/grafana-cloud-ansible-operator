@@ -36,7 +36,7 @@
 
 - name: Update hostname
   ansible.builtin.set_fact:
-    grafana_cloud_operator_cluster_name: "{{ grafana_cloud_operator_ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+(?=\\.)') }}"
+    grafana_cloud_operator_cluster_name: "{{ grafana_cloud_operator_ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+(?=\\.)') }}" # yamllint disable-line rule:line-length
 
 - name: Determine if integration exists for the cluster
   ansible.builtin.set_fact:
@@ -56,33 +56,33 @@
       Content-Type: "application/json"
     status_code: [200, 201]
   when: grafana_cloud_operator_integration_exists_for_cluster
-  register: grafana_integration_response
+  register: grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response
   failed_when: false
 
 - name: Find Grafana Integration ID for the Cluster
   ansible.builtin.set_fact:
-    integration_id: >-
+    grafana_cloud_operator_grafana_grafana_cloud_operator_integration_id: >-
       {{
-        (grafana_integration_response.json.results | selectattr('name', 'eq', grafana_cloud_operator_cluster_name) | list)[0].id
-        if (grafana_integration_response.json.results | selectattr('name', 'eq', grafana_cloud_operator_cluster_name) | list)
+        (grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response.json.results | selectattr('name', 'eq', grafana_cloud_operator_cluster_name) | list)[0].id
+        if (grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response.json.results | selectattr('name', 'eq', grafana_cloud_operator_cluster_name) | list)
         else None
       }}
 
 - name: Delete the Integration
   ansible.builtin.uri:
-    url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}{{ integration_id }}"
+    url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}{{ grafana_cloud_operator_grafana_grafana_cloud_operator_integration_id }}"
     method: DELETE
     headers:
       Authorization: "{{ grafana_cloud_operator_grafana_cloud_api_token }}"
       Content-Type: "application/json"
     status_code: [200, 201]
   when: grafana_cloud_operator_integration_exists_for_cluster
-  register: grafana_integration_response
+  register: grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response
   failed_when: false
 
 - name: Set the UID of the folder to delete
   ansible.builtin.set_fact:
-    grafana_cloud_operator_folder_uid_to_delete: "{{ grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'equalto', grafana_cloud_operator_cluster_name) | map(attribute='uid') | list }}"
+    grafana_cloud_operator_folder_uid_to_delete: "{{ grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'equalto', grafana_cloud_operator_cluster_name) | map(attribute='uid') | list }}" # yamllint disable-line rule:line-length
   when: grafana_cloud_operator_gco_cr.spec.enabled == 'true'
 
 - name: Delete Dashboard
@@ -102,7 +102,7 @@
 
 - name: Decode and modify alertmanager secret configuration
   ansible.builtin.set_fact:
-    modified_alertmanager_secret_content: "{{ {} | to_nice_yaml | b64encode }}"
+    grafana_cloud_operator_grafana_cloud_operator_modified_alertmanager_secret_content: "{{ {} | to_nice_yaml | b64encode }}"
 
 - name: Patch alertmanager-main secret for cluster
   kubernetes.core.k8s:

@@ -32,7 +32,7 @@
 
 - name: Update hostname
   ansible.builtin.set_fact:
-    grafana_cloud_operator_cluster_name: "{{ grafana_cloud_operator_ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+(?=\\.)') }}"
+    grafana_cloud_operator_cluster_name: "{{ grafana_cloud_operator_ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+(?=\\.)') }}" # yamllint disable-line rule:line-length
 
 - name: Set the fact if the folder exists
   ansible.builtin.set_fact:

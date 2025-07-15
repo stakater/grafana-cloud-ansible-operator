@@ -46,7 +46,7 @@
 # Extracts name from MangedCluster and saves it like name: local-cluster
 - name: Extract ManagedCluster names with prefix
   ansible.builtin.set_fact:
-    grafana_cloud_operator_managed_cluster_names: "{{ grafana_cloud_operator_managed_cluster_names | default([]) + ['name: ' ~ item.metadata.name] }}"
+    grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names: "{{ grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names | default([]) + ['name: ' ~ item.metadata.name] }}"
   loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
@@ -59,13 +59,13 @@
   loop_control:
     loop_var: item
 
-# Removes name: and owner: and joins the grafana_cloud_operator_managed_cluster_names and grafana_cloud_operator_managed_cluster_owners with hyphen in between. e.g. local-cluster-unkonwn
-- name: Combine grafana_cloud_operator_managed_cluster_names and grafana_cloud_operator_managed_cluster_owners into a dictionary
+# Removes name: and owner: and joins the grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names and grafana_cloud_operator_managed_cluster_owners with hyphen in between. e.g. local-cluster-unkonwn
+- name: Combine grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names and grafana_cloud_operator_managed_cluster_owners into a dictionary
   ansible.builtin.set_fact:
     grafana_cloud_operator_managed_clusters: >-
       {{
         dict(
-          grafana_cloud_operator_managed_cluster_names
+          grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names
           | map('regex_replace', '^name: ', '')
           | zip(
               grafana_cloud_operator_managed_cluster_owners
@@ -215,7 +215,7 @@
 
     - name: Extract existing ManagedCluster names from current status
       ansible.builtin.set_fact:
-        existing_grafana_cloud_operator_managed_cluster_names: >-
+        existing_grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names: >-
           {{
             grafana_cloud_operator_current_grafana_cloud_operator_config_cr.resources[0].status.grafana_cloud_operator_managed_clusters
             | default([])
@@ -224,10 +224,10 @@
 
       # This task processes the 'grafana_cloud_operator_managed_clusters' dictionary to generate a list of ManagedCluster names
       # with their associated prefixes. Each entry in the dictionary is transformed into a string in the
-      # format "<prefix>-<name>". The resulting list is stored in 'grafana_cloud_operator_managed_cluster_names'.
+      # format "<prefix>-<name>". The resulting list is stored in 'grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names'.
     - name: Extract new ManagedCluster names
       ansible.builtin.set_fact:
-        grafana_cloud_operator_managed_cluster_names: >-
+        grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names: >-
           {{
             grafana_cloud_operator_managed_clusters
             | dict2items
@@ -244,9 +244,9 @@
 
     - name: Merge existing ManagedCluster names with new ones
       ansible.builtin.set_fact:
-        updated_grafana_cloud_operator_managed_cluster_names: >-
+        updated_grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names: >-
           {{
-            (existing_grafana_cloud_operator_managed_cluster_names + grafana_cloud_operator_managed_cluster_names) | unique
+            (existing_grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names + grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names) | unique
           }}
       when: create_integration_for_dict is defined and create_integration_for_dict | length > 0
 
@@ -257,7 +257,7 @@
         name: "{{ grafana_cloud_operator_cr_name }}"
         namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
         status:
-          managedClusters: "{{ updated_grafana_cloud_operator_managed_cluster_names }}"
+          managedClusters: "{{ updated_grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names }}"
           conditions:
             - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
               status: "True"
@@ -307,7 +307,7 @@
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
         transformed_namespace: "{{ item.cluster.name | regex_replace('^(.*)-[^-]+$', '\\1') }}"
-        cluster_name: "{{ item.cluster.name }}"
+        grafana_cloud_operator_cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ mapped_integrations }}"
       loop_control:

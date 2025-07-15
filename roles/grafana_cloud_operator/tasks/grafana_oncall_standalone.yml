@@ -33,15 +33,15 @@
   kubernetes.core.k8s_info:
     kind: IngressController
     api_version: operator.openshift.io/v1
-  register: ingress_controller_info
+  register: grafana_cloud_operator_ingress_controller_info
 
 - name: Update hostname with cluster name and ID
   ansible.builtin.set_fact:
-    cluster_name: "{{ ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+\\.[^.]+(?=\\.)') }}"
+    grafana_cloud_operator_cluster_name: "{{ grafana_cloud_operator_ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+\\.[^.]+(?=\\.)') }}"
 
 - name: Determine if integration exists for the cluster
   ansible.builtin.set_fact:
-    integration_exists_for_cluster: "{{ cluster_name in grafana_cloud_operator_existing_integration_names }}"
+    grafana_cloud_operator_integration_exists_for_cluster: "{{ grafana_cloud_operator_cluster_name in grafana_cloud_operator_existing_integration_names }}"
 
 - name: Create a new integration in Grafana OnCall for the cluster only if it does not have one with slackId
   ansible.builtin.uri:
@@ -56,7 +56,7 @@
       {{
         {
           "type": "alertmanager",
-          "name": cluster_name,
+          "name": grafana_cloud_operator_cluster_name,
           "default_route": {
             "slack": {
               "channel_id": grafana_cloud_operator_slack_id,
@@ -65,11 +65,11 @@
           }
         } if grafana_cloud_operator_slack_id | length > 0 else {
           "type": "alertmanager",
-          "name": cluster_name
+          "name": grafana_cloud_operator_cluster_name
         }
       }}
     status_code: [200, 201]
-  when: not integration_exists_for_cluster
+  when: not grafana_cloud_operator_integration_exists_for_cluster
   register: grafana_integration_response
   failed_when: false
 
@@ -81,7 +81,7 @@
   block:
     - name: Display message to the user
       ansible.builtin.debug:
-        msg: "Grafana integration for {{ cluster_name }} either already exists or failed to be created. Halting further operations."
+        msg: "Grafana integration for {{ grafana_cloud_operator_cluster_name }} either already exists or failed to be created. Halting further operations."
 
     - name: End play gracefully
       ansible.builtin.meta: end_play
@@ -103,7 +103,7 @@
 - name: Modify Alertmanager secret
   ansible.builtin.include_tasks: modify_alertmanager_secret.yml
   vars:
-    receiver_name: "{{ cluster_name }}"
+    receiver_name: "{{ grafana_cloud_operator_cluster_name }}"
     receiver_url: "{{ grafana_integration_response.json.link }}"
     provision_mode: "standalone"
 
@@ -123,7 +123,7 @@
         namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
       data:
         alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
-  when: not integration_exists_for_cluster
+  when: not grafana_cloud_operator_integration_exists_for_cluster
 
 - name: Update CR status to ConfigUpdated
   operator_sdk.util.k8s_status:
@@ -137,5 +137,5 @@
           status: 'True'
           type: "Successful"
           reason: "ConfigUpdated"
-          message: "Alertmanager configuration updated successfully for the cluster {{ cluster_name }}"
-  when: not integration_exists_for_cluster
+          message: "Alertmanager configuration updated successfully for the cluster {{ grafana_cloud_operator_cluster_name }}"
+  when: not grafana_cloud_operator_integration_exists_for_cluster

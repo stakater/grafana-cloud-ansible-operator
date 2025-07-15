@@ -193,7 +193,7 @@
     namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
     kind: Secret
     name: "{{ grafana_cloud_operator_alertmanager_secret_name }}"
-  register: fetched_alertmanager_secret
+  register: grafana_cloud_operator_fetched_alertmanager_secrets
 
 - name: Update CR status to AlertmanagerSecretFetched
   operator_sdk.util.k8s_status:
@@ -208,7 +208,7 @@
           status: 'True'
           reason: "AlertmanagerSecretFetched"
           message: "Fetched alertmanager-main secret for cluster"
-  when: (fetched_alertmanager_secret.resources | default([]) | length) > 0
+  when: (grafana_cloud_operator_fetched_alertmanager_secrets.resources | default([]) | length) > 0
 
 - name: Update CR status to AlertmanagerSecretInvalid
   operator_sdk.util.k8s_status:
@@ -223,9 +223,9 @@
           type: "Failed"
           reason: "AlertmanagerSecretInvalid"
           message: "Alertmanager secret data is invalid or empty"
-  when: (fetched_alertmanager_secret.resources[0].data | default({}) | length) == 0
+  when: (grafana_cloud_operator_fetched_alertmanager_secrets.resources[0].data | default({}) | length) == 0
 
 - name: Ensure alertmanager secret data is valid
   ansible.builtin.fail:
     msg: "Alertmanager secret data is invalid or empty."
-  when: (fetched_alertmanager_secret.resources[0].data | default({}) | length) == 0
+  when: (grafana_cloud_operator_fetched_alertmanager_secrets.resources[0].data | default({}) | length) == 0

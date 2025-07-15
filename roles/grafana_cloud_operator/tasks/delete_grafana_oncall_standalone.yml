@@ -32,19 +32,19 @@
   kubernetes.core.k8s_info:
     kind: IngressController
     api_version: operator.openshift.io/v1
-  register: ingress_controller_info
+  register: grafana_cloud_operator_ingress_controller_info
 
 - name: Update hostname
   ansible.builtin.set_fact:
-    cluster_name: "{{ ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+(?=\\.)') }}"
+    grafana_cloud_operator_cluster_name: "{{ grafana_cloud_operator_ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+(?=\\.)') }}"
 
 - name: Determine if integration exists for the cluster
   ansible.builtin.set_fact:
-    integration_exists_for_cluster: "{{ cluster_name in grafana_cloud_operator_existing_integration_names }}"
+    grafana_cloud_operator_integration_exists_for_cluster: "{{ grafana_cloud_operator_cluster_name in grafana_cloud_operator_existing_integration_names }}"
 
 - name: Display the integration exist for cluster
   ansible.builtin.debug:
-    msg: "{{ integration_exists_for_cluster }}"
+    msg: "{{ grafana_cloud_operator_integration_exists_for_cluster }}"
 
 - name: List integrations and regsiter it
   ansible.builtin.uri:
@@ -55,7 +55,7 @@
       Authorization: "{{ grafana_cloud_operator_grafana_cloud_api_token }}"
       Content-Type: "application/json"
     status_code: [200, 201]
-  when: integration_exists_for_cluster
+  when: grafana_cloud_operator_integration_exists_for_cluster
   register: grafana_integration_response
   failed_when: false
 
@@ -63,8 +63,8 @@
   ansible.builtin.set_fact:
     integration_id: >-
       {{
-        (grafana_integration_response.json.results | selectattr('name', 'eq', cluster_name) | list)[0].id
-        if (grafana_integration_response.json.results | selectattr('name', 'eq', cluster_name) | list)
+        (grafana_integration_response.json.results | selectattr('name', 'eq', grafana_cloud_operator_cluster_name) | list)[0].id
+        if (grafana_integration_response.json.results | selectattr('name', 'eq', grafana_cloud_operator_cluster_name) | list)
         else None
       }}
 
@@ -76,13 +76,13 @@
       Authorization: "{{ grafana_cloud_operator_grafana_cloud_api_token }}"
       Content-Type: "application/json"
     status_code: [200, 201]
-  when: integration_exists_for_cluster
+  when: grafana_cloud_operator_integration_exists_for_cluster
   register: grafana_integration_response
   failed_when: false
 
 - name: Set the UID of the folder to delete
   ansible.builtin.set_fact:
-    grafana_cloud_operator_folder_uid_to_delete: "{{ grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'equalto', cluster_name) | map(attribute='uid') | list }}"
+    grafana_cloud_operator_folder_uid_to_delete: "{{ grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'equalto', grafana_cloud_operator_cluster_name) | map(attribute='uid') | list }}"
   when: grafana_cloud_operator_gco_cr.spec.enabled == 'true'
 
 - name: Delete Dashboard
@@ -116,7 +116,7 @@
         namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
       data:
         alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
-  when: not integration_exists_for_cluster
+  when: not grafana_cloud_operator_integration_exists_for_cluster
 
 - name: Update CR status to DeletionCompleted
   operator_sdk.util.k8s_status:
@@ -130,4 +130,4 @@
           status: "True"
           type: "Successful"
           reason: "IntegrationDeleted"
-          message: "Deleted integration for cluster {{ cluster_name }}"
+          message: "Deleted integration for cluster {{ grafana_cloud_operator_cluster_name }}"

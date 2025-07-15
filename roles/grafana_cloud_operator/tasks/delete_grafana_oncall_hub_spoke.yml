@@ -42,7 +42,7 @@
 # This will extract all the names from the ManagedCluster CR
 - name: Extract ManagedCluster names with prefix
   ansible.builtin.set_fact:
-    grafana_cloud_operator_managed_cluster_names: "{{ grafana_cloud_operator_managed_cluster_names | default([]) + [item.metadata.name] }}"
+    grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names: "{{ grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names | default([]) + [item.metadata.name] }}"
   loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
@@ -50,17 +50,17 @@
 # This will extract all the owner from the labels of ManagedCluster CR
 - name: Extract ManagedCluster owners with prefix
   ansible.builtin.set_fact:
-    grafana_cloud_operator_managed_cluster_owners: "{{ grafana_cloud_operator_managed_cluster_owners | default([]) + [item.metadata.labels.owner | default('unknown')] }}"
+    grafana_cloud_operator_managed_cluster_owners: "{{ grafana_cloud_operator_managed_cluster_owners | default([]) + [item.metadata.labels.owner | default('unknown')] }}" # yamllint disable-line rule:line-length
   loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
 
-# This combines both the name and owner as [grafana_cloud_operator_managed_cluster_names]-[grafana_cloud_operator_managed_cluster_owners] and saves it in var managed_cluster
-- name: Combine grafana_cloud_operator_managed_cluster_names and grafana_cloud_operator_managed_cluster_owners into a list of strings
+# This combines both the name and owner as [grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names]-[grafana_cloud_operator_managed_cluster_owners] and saves it in var managed_cluster # yamllint disable-line rule:line-length
+- name: Combine grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names and grafana_cloud_operator_managed_cluster_owners into a list of strings # yamllint disable-line rule:line-length
   ansible.builtin.set_fact:
     grafana_cloud_operator_managed_clusters: >-
       {{
-        grafana_cloud_operator_managed_cluster_names
+        grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names
         | zip(grafana_cloud_operator_managed_cluster_owners)
         | map('join', '-')
         | list
@@ -157,7 +157,7 @@
               message: "Clears old managed clusters"
       when: grafana_cloud_operator_delete_integration_for
 
-    # This removes any duplications if found and stores the mangedCluster list with correct format [managed_cluster_name]-[managed_cluster_owner]
+    # This removes any duplications if found and stores the mangedCluster list with correct format [managed_grafana_cloud_operator_cluster_name]-[managed_cluster_owner]
     - name: Remove deleted integrations from managedClusters
       ansible.builtin.set_fact:
         grafana_cloud_operator_updated_grafana_cloud_operator_managed_clusters: >-
@@ -208,7 +208,7 @@
       loop_control:
         label: "{{ item.name }}"
       when: grafana_cloud_operator_delete_integration_for | length > 0
-      register: manifestwork_deletion_results
+      register: grafana_cloud_operator_manifestwork_deletion_results
 
 - name: End play if any integrations failed or were skipped
   ansible.builtin.meta: end_play

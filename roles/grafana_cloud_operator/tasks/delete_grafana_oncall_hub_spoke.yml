@@ -42,7 +42,7 @@
 # This will extract all the names from the ManagedCluster CR
 - name: Extract ManagedCluster names with prefix
   ansible.builtin.set_fact:
-    grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names: "{{ grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names | default([]) + [item.metadata.name] }}" # yamllint disable-line rule:line-length
+    grafana_cloud_operator_managed_cluster_names: "{{ grafana_cloud_operator_managed_cluster_names | default([]) + [item.metadata.name] }}" # yamllint disable-line rule:line-length
   loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
@@ -56,11 +56,11 @@
     loop_var: item
 
 # This combines both the name and owner as [cluster_names]-[managed_cluster_owners] and saves it in var managed_cluster
-- name: Combine grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names and grafana_cloud_operator_managed_cluster_owners into a list of strings # yamllint disable-line rule:line-length
+- name: Combine grafana_cloud_operator_managed_cluster_names and grafana_cloud_operator_managed_cluster_owners into a list of strings # yamllint disable-line rule:line-length
   ansible.builtin.set_fact:
     grafana_cloud_operator_managed_clusters: >-
       {{
-        grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names
+        grafana_cloud_operator_managed_cluster_names
         | zip(grafana_cloud_operator_managed_cluster_owners)
         | map('join', '-')
         | list

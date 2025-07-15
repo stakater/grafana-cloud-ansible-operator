@@ -46,7 +46,7 @@
 # Extracts name from MangedCluster and saves it like name: local-cluster
 - name: Extract ManagedCluster names with prefix
   ansible.builtin.set_fact:
-    grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names: "{{ grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names | default([]) + ['name: ' ~ item.metadata.name] }}"
+    grafana_cloud_operator_managed_cluster_names: "{{ grafana_cloud_operator_managed_cluster_names | default([]) + ['name: ' ~ item.metadata.name] }}" # yamllint disable-line rule:line-length
   loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
@@ -54,18 +54,18 @@
 # Extracts owner from the ManagedCluster labels and saves it like owner: unknown
 - name: Extract ManagedCluster owners with prefix
   ansible.builtin.set_fact:
-    grafana_cloud_operator_managed_cluster_owners: "{{ grafana_cloud_operator_managed_cluster_owners | default([]) + ['owner: ' ~ item.metadata.labels.owner | default('unknown')] }}"
+    grafana_cloud_operator_managed_cluster_owners: "{{ grafana_cloud_operator_managed_cluster_owners | default([]) + ['owner: ' ~ item.metadata.labels.owner | default('unknown')] }}" # yamllint disable-line rule:line-length
   loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
 
-# Removes name: and owner: and joins the grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names and grafana_cloud_operator_managed_cluster_owners with hyphen in between. e.g. local-cluster-unkonwn
-- name: Combine grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names and grafana_cloud_operator_managed_cluster_owners into a dictionary
+# Removes name: and owner: and joins the managed_cluster_names and _managed_cluster_owners with hyphen in between. e.g. local-cluster-unkonwn
+- name: Combine grafana_cloud_operator_managed_cluster_names and grafana_cloud_operator_managed_cluster_owners into a dictionary
   ansible.builtin.set_fact:
     grafana_cloud_operator_managed_clusters: >-
       {{
         dict(
-          grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names
+          grafana_cloud_operator_managed_cluster_names
           | map('regex_replace', '^name: ', '')
           | zip(
               grafana_cloud_operator_managed_cluster_owners
@@ -79,7 +79,7 @@
 # We add name: local-cluster-owner and store them as list to grafana_cloud_operator_integration_names
 - name: Adds name as prefix to grafana_cloud_operator_integration_names
   ansible.builtin.set_fact:
-   grafana_cloud_operator_integration_names : "{{ grafana_cloud_operator_existing_integration_names | map('regex_replace', '^', 'name: ') | list }}"
+    grafana_cloud_operator_integration_names: "{{ grafana_cloud_operator_existing_integration_names | map('regex_replace', '^', 'name: ') | list }}"
 
 - name: Filter common clusters for integration by name
   ansible.builtin.set_fact:
@@ -136,7 +136,7 @@
 
     - name: Extract Channel id from slack channel
       ansible.builtin.set_fact:
-        grafana_cloud_operator_slack_channel_ids: "{{ grafana_cloud_operator_slack_channel_ids | default([]) + [{'name': item.metadata.name, 'grafana_cloud_operator_slack_id': item.status.id}] }}"
+        grafana_cloud_operator_slack_channel_ids: "{{ grafana_cloud_operator_slack_channel_ids | default([]) + [{'name': item.metadata.name, 'grafana_cloud_operator_slack_id': item.status.id}] }}" # yamllint disable-line rule:line-length
       loop: "{{ grafana_cloud_operator_slack_channel_info.results | map(attribute='resources') | flatten }}"
       loop_control:
         label: "{{ item.metadata.name }}"
@@ -224,10 +224,10 @@
 
       # This task processes the 'grafana_cloud_operator_managed_clusters' dictionary to generate a list of ManagedCluster names
       # with their associated prefixes. Each entry in the dictionary is transformed into a string in the
-      # format "<prefix>-<name>". The resulting list is stored in 'grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names'.
+      # format "<prefix>-<name>". The resulting list is stored in 'grafana_cloud_operator_managed_cluster_names'.
     - name: Extract new ManagedCluster names
       ansible.builtin.set_fact:
-        grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names: >-
+        grafana_cloud_operator_managed_cluster_names: >-
           {{
             grafana_cloud_operator_managed_clusters
             | dict2items
@@ -246,7 +246,7 @@
       ansible.builtin.set_fact:
         grafana_cloud_operator_updated_managed_cluster_names: >-
           {{
-            (grafana_cloud_operator_existing_managed_cluster_names + grafana_cloud_operator_managed_grafana_cloud_operator_cluster_names) | unique
+            (grafana_cloud_operator_existing_managed_cluster_names + grafana_cloud_operator_managed_cluster_names) | unique
           }}
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 

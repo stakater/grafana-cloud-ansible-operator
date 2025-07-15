@@ -70,14 +70,14 @@
       }}
     status_code: [200, 201]
   when: not grafana_cloud_operator_integration_exists_for_cluster
-  register: grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response
+  register: grafana_cloud_operator_grafana_integration_response
   failed_when: false
 
 - name: Inform user if Grafana integration creation was skipped or failed
   when:
-    - grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response.skipped is true
+    - grafana_cloud_operator_grafana_integration_response.skipped is true
       or
-      (grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response.status is defined and grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response.status not in [200, 201])
+      (grafana_cloud_operator_grafana_integration_response.status is defined and grafana_cloud_operator_grafana_integration_response.status not in [200, 201])
   block:
     - name: Display message to the user
       ansible.builtin.debug:
@@ -104,7 +104,7 @@
   ansible.builtin.include_tasks: modify_alertmanager_secret.yml
   vars:
     receiver_name: "{{ grafana_cloud_operator_cluster_name }}"
-    receiver_url: "{{ grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_cloud_operator_grafana_integration_response.json.link }}"
+    receiver_url: "{{ grafana_cloud_operator_grafana_integration_response.json.link }}"
     provision_mode: "standalone"
 
 - name: Re-encode modified alertmanager content for cluster

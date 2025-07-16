@@ -14,10 +14,6 @@
           ansible.builtin.include_tasks: '{{ item }}'
           with_fileglob:
             - tasks/*_test.yml
-        - name: Install required Python packages
-          ansible.builtin.pip:
-            name:
-              - kubernetes
       rescue:
         - name: Retrieve relevant resources
           kubernetes.core.k8s_info:

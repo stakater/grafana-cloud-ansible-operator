@@ -23,19 +23,11 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install ansible-lint and required Python deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install ansible-lint kubernetes openshift
+      - name: Install Python dependencies for ansible-lint
+        run: pip install -r .ansible-lint-requirements.txt
 
       - name: Run ansible-lint
-        run: |
-          ansible-lint .
+        uses: ansible/ansible-lint@v25.6.1
 
       - name: Generate Tag
         id: generate_tag

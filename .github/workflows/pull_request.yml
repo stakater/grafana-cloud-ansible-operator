@@ -23,18 +23,26 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Check Python version and site-packages
+      # - name: Check Python version and site-packages
+      #   run: |
+      #     which python
+      #     python --version
+      #     python -m pip list
+
+
+      # - name: Install Kubernetes Python client
+      #   run: pip install kubernetes
+
+      - name: Ensure Ansible finds user-installed packages
         run: |
-          which python
-          python --version
-          python -m pip list
+          export PYTHONPATH=$HOME/.local/lib/python3.12/site-packages:$PYTHONPATH
+          python -c "import kubernetes; print('✅ Kubernetes module is accessible')"
 
-
-      - name: Install Kubernetes Python client
-        run: pip install kubernetes
 
       - name: Run ansible-lint
         uses: ansible/ansible-lint@v25.2.1
+        env:
+          PYTHONPATH: $HOME/.local/lib/python3.12/site-packages        
 
       - name: Generate Tag
         id: generate_tag

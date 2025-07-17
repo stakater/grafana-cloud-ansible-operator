@@ -14,7 +14,7 @@ jobs:
       MD_LINT_CONFIG: .markdownlint.yaml
   operator-pull-request:
     name: Operator Pull Request
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
@@ -23,32 +23,8 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Check Python version and site-packages
-        run: |
-          which python
-          python --version
-          python -m pip list
-
-      - name: Show Ansible version
-        run: ansible --version
-
-      # - name: Install Kubernetes Python client
-      #   run: pip install kubernetes
-
-      # - name: Ensure Ansible finds user-installed packages
-      #   run: |
-      #     export PYTHONPATH=$HOME/.local/lib/python3.12/site-packages:$PYTHONPATH
-      #     python -c "import kubernetes; print('✅ Kubernetes module is accessible')"
-
-      # - name: Install Kubernetes client system-wide
-      #   run: |
-      #     sudo pip3 install kubernetes
-      #     ansible-galaxy collection install kubernetes.core
-
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@v24.12.2
-        # env:
-        #   PYTHONPATH: $HOME/.local/lib/python3.12/site-packages        
+        uses: ansible/ansible-lint@v24.12.2  
 
       - name: Generate Tag
         id: generate_tag

@@ -113,6 +113,7 @@
     name: "slo-dashboard-api-token-secret"
     namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
   register: grafana_cloud_operator_slo_dashboard_api_secret
+  when: grafana_cloud_operator_cr.spec.sloDashboardAPIToken is defined
 
 - name: Decode grafana api key
   ansible.builtin.set_fact:
@@ -121,6 +122,7 @@
 - name: Decode SLO api key
   ansible.builtin.set_fact:
     grafana_cloud_operator_slo_api_token: "{{ grafana_cloud_operator_slo_dashboard_api_secret.resources[0].data[grafana_cloud_operator_cr.spec.sloDashboardAPIToken.key] | b64decode }}" # yamllint disable-line rule:line-length
+  when: grafana_cloud_operator_cr.spec.sloDashboardAPIToken is defined
 
 - name: Fetch SlackId
   ansible.builtin.set_fact:

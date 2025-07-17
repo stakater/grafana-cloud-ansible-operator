@@ -22,7 +22,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-
+# ansible-lint v25 breaks it
       - name: Run ansible-lint
         uses: ansible/ansible-lint@v24.12.2  
 

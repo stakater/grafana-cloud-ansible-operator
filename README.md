@@ -16,6 +16,8 @@ Manually configuring Grafana OnCall on a cluster involves several complex steps,
 
 The Grafana Cloud Operator  supports the creation and management of dashboards that track key Service Level Indicators (SLIs) and ensure compliance with Service Level Objectives (SLOs) for Kubernetes (K8s) and OpenShift environments. This section provides an overview of the SLIs monitored and the SLOs established, along with the automation approach for creating dashboards.
 
+Testing details
+
 Key SLIs and SLOs Monitored:
 
 - K8s API Uptime

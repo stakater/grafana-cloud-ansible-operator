@@ -338,7 +338,7 @@ Here's a step-by-step guide on understanding and applying this configuration:
       name: config-sample  # This is a user-defined name for your custom resource
       namespace: grafana-cloud-operator  # Namespace where the operator is installed
     spec:
-      enabled: true
+      enabled: true # Flag to disable dashboard creation on grafana cloud
       sloObservabilityURL: https://raw.githubusercontent.com/stakater/charts/slo-observability-0.0.9 # URL of SLO Dashboard that needs to be used
       sloCloudAPI: https://grafana.net/api # Api URL for SLO Dashboards
       sloDashboardAPIToken:

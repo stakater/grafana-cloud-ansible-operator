@@ -27,7 +27,7 @@ jobs:
         run: pip install -r .ansible-lint-requirements.txt
 
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@v25.6.1
+        uses: ansible/ansible-lint@v6.17.2
 
       - name: Generate Tag
         id: generate_tag

@@ -29,6 +29,8 @@ jobs:
           python --version
           python -m pip list
 
+      - name: Show Ansible version
+        run: ansible --version
 
       # - name: Install Kubernetes Python client
       #   run: pip install kubernetes
@@ -38,10 +40,10 @@ jobs:
       #     export PYTHONPATH=$HOME/.local/lib/python3.12/site-packages:$PYTHONPATH
       #     python -c "import kubernetes; print('✅ Kubernetes module is accessible')"
 
-      - name: Install Kubernetes client system-wide
-        run: |
-          sudo pip3 install kubernetes
-          ansible-galaxy collection install kubernetes.core
+      # - name: Install Kubernetes client system-wide
+      #   run: |
+      #     sudo pip3 install kubernetes
+      #     ansible-galaxy collection install kubernetes.core
 
       - name: Run ansible-lint
         uses: ansible/ansible-lint@v24.12.2

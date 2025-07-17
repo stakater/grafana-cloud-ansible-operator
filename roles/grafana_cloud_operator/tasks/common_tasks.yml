@@ -154,7 +154,7 @@
 - name: Ensure SLO Dashboard API Token is available
   ansible.builtin.fail:
     msg: "Failed to retrieve SLO Dashboard API token from the secret."
-  when: 
+  when:
     - grafana_cloud_operator_cr.spec.sloDashboardAPIToken is defined
     - grafana_cloud_operator_slo_api_token is not defined or grafana_cloud_operator_slo_api_token == ''
 

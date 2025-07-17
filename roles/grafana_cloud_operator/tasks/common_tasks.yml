@@ -158,7 +158,6 @@
     - grafana_cloud_operator_cr.spec.sloDashboardAPIToken is defined
     - grafana_cloud_operator_slo_api_token is not defined or grafana_cloud_operator_slo_api_token == ''
 
-
 - name: Fetch list of all existing integrations in Grafana OnCall
   ansible.builtin.uri:
     url: "{{ grafana_cloud_operator_grafana_cloud_integrations_api_url }}"

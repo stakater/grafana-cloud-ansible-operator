@@ -13,29 +13,29 @@
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
     namespace: "{{ grafana_cloud_operator_operator_namespace }}"
-  register: grafana_cloud_operator_all_grafana_cloud_operator_crs
+  register: grafana_cloud_operator_all_crs
 
 - name: Fail if there's more than one CR
   ansible.builtin.fail:
     msg: "There are multiple Config CRs in the {{ grafana_cloud_operator_operator_namespace }} namespace. Only one is expected"
-  when: grafana_cloud_operator_all_grafana_cloud_operator_crs.resources | length > 1
+  when: grafana_cloud_operator_all_crs.resources | length > 1
 
 - name: Set the CR name from the fetched list
   ansible.builtin.set_fact:
-    grafana_cloud_operator_grafana_cloud_operator_gco_grafana_cloud_operator_cr_name: "{{ grafana_cloud_operator_all_grafana_cloud_operator_crs.resources[0].metadata.name }}" # yamllint disable-line rule:line-length
+    grafana_cloud_operator_cr_name: "{{ grafana_cloud_operator_all_crs.resources[0].metadata.name }}" # yamllint disable-line rule:line-length
 
 - name: Update CR name and namespace
   ansible.builtin.set_fact:
-    grafana_cloud_operator_cr_name: "{{ grafana_cloud_operator_grafana_cloud_operator_gco_grafana_cloud_operator_cr_name }}"
-    grafana_cloud_operator_grafana_cloud_operator_cr_namespace: "{{ grafana_cloud_operator_operator_namespace }}"
-    grafana_cloud_operator_cr: "{{ grafana_cloud_operator_all_grafana_cloud_operator_crs.resources[0] }}"
+    grafana_cloud_operator_cr_name: "{{ grafana_cloud_operator_cr_name }}"
+    grafana_cloud_operator_cr_namespace: "{{ grafana_cloud_operator_operator_namespace }}"
+    grafana_cloud_operator_cr: "{{ grafana_cloud_operator_all_crs.resources[0] }}"
 
 # # Fetch the single Config CR
 # - name: Get the specific Config CR
 #   kubernetes.core.k8s_info:
 #     api_version: grafanacloud.stakater.com/v1alpha1
 #     kind: Config
-#     namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+#     namespace: "{{ grafana_cloud_operator_cr_namespace }}"
 #     name: "{{ grafana_cloud_operator_cr_name }}"
 #   register: grafana_cloud_operator_cr
 
@@ -44,7 +44,7 @@
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
     name: "{{ grafana_cloud_operator_cr_name }}"
-    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
         - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
@@ -58,7 +58,7 @@
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
     name: "{{ grafana_cloud_operator_cr_name }}"
-    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
   register: grafana_cloud_operator_current_grafana_cloud_operator_config_cr
 
 - name: Fetch ManagedCluster CRs
@@ -83,7 +83,7 @@
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
     name: "{{ grafana_cloud_operator_cr_name }}"
-    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
     status:
       managedClusters: "{{ grafana_cloud_operator_current_managed_clusters }}"
   when: "'managedClusters' not in grafana_cloud_operator_current_grafana_cloud_operator_config_cr.resources[0].status"
@@ -103,7 +103,7 @@
     api_version: v1
     kind: Secret
     name: "{{ grafana_cloud_operator_cr.spec.grafanaAPIToken.secretName }}"
-    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
   register: grafana_cloud_operator_grafana_api_secret
 
 - name: Get SLO Dashboard API token from the secret
@@ -111,7 +111,7 @@
     api_version: v1
     kind: Secret
     name: "slo-dashboard-api-token-secret"
-    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
   register: grafana_cloud_operator_slo_dashboard_api_secret
   when: grafana_cloud_operator_cr.spec.sloDashboardAPIToken is defined
 
@@ -137,7 +137,7 @@
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
     name: "{{ grafana_cloud_operator_cr_name }}"
-    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
         - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
@@ -182,7 +182,7 @@
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
     name: "{{ grafana_cloud_operator_cr_name }}"
-    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
         - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
@@ -203,7 +203,7 @@
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
     name: "{{ grafana_cloud_operator_cr_name }}"
-    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
         - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
@@ -218,7 +218,7 @@
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
     name: "{{ grafana_cloud_operator_cr_name }}"
-    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
         - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"

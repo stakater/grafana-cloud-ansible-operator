@@ -9,6 +9,6 @@
       kind: Config
       metadata:
         name: "{{ grafana_cloud_operator_cr.metadata.name }}"
-        namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+        namespace: "{{ grafana_cloud_operator_cr_namespace }}"
         finalizers: []
     state: present

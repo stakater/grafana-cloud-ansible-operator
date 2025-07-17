@@ -7,7 +7,7 @@
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
     name: "{{ grafana_cloud_operator_cr_name }}"
-    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
         - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
@@ -71,17 +71,17 @@
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
     name: "{{ grafana_cloud_operator_cr_name }}"
-    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
   register: grafana_cloud_operator_config_cr
 
 - name: Set current ManagedCluster status
   ansible.builtin.set_fact:
-    grafana_cloud_operator_previous_grafana_cloud_operator_managed_clusters: "{{ grafana_cloud_operator_config_cr.resources[0].status.managedClusters | default([]) }}" # yamllint disable-line rule:line-length
+    grafana_cloud_operator_previous_managed_clusters: "{{ grafana_cloud_operator_config_cr.resources[0].status.managedClusters | default([]) }}" # yamllint disable-line rule:line-length
 
 # Compares the Status field of Config CR with exsiting managed clusters in the clusters and then detemines which integrations to delete.
 - name: Determine integrations to delete in Grafana Cloud
   ansible.builtin.set_fact:
-    grafana_cloud_operator_delete_integration_for: "{{ grafana_cloud_operator_previous_grafana_cloud_operator_managed_clusters | difference(grafana_cloud_operator_managed_clusters) }}" # yamllint disable-line rule:line-length
+    grafana_cloud_operator_delete_integration_for: "{{ grafana_cloud_operator_previous_managed_clusters | difference(grafana_cloud_operator_managed_clusters) }}" # yamllint disable-line rule:line-length
 
 - name: Delete integrations and dashboards when there are integrations to delete
   when: grafana_cloud_operator_delete_integration_for | length > 0
@@ -146,7 +146,7 @@
         api_version: grafanacloud.stakater.com/v1alpha1
         kind: Config
         name: "{{ grafana_cloud_operator_cr_name }}"
-        namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+        namespace: "{{ grafana_cloud_operator_cr_namespace }}"
         status:
           managedClusters: []
           conditions:
@@ -176,7 +176,7 @@
         api_version: grafanacloud.stakater.com/v1alpha1
         kind: Config
         name: "{{ grafana_cloud_operator_cr_name }}"
-        namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+        namespace: "{{ grafana_cloud_operator_cr_namespace }}"
         status:
           managedClusters: "{{ grafana_cloud_operator_updated_grafana_cloud_operator_managed_clusters }}"
           conditions:

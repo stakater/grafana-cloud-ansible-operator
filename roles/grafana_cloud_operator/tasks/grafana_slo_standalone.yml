@@ -3,7 +3,7 @@
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
     name: "{{ grafana_cloud_operator_cr_name }}"
-    namespace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
         - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
@@ -88,7 +88,7 @@
   ansible.builtin.replace:
     path: "/tmp/slo-dashboard-cm.yaml"
     regexp: '\{\{ include "slo-observability.namespace" \. \}\}'
-    replace: "{{ grafana_cloud_operator_grafana_cloud_operator_cr_namespace }}"
+    replace: "{{ grafana_cloud_operator_cr_namespace }}"
 
 - name: Load Dashboard YAML into a variable
   ansible.builtin.include_vars:

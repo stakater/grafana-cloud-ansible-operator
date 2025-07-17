@@ -40,7 +40,7 @@ jobs:
 
       - name: Install Kubernetes client system-wide
         run: |
-          sudo pip install kubernetes
+          sudo pip3 install kubernetes
 
 
       - name: Run ansible-lint

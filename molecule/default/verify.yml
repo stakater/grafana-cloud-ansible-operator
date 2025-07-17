@@ -9,9 +9,9 @@
     ansible_python_interpreter: '{{ ansible_playbook_python }}'
 
   tasks:
-    # - python_requirements_facts:
-    #     dependencies:
-    #     - openshift
+    - python_requirements_facts:
+        dependencies:
+        - openshift
 
     - name: Verify resources
       block:

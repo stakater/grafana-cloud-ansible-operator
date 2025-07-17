@@ -33,16 +33,20 @@ jobs:
       # - name: Install Kubernetes Python client
       #   run: pip install kubernetes
 
-      - name: Ensure Ansible finds user-installed packages
+      # - name: Ensure Ansible finds user-installed packages
+      #   run: |
+      #     export PYTHONPATH=$HOME/.local/lib/python3.12/site-packages:$PYTHONPATH
+      #     python -c "import kubernetes; print('✅ Kubernetes module is accessible')"
+
+      - name: Install Kubernetes client system-wide
         run: |
-          export PYTHONPATH=$HOME/.local/lib/python3.12/site-packages:$PYTHONPATH
-          python -c "import kubernetes; print('✅ Kubernetes module is accessible')"
+          sudo pip install kubernetes
 
 
       - name: Run ansible-lint
         uses: ansible/ansible-lint@v25.2.1
-        env:
-          PYTHONPATH: $HOME/.local/lib/python3.12/site-packages        
+        # env:
+        #   PYTHONPATH: $HOME/.local/lib/python3.12/site-packages        
 
       - name: Generate Tag
         id: generate_tag

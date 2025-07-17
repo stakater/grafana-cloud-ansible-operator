@@ -23,11 +23,11 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # - name: Check Python version and site-packages
-      #   run: |
-      #     which python
-      #     python --version
-      #     python -m pip list
+      - name: Check Python version and site-packages
+        run: |
+          which python
+          python --version
+          python -m pip list
 
 
       # - name: Install Kubernetes Python client
@@ -41,7 +41,7 @@ jobs:
       - name: Install Kubernetes client system-wide
         run: |
           sudo pip3 install kubernetes
-
+          ansible-galaxy collection install kubernetes.core
 
       - name: Run ansible-lint
         uses: ansible/ansible-lint@v25.2.1

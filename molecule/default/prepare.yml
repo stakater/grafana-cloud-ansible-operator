@@ -29,3 +29,4 @@
       args:
         chdir: '{{ config_dir }}/testing'
       changed_when: false
+

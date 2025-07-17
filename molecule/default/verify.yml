@@ -6,13 +6,8 @@
 
   vars:
     ctrl_label: control-plane=controller-manager
-    ansible_python_interpreter: '{{ ansible_playbook_python }}'
 
   tasks:
-    - python_requirements_facts:
-        dependencies:
-        - openshift
-
     - name: Verify resources
       block:
         - name: Import all test files from tasks/

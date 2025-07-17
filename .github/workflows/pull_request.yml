@@ -44,7 +44,7 @@ jobs:
           ansible-galaxy collection install kubernetes.core
 
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@v25.2.1
+        uses: ansible/ansible-lint@v24.12.2
         # env:
         #   PYTHONPATH: $HOME/.local/lib/python3.12/site-packages        
 

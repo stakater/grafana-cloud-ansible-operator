@@ -23,6 +23,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Check Python version and site-packages
+        run: |
+          which python
+          python --version
+          python -m pip list
+
+
       - name: Install Kubernetes Python client
         run: pip install kubernetes
 

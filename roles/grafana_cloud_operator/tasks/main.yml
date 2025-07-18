@@ -1,27 +1,27 @@
 # main.yml
 - name: Set default values
   ansible.builtin.set_fact:
-    state: "{{ state | default('present') }}"
+    grafana_cloud_operator_state: "{{ grafana_cloud_operator_state | default('present') }}"
 
 - name: Include common tasks
   ansible.builtin.include_tasks: common_tasks.yml
 
 - name: Install SLO Dashboard
   ansible.builtin.include_tasks: grafana_slo_hub_spoke.yml
-  when: gco_cr.spec.provisionMode == 'hubAndSpoke' and state != 'absent'
+  when: grafana_cloud_operator_cr.spec.provisionMode == 'hubAndSpoke' and grafana_cloud_operator_state != 'absent' and grafana_cloud_operator_cr.spec.enabled == 'true' # yamllint disable-line rule:line-length
 
 - name: Execute tasks for hub and spoke topology
   ansible.builtin.include_tasks: grafana_oncall_hub_spoke.yml
-  when: gco_cr.spec.provisionMode == 'hubAndSpoke' and state != 'absent'
+  when: grafana_cloud_operator_cr.spec.provisionMode == 'hubAndSpoke' and grafana_cloud_operator_state != 'absent'
 
 - name: Install SLO Dashboard
   ansible.builtin.include_tasks: grafana_slo_standalone.yml
-  when: gco_cr.spec.provisionMode == 'standalone' and state != 'absent'
+  when: grafana_cloud_operator_cr.spec.provisionMode == 'standalone' and grafana_cloud_operator_state != 'absent' and grafana_cloud_operator_cr.spec.enabled == 'true' # yamllint disable-line rule:line-length
 
 - name: Execute tasks for standalone topology
   ansible.builtin.include_tasks: grafana_oncall_standalone.yml
-  when: gco_cr.spec.provisionMode == 'standalone' and state != 'absent'
+  when: grafana_cloud_operator_cr.spec.provisionMode == 'standalone' and grafana_cloud_operator_state != 'absent'
 
 - name: Execute deletion tasks
   ansible.builtin.include_tasks: grafana_oncall_delete.yml
-  when: state == 'absent'
+  when: grafana_cloud_operator_state == 'absent'

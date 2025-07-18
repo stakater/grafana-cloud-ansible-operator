@@ -1,0 +1,25 @@
+---
+- name: Test Grafana Cloud Ansible Operator
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Install
+      ansible.builtin.include_role:
+        name: grafana_cloud_operator
+      when: >
+        ACTION is not defined or
+        ACTION is none or
+        ACTION|trim() == "" or
+        ACTION|trim() == "install"
+      tags:
+        - always
+    - name: Uninstall
+      ansible.builtin.include_role:
+        name: grafana_cloud_operator
+      when: >
+        ACTION is defined and
+        ACTION|trim() == "uninstall"
+      tags:
+        - always

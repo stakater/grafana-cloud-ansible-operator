@@ -2,11 +2,11 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: 'True'
           type: "Initiated"
           reason: "OperationStarted"
@@ -16,93 +16,93 @@
   kubernetes.core.k8s_info:
     api_version: cluster.open-cluster-management.io/v1
     kind: ManagedCluster
-  register: managed_clusters_raw
+  register: grafana_cloud_operator_managed_clusters_raw
 
 # Extracts the name from ManagedCluster CR
 - name: Extract ManagedCluster names
   ansible.builtin.set_fact:
-    managed_cluster_names: "{{ managed_cluster_names | default([]) + [item.metadata.name] }}"
-  loop: "{{ managed_clusters_raw.resources }}"
+    grafana_cloud_operator_managed_cluster_names: "{{ grafana_cloud_operator_managed_cluster_names | default([]) + [item.metadata.name] }}"
+  loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
 
 # Extracts the owner from ManagedCluster CR
 - name: Extract ManagedCluster owners
   ansible.builtin.set_fact:
-    managed_cluster_owners: "{{ managed_cluster_owners | default([]) + [item.metadata.labels.owner | default('unknown')] }}"
-  loop: "{{ managed_clusters_raw.resources }}"
+    grafana_cloud_operator_managed_cluster_owners: "{{ grafana_cloud_operator_managed_cluster_owners | default([]) + [item.metadata.labels.owner | default('unknown')] }}" # yamllint disable-line rule:line-length
+  loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
   loop_control:
     loop_var: item
 
 # Combines them into a list
 - name: Combine ManagedCluster names and owners into a list of strings
   ansible.builtin.set_fact:
-    current_managed_clusters: >-
+    grafana_cloud_operator_current_managed_clusters: >-
       {{
-        managed_cluster_names
-        | zip(managed_cluster_owners)
+        grafana_cloud_operator_managed_cluster_names
+        | zip(grafana_cloud_operator_managed_cluster_owners)
         | map('join', '-')
         | list
       }}
 
 - name: Get all folders in Grafana Cloud
   ansible.builtin.uri:
-    url: "{{ gco_cr.spec.sloCloudAPI }}/folders"
+    url: "{{ grafana_cloud_operator_cr.spec.sloCloudAPI }}/folders"
     method: GET
     body_format: json
     status_code: [200, 202]
     headers:
-      Authorization: Bearer {{ slo_api_token }}
+      Authorization: Bearer {{ grafana_cloud_operator_slo_api_token }}
       Content-Type: "application/json"
     return_content: true
-  register: grafana_cloud_folders
+  register: grafana_cloud_operator_grafana_cloud_folders
 
 - name: Define existing folders for managed clusters
   ansible.builtin.set_fact:
-    existing_folders: "{{ grafana_cloud_folders.json | selectattr('title', 'in', current_managed_clusters) | map(attribute='title') | list }}"
+    grafana_cloud_operator_encoded_existing_folders: "{{ grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'in', grafana_cloud_operator_current_managed_clusters) | map(attribute='title') | list }}" # yamllint disable-line rule:line-length
 
 - name: Define missing dashboards
   ansible.builtin.set_fact:
-    missing_dashboards: "{{ current_managed_clusters | difference(existing_folders) }}"
+    grafana_cloud_operator_missing_dashboards: "{{ grafana_cloud_operator_current_managed_clusters | difference(grafana_cloud_operator_encoded_existing_folders) }}" # yamllint disable-line rule:line-length
 
 - name: Set the fact if the folder exists
   ansible.builtin.set_fact:
-    folder_uid: "{{ item.uid }}"
-  when: item.title == missing_dashboards
+    grafana_cloud_operator_folder_uid: "{{ item.uid }}"
+  when: item.title == grafana_cloud_operator_missing_dashboards
   with_items:
-    - "{{ grafana_cloud_folders.json }}"
+    - "{{ grafana_cloud_operator_grafana_cloud_folders.json }}"
 
 - name: Create Folder in Grafana Cloud
   ansible.builtin.uri:
-    url: "{{ gco_cr.spec.sloCloudAPI }}/folders"
+    url: "{{ grafana_cloud_operator_cr.spec.sloCloudAPI }}/folders"
     method: POST
     return_content: true
     body:
       title: "{{ item }}"
     body_format: json
     headers:
-      Authorization: "Bearer {{ slo_api_token }}"
+      Authorization: "Bearer {{ grafana_cloud_operator_slo_api_token }}"
       Content-Type: "application/json"
     status_code: [200, 201]
-  register: grafana_cloud_folder
-  when: folder_uid is not defined
-  loop: "{{ missing_dashboards }}"
+  register: grafana_cloud_operator_grafana_cloud_folder
+  when: grafana_cloud_operator_folder_uid is not defined
+  loop: "{{ grafana_cloud_operator_missing_dashboards }}"
   loop_control:
     loop_var: item
 
 - name: Store the folder UID for each managed cluster
   ansible.builtin.set_fact:
-    folder_uids: "{{ folder_uids | default({}) | combine({item: (grafana_cloud_folder.results | selectattr('item', 'equalto', item) | map(attribute='json') | first | default({})).uid }) }}" # yamllint disable-line rule:line-length
-  loop: "{{ missing_dashboards }}"
+    grafana_cloud_operator_folder_uids: "{{ grafana_cloud_operator_folder_uids | default({}) | combine({item: (grafana_cloud_operator_grafana_cloud_folder.results | selectattr('item', 'equalto', item) | map(attribute='json') | first | default({})).uid }) }}" # yamllint disable-line rule:line-length
+  loop: "{{ grafana_cloud_operator_missing_dashboards }}"
   loop_control:
     loop_var: item
 
 - name: Download SLO Dashboard YAML
   ansible.builtin.get_url:
-    url: "{{ gco_cr.spec.sloObservabilityURL }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml" # yamllint disable-line rule:line-length
+    url: "{{ grafana_cloud_operator_cr.spec.sloObservabilityURL }}/slo-observability/templates/grafana/dashboards/slo-dashboard-cm.yaml" # yamllint disable-line rule:line-length
     dest: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     mode: '0644'
-  loop: "{{ missing_dashboards }}"
+  loop: "{{ grafana_cloud_operator_missing_dashboards }}"
   loop_control:
     loop_var: item
 
@@ -111,7 +111,7 @@
     path: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     regexp: "{{ '{{ .Values.cluster }}' }}"
     replace: "{{ item }}"
-  loop: "{{ missing_dashboards }}"
+  loop: "{{ grafana_cloud_operator_missing_dashboards }}"
   loop_control:
     loop_var: item
 
@@ -120,7 +120,7 @@
     path: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     regexp: "{{ '{{ .Values.cluster | title }}' }}"
     replace: "{{ item }}"
-  loop: "{{ missing_dashboards }}"
+  loop: "{{ grafana_cloud_operator_missing_dashboards }}"
   loop_control:
     loop_var: item
 
@@ -128,8 +128,8 @@
   ansible.builtin.replace:
     path: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     regexp: "{{ '{{ .Values.folderUid }}' }}"
-    replace: "{{ folder_uids[item] }}"
-  loop: "{{ missing_dashboards }}"
+    replace: "{{ grafana_cloud_operator_folder_uids[item] }}"
+  loop: "{{ grafana_cloud_operator_missing_dashboards }}"
   loop_control:
     loop_var: item
 
@@ -137,8 +137,8 @@
   ansible.builtin.replace:
     path: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     regexp: '\{\{ include "slo-observability.namespace" \. \}\}'
-    replace: "{{ cr_namespace }}"
-  loop: "{{ missing_dashboards }}"
+    replace: "{{ grafana_cloud_operator_cr_namespace }}"
+  loop: "{{ grafana_cloud_operator_missing_dashboards }}"
   loop_control:
     loop_var: item
 
@@ -146,7 +146,7 @@
   ansible.builtin.include_vars:
     file: "/tmp/slo-dashboard-{{ item }}-cm.yaml"
     name: dashboard_data_{{ item }}
-  loop: "{{ missing_dashboards }}"
+  loop: "{{ grafana_cloud_operator_missing_dashboards }}"
   loop_control:
     loop_var: item
 
@@ -155,23 +155,23 @@
     content: "{{ lookup('vars', 'dashboard_data_' + item).data['slo.json'] | from_json | to_nice_json }}"
     dest: "/tmp/slo-dashboard-{{ item }}.json"
     mode: '0644'
-  loop: "{{ missing_dashboards }}"
+  loop: "{{ grafana_cloud_operator_missing_dashboards }}"
   loop_control:
     loop_var: item
 
 - name: Deploy SLO Dashboard to Grafana Cloud for each cluster
   ansible.builtin.uri:
-    url: "{{ gco_cr.spec.sloCloudAPI }}/dashboards/db"
+    url: "{{ grafana_cloud_operator_cr.spec.sloCloudAPI }}/dashboards/db"
     method: POST
     body: "{{ lookup('file', '/tmp/slo-dashboard-' + item + '.json') }}"
     return_content: true
     body_format: json
     headers:
-      Authorization: "Bearer {{ slo_api_token }}"
+      Authorization: "Bearer {{ grafana_cloud_operator_slo_api_token }}"
       Content-Type: "application/json"
     status_code: [200, 201, 400]
-  register: dashboard_uid
-  loop: "{{ missing_dashboards }}"
+  register: grafana_cloud_operator_dashboard_uid
+  loop: "{{ grafana_cloud_operator_missing_dashboards }}"
   loop_control:
     loop_var: item
 
@@ -179,13 +179,13 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ gco_cr.metadata.name }}"
-    namespace: "{{ gco_cr.metadata.namespace }}"
+    name: "{{ grafana_cloud_operator_cr.metadata.name }}"
+    namespace: "{{ grafana_cloud_operator_cr.metadata.namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: 'True'
           type: "Successful"
           reason: "ConfigUpdated"
           message: "SLO Dashboards have been created"
-  when: missing_dashboards is defined
+  when: grafana_cloud_operator_missing_dashboards is defined

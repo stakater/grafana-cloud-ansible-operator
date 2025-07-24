@@ -9,21 +9,21 @@
       apiVersion: grafanacloud.stakater.com/v1alpha1
       kind: Config
       metadata:
-        name: "{{ cr_name }}"
-        namespace: "{{ cr_namespace }}"
+        name: "{{ grafana_cloud_operator_cr_name }}"
+        namespace: "{{ grafana_cloud_operator_cr_namespace }}"
         finalizers:
           - "grafanacloud.stakater.com/config"
-  when: "'grafanacloud.stakater.com/config' not in gco_cr.metadata.finalizers"
+  when: "'grafanacloud.stakater.com/config' not in grafana_cloud_operator_cr.metadata.finalizers"
 
 - name: Update CR status to Initiated
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: 'True'
           type: "Initiated"
           reason: "OperationStarted"
@@ -33,15 +33,15 @@
   kubernetes.core.k8s_info:
     kind: IngressController
     api_version: operator.openshift.io/v1
-  register: ingress_controller_info
+  register: grafana_cloud_operator_ingress_controller_info
 
 - name: Update hostname with cluster name and ID
   ansible.builtin.set_fact:
-    cluster_name: "{{ ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+\\.[^.]+(?=\\.)') }}"
+    grafana_cloud_operator_cluster_name: "{{ grafana_cloud_operator_ingress_controller_info.resources[0].status.domain | regex_search('(?<=\\.)[^.]+\\.[^.]+(?=\\.)') }}" # yamllint disable-line rule:line-length
 
 - name: Determine if integration exists for the cluster
   ansible.builtin.set_fact:
-    integration_exists_for_cluster: "{{ cluster_name in existing_integration_names }}"
+    grafana_cloud_operator_integration_exists_for_cluster: "{{ grafana_cloud_operator_cluster_name in grafana_cloud_operator_existing_integration_names }}"
 
 - name: Create a new integration in Grafana OnCall for the cluster only if it does not have one with slackId
   ansible.builtin.uri:
@@ -50,38 +50,38 @@
     body_format: json
     return_content: true
     headers:
-      Authorization: "{{ grafana_cloud_api_token }}"
+      Authorization: "{{ grafana_cloud_operator_grafana_cloud_api_token }}"
       Content-Type: "application/json"
     body: >
       {{
         {
           "type": "alertmanager",
-          "name": cluster_name,
+          "name": grafana_cloud_operator_cluster_name,
           "default_route": {
             "slack": {
-              "channel_id": slack_id,
-              "enabled": slack_cond
+              "channel_id": grafana_cloud_operator_slack_id,
+              "enabled": grafana_cloud_operator_slack_cond
             }
           }
-        } if slack_id | length > 0 else {
+        } if grafana_cloud_operator_slack_id | length > 0 else {
           "type": "alertmanager",
-          "name": cluster_name
+          "name": grafana_cloud_operator_cluster_name
         }
       }}
     status_code: [200, 201]
-  when: not integration_exists_for_cluster
-  register: grafana_integration_response
+  when: not grafana_cloud_operator_integration_exists_for_cluster
+  register: grafana_cloud_operator_integration_response
   failed_when: false
 
 - name: Inform user if Grafana integration creation was skipped or failed
   when:
-    - grafana_integration_response.skipped is true
+    - grafana_cloud_operator_integration_response.skipped is true
       or
-      (grafana_integration_response.status is defined and grafana_integration_response.status not in [200, 201])
+      (grafana_cloud_operator_integration_response.status is defined and grafana_cloud_operator_integration_response.status not in [200, 201])
   block:
     - name: Display message to the user
       ansible.builtin.debug:
-        msg: "Grafana integration for {{ cluster_name }} either already exists or failed to be created. Halting further operations."
+        msg: "Grafana integration for {{ grafana_cloud_operator_cluster_name }} either already exists or failed to be created. Halting further operations."
 
     - name: End play gracefully
       ansible.builtin.meta: end_play
@@ -90,11 +90,11 @@
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ cr_name }}"
-    namespace: "{{ cr_namespace }}"
+    name: "{{ grafana_cloud_operator_cr_name }}"
+    namespace: "{{ grafana_cloud_operator_cr_namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: 'True'
           type: "IntegrationCreated"
           reason: "GrafanaIntegrationSuccess"
@@ -103,13 +103,13 @@
 - name: Modify Alertmanager secret
   ansible.builtin.include_tasks: modify_alertmanager_secret.yml
   vars:
-    receiver_name: "{{ cluster_name }}"
-    receiver_url: "{{ grafana_integration_response.json.link }}"
+    receiver_name: "{{ grafana_cloud_operator_cluster_name }}"
+    receiver_url: "{{ grafana_cloud_operator_integration_response.json.link }}"
     provision_mode: "standalone"
 
 - name: Re-encode modified alertmanager content for cluster
   ansible.builtin.set_fact:
-    encoded_alertmanager_secret_content: "{{ modified_alertmanager_secret_content | to_nice_yaml | b64encode }}"
+    grafana_cloud_operator_encoded_alertmanager_secret_content: "{{ grafana_cloud_operator_modified_alertmanager_secret_content | to_nice_yaml | b64encode }}" # yamllint disable-line rule:line-length
 
 - name: Patch alertmanager-main secret for cluster
   kubernetes.core.k8s:
@@ -122,20 +122,20 @@
         name: "{{ grafana_cloud_operator_alertmanager_secret_name }}"
         namespace: "{{ grafana_cloud_operator_alertmanager_namespace }}"
       data:
-        alertmanager.yaml: "{{ encoded_alertmanager_secret_content }}"
-  when: not integration_exists_for_cluster
+        alertmanager.yaml: "{{ grafana_cloud_operator_encoded_alertmanager_secret_content }}"
+  when: not grafana_cloud_operator_integration_exists_for_cluster
 
 - name: Update CR status to ConfigUpdated
   operator_sdk.util.k8s_status:
     api_version: grafanacloud.stakater.com/v1alpha1
     kind: Config
-    name: "{{ gco_cr.metadata.name }}"
-    namespace: "{{ gco_cr.metadata.namespace }}"
+    name: "{{ grafana_cloud_operator_cr.metadata.name }}"
+    namespace: "{{ grafana_cloud_operator_cr.metadata.namespace }}"
     status:
       conditions:
-        - lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+        - lastTransitionTime: "{{ grafana_cloud_operator_ansible_date_time.iso8601 }}"
           status: 'True'
           type: "Successful"
           reason: "ConfigUpdated"
-          message: "Alertmanager configuration updated successfully for the cluster {{ cluster_name }}"
-  when: not integration_exists_for_cluster
+          message: "Alertmanager configuration updated successfully for the cluster {{ grafana_cloud_operator_cluster_name }}"
+  when: not grafana_cloud_operator_integration_exists_for_cluster

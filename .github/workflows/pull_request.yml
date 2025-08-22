@@ -25,6 +25,10 @@ jobs:
 # ansible-lint v25 breaks it
       - name: Run ansible-lint
         uses: ansible/ansible-lint@v24.12.2
+      
+      - name: Install ansible
+        run: |
+          pip install ansible==10.4.0
 
       - name: Generate Tag
         id: generate_tag

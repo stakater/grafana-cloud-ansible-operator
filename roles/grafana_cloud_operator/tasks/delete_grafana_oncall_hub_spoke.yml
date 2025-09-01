@@ -119,7 +119,17 @@
 
     - name: Set the UIDs of the folders to delete
       ansible.builtin.set_fact:
-        grafana_cloud_operator_folder_uid_to_delete: "{{ grafana_cloud_operator_folder_uid_to_delete | default([]) + (grafana_cloud_operator_grafana_cloud_folders.json | selectattr('title', 'equalto', item) | map(attribute='uid') | list) }}" # yamllint disable-line rule:line-length
+        grafana_cloud_operator_folder_uid_to_delete: >-
+          {{
+            (grafana_cloud_operator_folder_uid_to_delete | default([]))
+            + (
+              grafana_cloud_operator_grafana_cloud_folders.json
+              | selectattr('title', 'equalto', item)
+              | map(attribute='uid')
+              | list
+              | default([])
+            )
+          }}
       loop: "{{ grafana_cloud_operator_delete_integration_for }}"
       loop_control:
         loop_var: item

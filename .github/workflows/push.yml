@@ -24,7 +24,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
           WITH_V: false
-          DEFAULT_BUMP: patch
+          DEFAULT_BUMP: minor
           RELEASE_BRANCHES: main
           DRY_RUN: true
 
@@ -114,7 +114,7 @@ jobs:
         uses: anothrNick/github-tag-action@1.75.0
         env:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
-          DEFAULT_BUMP: patch
+          DEFAULT_BUMP: minor
           RELEASE_BRANCHES: main
           WITH_V: true
 

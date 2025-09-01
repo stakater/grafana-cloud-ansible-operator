@@ -117,6 +117,10 @@
       when: grafana_cloud_operator_delete_integration_for
       failed_when: false
 
+    - name: Initialize folder UID list
+      ansible.builtin.set_fact:
+        grafana_cloud_operator_folder_uid_to_delete: []
+
     - name: Set the UIDs of the folders to delete
       ansible.builtin.set_fact:
         grafana_cloud_operator_folder_uid_to_delete: >-

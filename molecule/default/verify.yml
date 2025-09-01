@@ -6,7 +6,15 @@
 
   vars:
     ctrl_label: control-plane=controller-manager
-    namespace: default
+    resources_to_fetch:
+      - api_version: v1
+        kind: Pod
+      - api_version: apps/v1
+        kind: Deployment
+      - api_version: v1
+        kind: Secret
+      - api_version: v1
+        kind: ConfigMap
 
   tasks:
     - name: Verify resources
@@ -18,18 +26,11 @@
       rescue:
         - name: Retrieve relevant resources
           kubernetes.core.k8s_info:
-            api_version: '{{ item.api_version }}'
-            kind: '{{ item.kind }}'
-            namespace: '{{ namespace  }}'
-          loop:
-            - api_version: v1
-              kind: Pod
-            - api_version: apps/v1
-              kind: Deployment
-            - api_version: v1
-              kind: Secret
-            - api_version: v1
-              kind: ConfigMap
+            api_version: "{{ item.item.api_version }}"
+            kind: "{{ item.item.kind }}"
+            namespace: "{{ namespace }}"
+            label_selectors: "{{ item.label_selector | default(omit) }}"
+          loop: "{{ resource_labels.results }}"
           register: debug_resources
 
         - name: Retrieve Pod logs

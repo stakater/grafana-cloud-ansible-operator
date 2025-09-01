@@ -7,7 +7,7 @@ on:
 
 jobs:
   qa:
-    uses: stakater/.github/.github/workflows/pull_request_doc_qa.yaml@v0.0.134
+    uses: stakater/.github/.github/workflows/pull_request_doc_qa.yaml@v0.0.141
     with:
       MD_CONFIG: .github/md_config.json
       DOC_SRC: README.md
@@ -18,13 +18,13 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
 # ansible-lint v25 breaks it
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@v24.12.2
+        uses: ansible/ansible-lint@v25.8.2
 
       - name: Generate Tag
         id: generate_tag

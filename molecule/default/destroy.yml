@@ -14,7 +14,7 @@
       kubernetes.core.k8s:
         api_version: v1
         kind: Namespace
-        name: '{{ namespace }}'
+        name: '{{ namespace | string }}'
         state: absent
 
     - name: Unset pull policy

@@ -6,6 +6,7 @@
 
   vars:
     ctrl_label: control-plane=controller-manager
+    namespace: default
 
   tasks:
     - name: Verify resources
@@ -19,7 +20,7 @@
           kubernetes.core.k8s_info:
             api_version: '{{ item.api_version }}'
             kind: '{{ item.kind }}'
-            namespace: '{{ namespace  }}' # ansible-lint: skip jinja[invalid]
+            namespace: '{{ namespace  }}'
           loop:
             - api_version: v1
               kind: Pod

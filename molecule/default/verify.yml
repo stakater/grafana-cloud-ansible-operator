@@ -25,7 +25,7 @@
             - tasks/*_test.yml
       rescue:
         - name: Precompute resource queries
-          set_fact:
+          ansible.builtin.set_fact:
             resource_queries: >-
               {{
                 resources_to_fetch | map('combine',
@@ -40,12 +40,20 @@
           loop: "{{ resource_queries }}"
           register: debug_resources
 
+        - name: Query Pods with label
+          ansible.builtin.set_fact:
+            labeled_pods: >-
+              {{
+                q('k8s', api_version='v1', kind='Pod', namespace=namespace, label_selector=ctrl_label)
+                | list
+              }}
+
         - name: Retrieve Pod logs
           kubernetes.core.k8s_log:
             name: '{{ item.metadata.name }}'
             namespace: '{{ namespace }}'
             container: manager
-          loop: "{{ q('k8s', api_version='v1', kind='Pod', namespace=namespace, label_selector=ctrl_label) }}"
+          loop: '{{ labeled_pods }}'
           register: debug_logs
 
         - name: Output gathered resources

@@ -24,36 +24,28 @@
           with_fileglob:
             - tasks/*_test.yml
       rescue:
-        - name: Precompute resource queries
-          ansible.builtin.set_fact:
-            resource_queries: >-
-              {{
-                resources_to_fetch | map('combine',
-                  {'namespace': namespace}) | list
-              }}
-
-        - name: Retrieve resources
+        - name: Retrieve relevant resources
           kubernetes.core.k8s_info:
-            api_version: "{{ item.api_version }}"
-            kind: "{{ item.kind }}"
-            namespace: "{{ item.namespace }}"
-          loop: "{{ resource_queries }}"
+            api_version: '{{ item.api_version }}'
+            kind: '{{ item.kind }}'
+            namespace: '{{ namespace | string }}'
+          loop:
+            - api_version: v1
+              kind: Pod
+            - api_version: apps/v1
+              kind: Deployment
+            - api_version: v1
+              kind: Secret
+            - api_version: v1
+              kind: ConfigMap
           register: debug_resources
-
-        - name: Query Pods with label
-          ansible.builtin.set_fact:
-            labeled_pods: >-
-              {{
-                q('k8s', api_version='v1', kind='Pod', namespace=namespace, label_selector=ctrl_label)
-                | list
-              }}
 
         - name: Retrieve Pod logs
           kubernetes.core.k8s_log:
             name: '{{ item.metadata.name }}'
-            namespace: '{{ namespace | string }}'
+            namespace: '{{ namespace | string}}'
             container: manager
-          loop: '{{ labeled_pods }}'
+          loop: "{{ q('k8s', api_version='v1', kind='Pod', namespace=namespace, label_selector=ctrl_label) }}"
           register: debug_logs
 
         - name: Output gathered resources

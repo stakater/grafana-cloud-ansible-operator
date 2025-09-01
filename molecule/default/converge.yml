@@ -9,7 +9,7 @@
       kubernetes.core.k8s:
         api_version: v1
         kind: Namespace
-        name: '{{ namespace }}'
+        name: '{{ namespace | string }}'
 
     - name: Use kustomizations
       ansible.builtin.import_tasks: tasks/kustomize.yml

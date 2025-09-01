@@ -24,13 +24,20 @@
           with_fileglob:
             - tasks/*_test.yml
       rescue:
-        - name: Retrieve relevant resources
+        - name: Precompute resource queries
+          set_fact:
+            resource_queries: >-
+              {{
+                resources_to_fetch | map('combine',
+                  {'namespace': namespace}) | list
+              }}
+
+        - name: Retrieve resources
           kubernetes.core.k8s_info:
-            api_version: "{{ item.item.api_version }}"
-            kind: "{{ item.item.kind }}"
-            namespace: "{{ namespace }}"
-            label_selectors: "{{ item.label_selector | default(omit) }}"
-          loop: "{{ resource_labels.results }}"
+            api_version: "{{ item.api_version }}"
+            kind: "{{ item.kind }}"
+            namespace: "{{ item.namespace }}"
+          loop: "{{ resource_queries }}"
           register: debug_resources
 
         - name: Retrieve Pod logs

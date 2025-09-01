@@ -121,19 +121,19 @@
       ansible.builtin.set_fact:
         grafana_cloud_operator_folder_uid_to_delete: >-
           {{
-            (grafana_cloud_operator_folder_uid_to_delete | default([]))
-            + (
-              grafana_cloud_operator_grafana_cloud_folders.json
-              | selectattr('title', 'equalto', item)
-              | map(attribute='uid')
-              | list
-              | default([])
-            )
+            (grafana_cloud_operator_folder_uid_to_delete | default([], true)) +
+            (grafana_cloud_operator_grafana_cloud_folders.json
+              | selectattr('title','equalto',item)
+              | map(attribute='uid') | list)
           }}
       loop: "{{ grafana_cloud_operator_delete_integration_for }}"
       loop_control:
         loop_var: item
-      when: grafana_cloud_operator_cr.spec.enabled == 'true'
+      when:
+        - grafana_cloud_operator_cr.spec.enabled == 'true'
+        - (grafana_cloud_operator_grafana_cloud_folders.json
+            | selectattr('title','equalto', item)
+            | list)
 
     - name: Delete Dashboard
       ansible.builtin.uri:

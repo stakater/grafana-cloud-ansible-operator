@@ -43,7 +43,7 @@
         - name: Retrieve Pod logs
           kubernetes.core.k8s_log:
             name: '{{ item.metadata.name }}'
-            namespace: '{{ namespace | string}}'
+            namespace: '{{ namespace | string }}'
             container: manager
           loop: "{{ q('k8s', api_version='v1', kind='Pod', namespace=namespace, label_selector=ctrl_label) }}"
           register: debug_logs

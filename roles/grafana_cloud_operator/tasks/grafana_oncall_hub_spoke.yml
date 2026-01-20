@@ -283,7 +283,7 @@
           {{ grafana_cloud_operator_mapped_integrations | default([]) + [{
             'cluster_name': item.item.cluster_name,
             'integration_name': item.item.name,
-            'grafana_details': item.json 
+            'grafana_details': item.json
           }] }}
       loop: "{{ grafana_cloud_operator_integration_response.results }}"
       loop_control:

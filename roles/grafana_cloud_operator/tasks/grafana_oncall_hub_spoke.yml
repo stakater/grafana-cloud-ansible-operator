@@ -212,15 +212,8 @@
       ansible.builtin.set_fact:
         grafana_cloud_operator_managed_cluster_names: >-
           {{
-            grafana_cloud_operator_managed_clusters
-            | dict2items
-            | map(attribute='key')
-            | zip(
-                grafana_cloud_operator_managed_clusters
-                | dict2items
-                | map(attribute='value')
-              )
-            | map('join', '-')
+            grafana_cloud_operator_managed_clusters_full
+            | map(attribute='integration_name')
             | list
           }}
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0

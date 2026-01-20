@@ -119,8 +119,8 @@
       {{
         grafana_cloud_operator_create_integration_for_dict | default([]) +
         [{
-          'name': item,
-          'cluster_base_name': (item | regex_replace('-[^-]+$', ''))
+          'name': item,  # keep the integration name as before
+          'cluster_base_name': (item | regex_replace('-[^-]+$', ''))  # extract base MC name
         }]
       }}
   loop: "{{ grafana_cloud_operator_create_integration_for }}"

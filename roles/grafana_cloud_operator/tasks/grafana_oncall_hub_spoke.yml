@@ -296,11 +296,22 @@
             - grafana_cloud_operator_integration_response.results | length > 0
             - item.status not in [200, 201]
 
-    - name: Associate Grafana integration details with ManagedClusters
+    - name: Associate Grafana integration details with ManagedClusters (filter successful only)
       ansible.builtin.set_fact:
-        grafana_cloud_operator_mapped_integrations: "{{ grafana_cloud_operator_mapped_integrations | default([]) + [{'cluster_name': item.item.cluster_name, 'grafana_details': item.json}] }}" # yamllint disable-line rule:line-length
-      loop: "{{ grafana_cloud_operator_integration_response.results }}"
-      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
+        grafana_cloud_operator_mapped_integrations: >-
+          {{
+            grafana_cloud_operator_integration_response.results
+            | selectattr('status', 'in', [200, 201])
+            | map(attribute='item')
+            | zip(
+                grafana_cloud_operator_integration_response.results
+                | selectattr('status', 'in', [200, 201])
+                | map(attribute='json')
+            )
+            | map('combine', {"cluster_name": _[0].key, "grafana_details": _[1]}, recursive=True)
+            | list
+          }}
+      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0 and grafana_cloud_operator_integration_response.results is defined
 
     # Following tasks will execute only if Grafana integration was created successfully
     - name: Modify Alertmanager secret
@@ -314,7 +325,9 @@
       loop: "{{ grafana_cloud_operator_mapped_integrations }}"
       loop_control:
         label: "{{ item.cluster_name }}"
-      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
+      when:
+        - grafana_cloud_operator_mapped_integrations is defined
+        - grafana_cloud_operator_mapped_integrations | length > 0
 
 # Skipped when grafana_cloud_operator_manifestwork_creation_results is not defined
 - name: Update CR status for ManifestWork creation

@@ -268,14 +268,8 @@
 
     - name: Inform user if Grafana integration creation was skipped or failed
       when:
-        - grafana_cloud_operator_integration_response is skipped
-        - >
-          (
-            grafana_cloud_operator_integration_response.results
-            | rejectattr('status', 'in', [200, 201])
-            | list
-            | length > 0
-          )
+        - grafana_cloud_operator_integration_response is defined
+        - grafana_cloud_operator_integration_response.results | default([]) | rejectattr('status', 'in', [200, 201]) | list | length > 0
       block:
         - name: Display message about potential Grafana integration issues
           ansible.builtin.debug:
@@ -296,7 +290,7 @@
                   message: "Failed to create Grafana integration for ManagedClusters."
           loop: "{{ grafana_cloud_operator_integration_response.results }}"
           when:
-            - grafana_cloud_operator_integration_response is defined
+            - grafana_cloud_operator_integration_response ics defined
             - grafana_cloud_operator_integration_response.results is defined
             - grafana_cloud_operator_integration_response.results | length > 0
             - item.status not in [200, 201]

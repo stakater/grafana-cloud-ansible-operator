@@ -279,19 +279,27 @@
 
     - name: Associate Grafana integration details with ManagedClusters
       ansible.builtin.set_fact:
-        grafana_cloud_operator_mapped_integrations: "{{ grafana_cloud_operator_mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}" # yamllint disable-line rule:line-length
+        grafana_cloud_operator_mapped_integrations: >-
+          {{ grafana_cloud_operator_mapped_integrations | default([]) + [{
+            'cluster_name': item.item.cluster_name,
+            'integration_name': item.item.name,
+            'grafana_details': item.json 
+          }] }}
       loop: "{{ grafana_cloud_operator_integration_response.results }}"
-      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
+      loop_control:
+        label: "{{ item.item.name }}"
+      when: grafana_cloud_operator_create_integration_for_dict is defined
+            and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     # Following tasks will execute only if Grafana integration was created successfully
     # transformed_namespaces from above task it removes owner name from it and prints out as local-cluster
     - name: Modify Alertmanager secret
       ansible.builtin.include_tasks: modify_alertmanager_secret.yml
       vars:
-        receiver_name: "{{ item.grafana_details.name }}"
-        receiver_url: "{{ item.grafana_details.link }}"
+        receiver_name: "{{ item.integration_name }}"
+        receiver_url: "{{ item.grafana_details.link | default('') }}"
         transformed_namespace: "{{ item.cluster_name }}"
-        grafana_cloud_operator_cluster_name: "{{ item.cluster.name }}"
+        grafana_cloud_operator_cluster_name: "{{ item.cluster_name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ grafana_cloud_operator_mapped_integrations }}"
       loop_control:

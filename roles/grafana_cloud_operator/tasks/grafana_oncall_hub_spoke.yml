@@ -95,30 +95,25 @@
 # integrations names on grafana cloud we are creating a list for the integration to be created
 - name: Determine which ManagedCluster CRs don't have integrations (case-insensitive)
   ansible.builtin.set_fact:
-    grafana_cloud_operator_create_integration_for: >-
+    grafana_cloud_operator_clusters_to_integrate: >-
       {{
         grafana_cloud_operator_managed_clusters
         | dict2items
-        | map(attribute='key')
-        | zip(
-            grafana_cloud_operator_managed_clusters | dict2items | map(attribute='value')
-        )
-        | map('join', '-')
-        | reject('in', grafana_cloud_operator_integration_names
+        | rejectattr('key', 'in', grafana_cloud_operator_integration_names
           | map('regex_replace', '^name: ', '')
           | map('lower')
         | list)
-        | list
       }}
 
-# This creates a dictionary from the grafana_cloud_operator_create_integration_for
-# list to streamline with our usage ahead
-- name: Transform grafana_cloud_operator_create_integration_for into a list of dictionaries
+# This creates a list of dictionaries with both the cluster name and the combined name
+# Format: {cluster_name: 'local-cluster', name: 'local-cluster-unknown'}
+- name: Transform clusters to integrate into a list of dictionaries with cluster names
   ansible.builtin.set_fact:
-    grafana_cloud_operator_create_integration_for_dict: "{{ grafana_cloud_operator_create_integration_for_dict | default([]) + [{'name': item}] }}"
-  loop: "{{ grafana_cloud_operator_create_integration_for }}"
+    grafana_cloud_operator_create_integration_for_dict: "{{ grafana_cloud_operator_create_integration_for_dict | default([]) + [{'cluster_name': item.key, 'name': (item.key + '-' + item.value)}] }}"
+  loop: "{{ grafana_cloud_operator_clusters_to_integrate }}"
   loop_control:
     loop_var: item
+    label: "{{ item.key }}"
 
 - name: Integration creation
   block:
@@ -127,11 +122,11 @@
       kubernetes.core.k8s_info:
         api_version: slack.stakater.com/v1alpha1
         kind: Channel
-        namespace: "{{ item.name | regex_replace('^(.+)-[^-]+$', '\\1') }}"
+        namespace: "{{ item.cluster_name }}"
       register: grafana_cloud_operator_slack_channel_info
       loop: "{{ grafana_cloud_operator_create_integration_for_dict }}"
       loop_control:
-        label: "{{ item.name }}"
+        label: "{{ item.cluster_name }}"
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     - name: Extract Channel id from slack channel
@@ -153,10 +148,10 @@
             | join(',')
           }}
       ansible.builtin.set_fact:
-        grafana_cloud_operator_slack_channel_validated: "{{ grafana_cloud_operator_slack_channel_validated | default([]) + [{'name': item, 'grafana_cloud_operator_slack_id': grafana_cloud_operator_slack_id_fetched}] }}" # yamllint disable-line rule:line-length
-      loop: "{{ grafana_cloud_operator_create_integration_for }}"
+        grafana_cloud_operator_slack_channel_validated: "{{ grafana_cloud_operator_slack_channel_validated | default([]) + [{'name': item.name, 'grafana_cloud_operator_slack_id': grafana_cloud_operator_slack_id_fetched}] }}" # yamllint disable-line rule:line-length
+      loop: "{{ grafana_cloud_operator_create_integration_for_dict }}"
       loop_control:
-        label: "{{ item }}"
+        label: "{{ item.name }}"
       when: grafana_cloud_operator_slack_channel_ids is defined
 
     # Creates the new integration with prefix added for customer e.g.
@@ -303,23 +298,22 @@
 
     - name: Associate Grafana integration details with ManagedClusters
       ansible.builtin.set_fact:
-        grafana_cloud_operator_mapped_integrations: "{{ grafana_cloud_operator_mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}" # yamllint disable-line rule:line-length
+        grafana_cloud_operator_mapped_integrations: "{{ grafana_cloud_operator_mapped_integrations | default([]) + [{'cluster_name': item.item.cluster_name, 'grafana_details': item.json}] }}" # yamllint disable-line rule:line-length
       loop: "{{ grafana_cloud_operator_integration_response.results }}"
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     # Following tasks will execute only if Grafana integration was created successfully
-    # transformed_namespaces from above task it removes owner name from it and prints out as local-cluster
     - name: Modify Alertmanager secret
       ansible.builtin.include_tasks: modify_alertmanager_secret.yml
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
-        transformed_namespace: "{{ item.cluster.name | regex_replace('^(.*)-[^-]+$', '\\1') }}"
-        grafana_cloud_operator_cluster_name: "{{ item.cluster.name }}"
+        transformed_namespace: "{{ item.cluster_name }}"
+        grafana_cloud_operator_cluster_name: "{{ item.cluster_name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ grafana_cloud_operator_mapped_integrations }}"
       loop_control:
-        label: "{{ item.cluster.name }}"
+        label: "{{ item.cluster_name }}"
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
 # Skipped when grafana_cloud_operator_manifestwork_creation_results is not defined

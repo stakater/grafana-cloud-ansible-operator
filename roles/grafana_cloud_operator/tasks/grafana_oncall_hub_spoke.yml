@@ -313,27 +313,14 @@
       loop: "{{ grafana_cloud_operator_integration_response.results }}"
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
-    - name: Attach base MC namespace to mapped integrations
-      ansible.builtin.set_fact:
-        grafana_cloud_operator_mapped_integrations: >-
-          {{
-            grafana_cloud_operator_mapped_integrations | map('combine', {
-              'cluster_name': item.cluster | regex_replace('-[^-]+$', '')
-            }) | list
-          }}
-      loop: "{{ grafana_cloud_operator_mapped_integrations }}"
-      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
-
     - name: Keep only integrations for existing ManagedClusters
       ansible.builtin.set_fact:
         grafana_cloud_operator_mapped_integrations: >-
           {{
             grafana_cloud_operator_mapped_integrations
-            | selectattr('name', 'in', grafana_cloud_operator_managed_cluster_base_names)
+            | selectattr('cluster_name', 'in', grafana_cloud_operator_managed_cluster_base_names)
             | list
           }}
-      loop: "{{ grafana_cloud_operator_mapped_integrations }}"
-      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     # Following tasks will execute only if Grafana integration was created successfully
     # transformed_namespaces from above task it removes owner name from it and prints out as local-cluster

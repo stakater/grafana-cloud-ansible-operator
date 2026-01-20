@@ -66,11 +66,11 @@
   ansible.builtin.set_fact:
     grafana_cloud_operator_common_clusters: >-
       {{
-        grafana_cloud_operator_managed_clusters
-        | dict2items
-        | selectattr('key', 'in', grafana_cloud_operator_integration_names)
-        | items2dict
+        grafana_cloud_operator_managed_clusters_full
+        | selectattr('integration_name', 'in', grafana_cloud_operator_integration_names)
+        | list
       }}
+
 
 # By comparing local available managedClusters CR names and grafana_cloud_operator_existing_integration_names
 # integrations names on grafana cloud we are creating a list for the integration to be created

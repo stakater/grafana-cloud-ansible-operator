@@ -314,7 +314,7 @@
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
-        transformed_namespace: "{{ grafana_cloud_operator_cluster_name }}"
+        transformed_namespace: "{{ grafana_cloud_operator_managed_cluster_names[loop.index0] | regex_replace('^name: ', '') }}"
         grafana_cloud_operator_cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ grafana_cloud_operator_mapped_integrations }}"

@@ -51,6 +51,18 @@
   loop_control:
     loop_var: item
 
+- name: Extract base ManagedCluster names
+  ansible.builtin.set_fact:
+    grafana_cloud_operator_managed_cluster_base_names: >-
+      {{
+        grafana_cloud_operator_managed_cluster_names
+        | map('regex_replace', '^name: ', '')
+        | list
+      }}
+  loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
+  loop_control:
+    loop_var: item
+
 # Extracts owner from the ManagedCluster labels and saves it like owner: unknown
 - name: Extract ManagedCluster owners with prefix
   ansible.builtin.set_fact:
@@ -312,6 +324,17 @@
       loop: "{{ grafana_cloud_operator_mapped_integrations }}"
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
+    - name: Keep only integrations for existing ManagedClusters
+      ansible.builtin.set_fact:
+        grafana_cloud_operator_mapped_integrations: >-
+          {{
+            grafana_cloud_operator_mapped_integrations
+            | selectattr('name', 'in', grafana_cloud_operator_managed_cluster_base_names)
+            | list
+          }}
+      loop: "{{ grafana_cloud_operator_mapped_integrations }}"
+      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
+
     # Following tasks will execute only if Grafana integration was created successfully
     # transformed_namespaces from above task it removes owner name from it and prints out as local-cluster
     - name: Modify Alertmanager secret
@@ -319,7 +342,7 @@
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
-        mc_namespace: "{{ item.cluster_name }}"
+        mc_namespace: "{{ item.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ grafana_cloud_operator_mapped_integrations }}"
       loop_control:

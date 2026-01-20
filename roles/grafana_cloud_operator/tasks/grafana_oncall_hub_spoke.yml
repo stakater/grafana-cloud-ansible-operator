@@ -306,10 +306,10 @@
         grafana_cloud_operator_mapped_integrations: >-
           {{
             grafana_cloud_operator_mapped_integrations | map('combine', {
-              'cluster_name': item.cluster.name | regex_replace('-[^-]+$', '')
+              'cluster_name': item.cluster | regex_replace('-[^-]+$', '')
             }) | list
           }}
-      loop: "{{ grafana_cloud_operator_integration_response.results }}"
+      loop: "{{ grafana_cloud_operator_mapped_integrations }}"
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     # Following tasks will execute only if Grafana integration was created successfully

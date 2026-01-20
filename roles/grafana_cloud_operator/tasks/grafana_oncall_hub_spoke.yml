@@ -302,13 +302,13 @@
           {{
             grafana_cloud_operator_integration_response.results
             | selectattr('status', 'in', [200, 201])
-            | map(attribute='item')
+            | map(attribute='item.key')
             | zip(
                 grafana_cloud_operator_integration_response.results
                 | selectattr('status', 'in', [200, 201])
                 | map(attribute='json')
             )
-            | map('combine', {"cluster_name": _[0].key, "grafana_details": _[1]}, recursive=True)
+            | map('combine', {"cluster_name": item[0], "grafana_details": item[1]})
             | list
           }}
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0 and grafana_cloud_operator_integration_response.results is defined # yamllint disable-line rule:line-length

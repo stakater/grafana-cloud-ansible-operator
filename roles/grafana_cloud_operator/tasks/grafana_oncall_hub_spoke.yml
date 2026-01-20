@@ -301,6 +301,17 @@
       loop: "{{ grafana_cloud_operator_integration_response.results }}"
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
 
+    - name: Attach base MC namespace to mapped integrations
+      ansible.builtin.set_fact:
+        grafana_cloud_operator_mapped_integrations: >-
+          {{
+            grafana_cloud_operator_mapped_integrations | map('combine', {
+              'cluster_name': item.cluster.name | regex_replace('-[^-]+$', '')
+            }) | list
+          }}
+      loop: "{{ grafana_cloud_operator_integration_response.results }}"
+      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
+
     # Following tasks will execute only if Grafana integration was created successfully
     # transformed_namespaces from above task it removes owner name from it and prints out as local-cluster
     - name: Modify Alertmanager secret
@@ -308,7 +319,7 @@
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
-        grafana_cloud_operator_cluster_name: "{{ item.cluster.name }}"
+        namespace: "{{ item.cluster_name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ grafana_cloud_operator_mapped_integrations }}"
       loop_control:

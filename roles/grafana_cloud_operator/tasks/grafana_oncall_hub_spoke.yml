@@ -309,9 +309,19 @@
 
     - name: Associate Grafana integration details with ManagedClusters
       ansible.builtin.set_fact:
-        grafana_cloud_operator_mapped_integrations: "{{ grafana_cloud_operator_mapped_integrations | default([]) + [{'cluster': item.item, 'grafana_details': item.json}] }}" # yamllint disable-line rule:line-length
+        grafana_cloud_operator_mapped_integrations: >-
+          {{
+            grafana_cloud_operator_mapped_integrations | default([]) + [
+              {
+                'cluster': item.item,
+                'cluster_name': item.item | regex_replace('-[^-]+$', ''),
+                'grafana_details': item.json
+              }
+            ]
+          }}
       loop: "{{ grafana_cloud_operator_integration_response.results }}"
-      when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
+      when: grafana_cloud_operator_create_integration_for_dict is defined
+            and grafana_cloud_operator_create_integration_for_dict | length > 0
 
     - name: Keep only integrations for existing ManagedClusters
       ansible.builtin.set_fact:
@@ -329,7 +339,7 @@
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
-        mc_namespace: "{{ item.name }}"
+        mc_namespace: "{{ item.cluster_name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ grafana_cloud_operator_mapped_integrations }}"
       loop_control:

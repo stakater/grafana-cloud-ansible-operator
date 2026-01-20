@@ -109,7 +109,7 @@
 # Format: {cluster_name: 'local-cluster', name: 'local-cluster-unknown'}
 - name: Transform clusters to integrate into a list of dictionaries with cluster names
   ansible.builtin.set_fact:
-    grafana_cloud_operator_create_integration_for_dict: "{{ grafana_cloud_operator_create_integration_for_dict | default([]) + [{'cluster_name': item.key, 'name': (item.key + '-' + item.value)}] }}"
+    grafana_cloud_operator_create_integration_for_dict: "{{ grafana_cloud_operator_create_integration_for_dict | default([]) + [{'cluster_name': item.key, 'name': (item.key + '-' + item.value)}] }}" # yamllint disable-line rule:line-length
   loop: "{{ grafana_cloud_operator_clusters_to_integrate }}"
   loop_control:
     loop_var: item

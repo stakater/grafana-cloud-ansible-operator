@@ -319,7 +319,7 @@
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
-        namespace: "{{ item.cluster_name }}"
+        mc_namespace: "{{ item.cluster_name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ grafana_cloud_operator_mapped_integrations }}"
       loop_control:

@@ -51,19 +51,6 @@
   loop_control:
     loop_var: item
 
-# Extract ManagedCluster names (no prefix)
-- name: Extract ManagedCluster names
-  ansible.builtin.set_fact:
-    grafana_cloud_operator_managed_cluster_base_names: >-
-      {{
-        grafana_cloud_operator_managed_cluster_base_names | default([]) +
-        [ item.metadata.name ]
-      }}
-  loop: "{{ grafana_cloud_operator_managed_clusters_raw.resources }}"
-  loop_control:
-    loop_var: item
-
-
 # Extracts owner from the ManagedCluster labels and saves it like owner: unknown
 - name: Extract ManagedCluster owners with prefix
   ansible.builtin.set_fact:
@@ -128,7 +115,14 @@
 # list to streamline with our usage ahead
 - name: Transform grafana_cloud_operator_create_integration_for into a list of dictionaries
   ansible.builtin.set_fact:
-    grafana_cloud_operator_create_integration_for_dict: "{{ grafana_cloud_operator_create_integration_for_dict | default([]) + [{'name': item}] }}"
+    grafana_cloud_operator_create_integration_for_dict: >-
+      {{
+        grafana_cloud_operator_create_integration_for_dict | default([]) +
+        [{
+          'name': item,
+          'cluster_base_name': (item | regex_replace('-[^-]+$', ''))
+        }]
+      }}
   loop: "{{ grafana_cloud_operator_create_integration_for }}"
   loop_control:
     loop_var: item
@@ -321,7 +315,7 @@
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
-        transformed_namespace: "{{ grafana_cloud_operator_managed_cluster_base_names }}"
+        transformed_namespace: "{{ item.cluster_base_name }}"
         grafana_cloud_operator_cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ grafana_cloud_operator_mapped_integrations }}"

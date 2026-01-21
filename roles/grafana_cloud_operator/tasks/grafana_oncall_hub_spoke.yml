@@ -228,7 +228,7 @@
       # format "<prefix>_<name>". The resulting list is stored in 'grafana_cloud_operator_managed_cluster_names'.
     - name: Extract new ManagedCluster names
       ansible.builtin.set_fact:
-        grafana_cloud_operator_managed_cluster_names: >
+        grafana_cloud_operator_managed_cluster_names: >-
           {{
             grafana_cloud_operator_managed_clusters
             | dict2items

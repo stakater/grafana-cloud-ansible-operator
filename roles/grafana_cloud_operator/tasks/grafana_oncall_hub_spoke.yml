@@ -268,7 +268,8 @@
 
     - name: Inform user if Grafana integration creation was skipped or failed
       when:
-        - grafana_cloud_operator_integration_response is skipped
+        - grafana_cloud_operator_integration_response is defined
+        - grafana_cloud_operator_integration_response.results is defined
         - >
           (
             grafana_cloud_operator_integration_response.results

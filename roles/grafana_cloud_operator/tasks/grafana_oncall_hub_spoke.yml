@@ -59,7 +59,7 @@
   loop_control:
     loop_var: item
 
-# Removes name: and owner: and joins the managed_cluster_names and _managed_cluster_owners with hyphen in between. e.g. local-cluster-unkonwn
+# Removes name: and owner: and joins the managed_cluster_names and _managed_cluster_owners with underscore in between. e.g. local-cluster_unkonwn
 - name: Combine grafana_cloud_operator_managed_cluster_names and grafana_cloud_operator_managed_cluster_owners into a dictionary
   ansible.builtin.set_fact:
     grafana_cloud_operator_managed_clusters: >-
@@ -71,6 +71,7 @@
               grafana_cloud_operator_managed_cluster_owners
               | map('regex_replace', '^owner: ', '')
             )
+          | map('join', '_')
         )
       }}
 
@@ -103,7 +104,7 @@
         | zip(
             grafana_cloud_operator_managed_clusters | dict2items | map(attribute='value')
         )
-        | map('join', '-')
+        | map('join', '_')
         | reject('in', grafana_cloud_operator_integration_names
           | map('regex_replace', '^name: ', '')
           | map('lower')
@@ -127,7 +128,7 @@
       kubernetes.core.k8s_info:
         api_version: slack.stakater.com/v1alpha1
         kind: Channel
-        namespace: "{{ item.name | regex_replace('^(.+)-[^-]+$', '\\1') }}"
+        namespace: "{{ item.name | regex_replace('^(.*)_[^_]+$', '\\1') }}"
       register: grafana_cloud_operator_slack_channel_info
       loop: "{{ grafana_cloud_operator_create_integration_for_dict }}"
       loop_control:
@@ -224,10 +225,10 @@
 
       # This task processes the 'grafana_cloud_operator_managed_clusters' dictionary to generate a list of ManagedCluster names
       # with their associated prefixes. Each entry in the dictionary is transformed into a string in the
-      # format "<prefix>-<name>". The resulting list is stored in 'grafana_cloud_operator_managed_cluster_names'.
+      # format "<prefix>_<name>". The resulting list is stored in 'grafana_cloud_operator_managed_cluster_names'.
     - name: Extract new ManagedCluster names
       ansible.builtin.set_fact:
-        grafana_cloud_operator_managed_cluster_names: >-
+        grafana_cloud_operator_managed_cluster_names: >
           {{
             grafana_cloud_operator_managed_clusters
             | dict2items
@@ -237,7 +238,7 @@
                 | dict2items
                 | map(attribute='value')
               )
-            | map('join', '-')
+            | map('join', '_')
             | list
           }}
       when: grafana_cloud_operator_create_integration_for_dict is defined and grafana_cloud_operator_create_integration_for_dict | length > 0
@@ -314,7 +315,7 @@
       vars:
         receiver_name: "{{ item.grafana_details.name }}"
         receiver_url: "{{ item.grafana_details.link }}"
-        transformed_namespace: "{{ item.cluster.name | regex_replace('^(.*)-[^-]+$', '\\1') }}"
+        transformed_namespace: "{{ item.cluster.name | regex_replace('^(.*)_[^_]+$', '\\1') }}"
         grafana_cloud_operator_cluster_name: "{{ item.cluster.name }}"
         provision_mode: "hubAndSpoke"
       loop: "{{ grafana_cloud_operator_mapped_integrations }}"

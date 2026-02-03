@@ -133,7 +133,7 @@ The operator's workflow can be described in two different architectural models:
 
     *Forwarding alerts to Slack*
     Fetch Slack Info and Configure Slack, details how the operator additionally configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
-    *Note: This feature utilizes [slack-operator](https://github.com/stakater/slack-operator) which is another one of our open source projects. Please head over there to find detailed information on that operator.*
+    *Note: This feature utilizes [Slack-operator](https://github.com/stakater/slack-operator) which is another one of our open source projects. Please head over there to find detailed information on that operator.*
 
 - **B. Standalone Cluster Model**
 
@@ -193,7 +193,7 @@ The operator's workflow can be described in two different architectural models:
 
     *Forwarding alerts to Slack*
     Just like the hub-and-spoke model, Slack channel can be configured in Standalone mode by populating the `slackId` field , this additionally, configures Grafana OnCall to send alerts directly to a specified Slack channel for enhanced incident awareness and response.
-    *Note: This feature utilizes [slack-operator](https://github.com/stakater/slack-operator) which is another one of our open source projects. Please head over there to find detailed information on that operator.*
+    *Note: This feature utilizes [Slack-operator](https://github.com/stakater/slack-operator) which is another one of our open source projects. Please head over there to find detailed information on that operator.*
 
 ### Prerequisites
 
@@ -361,7 +361,7 @@ Here's a step-by-step guide on understanding and applying this configuration:
       - `grafanaAPIToken`: Since the operator needs to interact with Grafana OnCall's API, you need to provide it with an API token. This token is stored within a Kubernetes secret for security, and here you point the operator to the right secret and key.
       - `provisionMode`: Indicates how the operator should function. It could be in a 'hubAndSpoke' mode where it manages multiple clusters or `standaloneCluster` for managing a single cluster.
       - `slackId`: For `standalone` provision mode populate this field to connect Slack Channel to Grafana OnCall Integration.
-      - `slack`: This is toggle for slack alerts to channel. It accepts boolean. By default, it set to true.
+      - `slack`: This is toggle for Slack alerts to channel. It accepts boolean. By default, it set to true.
 
 1. Applying the Custom Resource:
 

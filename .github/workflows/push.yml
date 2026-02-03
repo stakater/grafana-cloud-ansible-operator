@@ -116,7 +116,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
           DEFAULT_BUMP: patch
           RELEASE_BRANCHES: main
-          WITH_V: true
+          WITH_V: false
 
     outputs:
       image_repository: ${{ env.IMAGE_REPOSITORY }}

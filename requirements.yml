@@ -5,4 +5,4 @@ collections:
   - name: kubernetes.core
     version: "6.2.0"
   - name: community.docker
-    version: "5.0.5"
+    version: "5.4.1"

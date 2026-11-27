@@ -22,3 +22,22 @@ grafana_cloud_operator_alertmanager_secret_name: alertmanager-main
 
 # SyncSet details
 grafana_cloud_operator_syncset_namespace: grafana-cloud-operator
+
+# Base alertmanager config for spokes (hubAndSpoke). The operator adds its
+# receivers and routes on top. These are OpenShift's own defaults for
+# alertmanager-main, which is what spokes received before (copied from the hub).
+grafana_cloud_operator_spoke_alertmanager_base:
+  global:
+    http_config:
+      proxy_from_environment: true
+  inhibit_rules:
+    - equal: [namespace, alertname]
+      source_matchers: ["severity = critical"]
+      target_matchers: ["severity =~ warning|info"]
+    - equal: [namespace, alertname]
+      source_matchers: ["severity = warning"]
+      target_matchers: ["severity = info"]
+  route:
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 12h

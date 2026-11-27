@@ -7,7 +7,7 @@ on:
 
 jobs:
   qa:
-    uses: stakater/.github/.github/workflows/pull_request_doc_qa.yaml@v0.0.178
+    uses: stakater/.github/.github/workflows/pull_request_doc_qa.yaml@v0.0.226
     with:
       MD_CONFIG: .github/md_config.json
       DOC_SRC: README.md
@@ -18,13 +18,13 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
 # ansible-lint v25 breaks it
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@v26.1.1
+        uses: ansible/ansible-lint@v26.11.1
 
       - name: Generate Tag
         id: generate_tag
@@ -34,13 +34,13 @@ jobs:
           echo "GIT_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io/stakater
           username: ${{ github.actor }}
@@ -51,7 +51,7 @@ jobs:
           echo IMAGE_REPOSITORY=$(echo ghcr.io/stakater/${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
       - name: Build and Push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         id: build_and_push
         with:
           context: .

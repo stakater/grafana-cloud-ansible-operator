@@ -3,6 +3,6 @@ collections:
   - name: operator_sdk.util
     version: "0.5.0"
   - name: kubernetes.core
-    version: "6.2.0"
+    version: "6.6.0"
   - name: community.docker
     version: "5.0.5"

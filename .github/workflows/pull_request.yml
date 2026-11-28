@@ -85,7 +85,7 @@ jobs:
           PR_TAG: -${{ steps.generate_tag_for_catalog.outputs.GIT_TAG }}
 
       - name: Comment on PR
-        uses: mshick/add-pr-comment@v2
+        uses: mshick/add-pr-comment@v3
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}

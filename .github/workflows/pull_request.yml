@@ -73,7 +73,7 @@ jobs:
           echo "GIT_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
 
       - name: Install CLI tools from OpenShift Mirror
-        uses: redhat-actions/openshift-tools-installer@v1
+        uses: redhat-actions/openshift-tools-installer@v3
         with:
           source: "github"
           operator-sdk: "v1.31.0"
